@@ -387,6 +387,7 @@ def Mach_Angle(M, gamma=1.4):
             will be attempted. Must be M > 0.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
+            TODO, NOTE: in this function, gamma is not used!!!!
     
     Returns
     -------

@@ -14,7 +14,7 @@ from pygasflow.isentropic import (
 from pygasflow.generic import Sound_Speed
 from pygasflow.utils.common import Flow_State, Ideal_Gas
 
-from pygasflow.utils.nozzles import (
+from pygasflow.nozzles import (
     CD_Conical_Nozzle,
     CD_TOP_Nozzle
 )
@@ -48,7 +48,7 @@ class De_Laval_Solver(object):
         P0 = input_state.total_pressure
         rho0 = gas.solve(p=P0, t=T0)
 
-        Ae_As_ratio = geometry.Outlet_area / geometry.Critical_area
+        Ae_As_ratio = geometry.Outlet_Area / geometry.Critical_Area
         
         self._critical_temperature = Temperature_Ratio(1, gamma) * T0
         self._critical_pressure = Pressure_Ratio(1, gamma) * P0
@@ -147,15 +147,16 @@ class De_Laval_Solver(object):
             flow_condition : string
                 The flow condition given the input pressure ratio.
             Asw_At_ratio : float
-                Area ratio of the shock wave location, if present.
+                Area ratio of the shock wave location if present, otherwise
+                return None.
         """
-        Ae = self._geometry.Outlet_area
-        At = self._geometry.Critical_area
+        Ae = self._geometry.Outlet_Area
+        At = self._geometry.Critical_Area
         Lc = self._geometry.Length_Convergent
         # copy the arrays: we do not want to modify the original geometry in case of 
         # shock wave at the exit plane
-        area_ratios = np.copy(self._geometry.Area_ratio_array)
-        L = np.copy(self._geometry.Length_array) + Lc
+        area_ratios = np.copy(self._geometry.Area_Ratio_Array)
+        L = np.copy(self._geometry.Length_Array) + Lc
 
         M = np.zeros_like(area_ratios)
         P_ratios = np.zeros_like(area_ratios)
@@ -285,15 +286,15 @@ class De_Laval_Solver(object):
     
     @property
     def Critical_Area(self):
-        return self._geometry.Critical_area
+        return self._geometry.Critical_Area
     
     @property
     def Inlet_Area(self):
-        return self._geometry.Inlet_area
+        return self._geometry.Inlet_Area
     
     @property
     def Outlet_Area(self):
-        return self._geometry.Outlet_area
+        return self._geometry.Outlet_Area
     
     @property
     def Limit_Pressure_Ratios(self):
@@ -303,14 +304,14 @@ class De_Laval_Solver(object):
         s = "De Laval nozzle characteristics:\n"
         s += "Geometry: " + self._geometry.__str__()
         s += "Critical Quantities:\n"
-        s += "T*\t{}\n".format(self._critical_temperature)
-        s += "P*\t{}\n".format(self._critical_pressure)
-        s += "rho*\t{}\n".format(self._critical_density)
-        s += "u*\t{}\n".format(self._critical_velocity)
+        s += "\tT*\t{}\n".format(self._critical_temperature)
+        s += "\tP*\t{}\n".format(self._critical_pressure)
+        s += "\trho*\t{}\n".format(self._critical_density)
+        s += "\tu*\t{}\n".format(self._critical_velocity)
         s += "Important Pressure Ratios:\n"
-        s += "r1\t{}\n".format(self._r1)
-        s += "r2\t{}\n".format(self._r2)
-        s += "r3\t{}\n".format(self._r3)
+        s += "\tr1\t{}\n".format(self._r1)
+        s += "\tr2\t{}\n".format(self._r2)
+        s += "\tr3\t{}\n".format(self._r3)
         s += "Flow Condition: \t{}\n".format(self._flow_condition)
         s += "Input state\t{}\n".format(self._input_state)
         if self._output_state != None:
