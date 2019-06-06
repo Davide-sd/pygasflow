@@ -6,6 +6,11 @@ from pygasflow.utils.roots import Apply_Bisection
 from pygasflow.generic import Characteristic_Mach_Number
 from pygasflow.utils.decorators import Check_Shockwave
 
+# NOTE:
+# In the following module:
+#   beta: shock wave angle.
+#   theta: flow deflection angle.
+
 #####################################################################################
 ############# The following methods are specific for normal shock waves. ############
 ##### They can also be used for calculation with oblique shock wave, just use #######

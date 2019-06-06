@@ -328,7 +328,7 @@ def M_From_Mach_Angle(angle, gamma=1.4):
     return 1 / np.sin(np.deg2rad(angle))
 
 @Check
-def Mach_Angle(M, gamma=1.4):
+def Mach_Angle(M):
     """
     Compute the Mach angle given the Mach number.
 
@@ -337,9 +337,6 @@ def Mach_Angle(M, gamma=1.4):
         M : array_like
             Mach number. If float, list, tuple is given as input, a conversion
             will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-            TODO, NOTE: in this function, gamma is not used!!!!
     
     Returns
     -------
