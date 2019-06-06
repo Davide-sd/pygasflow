@@ -1,17 +1,10 @@
 import numpy as np
-# TODO: do I still use this Number???
-from numbers import Number
-from pygasflow.utils.decorators import (
-    convert_first_argument, 
-    check_M_gamma, 
-    check_M_gamma_shockwave, 
-    check_ratio_gamma
-)
-from pygasflow.utils.roots import Apply_Bisection
-from pygasflow.generic import Characteristic_Mach_Number
-
 from scipy.optimize import bisect, minimize_scalar
 from scipy.integrate import solve_ivp
+
+from pygasflow.utils.roots import Apply_Bisection
+from pygasflow.generic import Characteristic_Mach_Number
+from pygasflow.utils.decorators import Check_Shockwave
 
 #####################################################################################
 ############# The following methods are specific for normal shock waves. ############
@@ -19,7 +12,7 @@ from scipy.integrate import solve_ivp
 ##################### the normal component of the Mach number. ######################
 #####################################################################################
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Pressure_Ratio(M1, gamma=1.4):
     """Compute the static pressure ratio P2/P1. 
 
@@ -38,7 +31,7 @@ def Pressure_Ratio(M1, gamma=1.4):
     """
     return (2 * gamma * M1**2 - gamma + 1) / (gamma + 1)
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Temperature_Ratio(M1, gamma=1.4):
     """ Compute the static temperature ratio T2/T1.
 
@@ -58,7 +51,7 @@ def Temperature_Ratio(M1, gamma=1.4):
     return ((2 * gamma * M1**2 - gamma + 1) * (2 + (gamma - 1) * M1**2)
             / ((gamma + 1)**2 * M1**2))
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Density_Ratio(M1, gamma=1.4):
     """ Compute the density ratio rho2/rho1.
 
@@ -77,7 +70,7 @@ def Density_Ratio(M1, gamma=1.4):
     """
     return ((gamma + 1) * M1**2) / ((gamma - 1) * M1**2 + 2)
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Total_Pressure_Ratio(M1, gamma=1.4):
     """ Compute the total pressure ratio P02/P01.
 
@@ -98,7 +91,7 @@ def Total_Pressure_Ratio(M1, gamma=1.4):
     b = (gamma + 1) / (2 * gamma * M1**2 - gamma + 1)
     return a**(gamma / (gamma - 1)) * b**(1 / (gamma - 1))
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Total_Temperature_Ratio(M1, gamma=1.4):
     """ Compute the total temperature ratio T02/T01.
 
@@ -117,9 +110,10 @@ def Total_Temperature_Ratio(M1, gamma=1.4):
     """
     return np.ones_like(M1)
 
-# here I use check_M_gamma and not check_M_gamma_shockwave because this function
+# here I use Check_Mach_Specific_Heat_Ratio and not 
+# Check_Mach_Specific_Heat_Ratio(1) because this function
 # can also be used to compute M1 given M2 (which is M2 < 1)
-@check_M_gamma
+@Check_Shockwave
 def Mach_Downstream(M1, gamma=1.4):
     """ Compute the downstream Mach number M2.
     Note that this function can also be used to compute M1 given M2.
@@ -141,7 +135,7 @@ def Mach_Downstream(M1, gamma=1.4):
     return ((1 + (gamma - 1) / 2 * M1**2) / (gamma * M1**2 -
             (gamma - 1) / 2))**(0.5)
 
-@check_ratio_gamma
+@Check_Shockwave
 def M1_From_Pressure_Ratio(ratio, gamma=1.4):
     """ Compute M1 from the pressure ratio. 
 
@@ -162,7 +156,7 @@ def M1_From_Pressure_Ratio(ratio, gamma=1.4):
 
     return np.sqrt((ratio * (gamma + 1) + gamma - 1) / (2 * gamma))
 
-@check_ratio_gamma
+@Check_Shockwave
 def M1_From_Temperature_Ratio(ratio, gamma=1.4):
     """ Compute M1 from the temperature ratio. 
 
@@ -186,7 +180,7 @@ def M1_From_Temperature_Ratio(ratio, gamma=1.4):
     c = -2.0 * (gamma - 1)
     return np.sqrt((-b + np.sqrt(b**2 - 4.0 * a * c)) / 2.0 / a)
 
-@check_ratio_gamma
+@Check_Shockwave
 def M1_From_Density_Ratio(ratio, gamma=1.4):
     """ Compute M1 from the density ratio. 
 
@@ -209,8 +203,8 @@ def M1_From_Density_Ratio(ratio, gamma=1.4):
 
     return np.sqrt(2.0 * ratio / (gamma + 1 - ratio * (gamma - 1)))
 
-@check_ratio_gamma
-def M1_From_Total_Pressure_Ratio(ratio, gamma=1.4, tol=1e-5):
+@Check_Shockwave
+def M1_From_Total_Pressure_Ratio(ratio, gamma=1.4):
     """ Compute M1 from the total pressure ratio. 
 
     Parameters
@@ -233,13 +227,13 @@ def M1_From_Total_Pressure_Ratio(ratio, gamma=1.4, tol=1e-5):
 
     return Apply_Bisection(ratio, func, "sup")
 
-@convert_first_argument
-def M1_From_M2(M_2, gamma=1.4):
+@Check_Shockwave
+def M1_From_M2(M2, gamma=1.4):
     """ Compute M1 from the downstream Mach number M2. 
 
     Parameters
     ----------
-        M_2 : array_like
+        M2 : array_like
             Downstream Mach Number. If float, list, tuple is given as input, 
             a conversion will be attempted. Must be ((gamma - 1) / 2 / gamma) < M_2 < 1.
         gamma : float
@@ -250,17 +244,17 @@ def M1_From_M2(M_2, gamma=1.4):
         out : ndarray
             Upstream Mach number M1.
     """
-    gr = (gamma - 1) / 2 / gamma
-    assert np.all(M_2 >= gr) and np.all(M_2 < 1), ("The downstream M2 must be " +
-            str(gr) + " < M2 < 1")
+    lower_lim = (gamma - 1) / 2 / gamma
+    assert np.all(M2 >= lower_lim) and np.all(M2 < 1), ("The downstream M2 must be " +
+            str(lower_lim) + " < M2 < 1")
 
-    return Mach_Downstream(M_2, gamma)
+    return Mach_Downstream(M2, gamma)
 
 #######################################################################################
 ############## The following methods are specific for oblique shock waves #############
 #######################################################################################
 
-@convert_first_argument
+@Check_Shockwave
 def Theta_From_Mach_Beta(M1, beta, gamma=1.4):
     """ Compute the flow turning angle Theta accordingly to the input
     parameters.
@@ -284,13 +278,15 @@ def Theta_From_Mach_Beta(M1, beta, gamma=1.4):
 
     num = M1**2 * np.sin(beta)**2 - 1
     den = M1**2 * (gamma + np.cos(2 * beta)) + 2
-
-    theta = np.arctan(2 / np.tan(beta) * num / den)
+    theta = np.asarray(np.arctan(2 / np.tan(beta) * num / den))
+    # need to take into account that we are considering only positive
+    # values of the Flow Angle Theta.
+    theta[theta < 0] = np.nan
 
     return np.rad2deg(theta)
 
 
-@convert_first_argument
+@Check_Shockwave
 def Beta_From_Mach_Theta(M1, theta, gamma=1.4):
     """ Compute the shock angle Beta accordingly to the input parameters.
 
@@ -382,7 +378,7 @@ def Beta_From_Mach_Theta(M1, theta, gamma=1.4):
     return { "weak": np.rad2deg(beta_weak), "strong": np.rad2deg(beta_strong) }
 
 
-@convert_first_argument
+@Check_Shockwave([0, 1])
 def Beta_From_Upstream_Mach(M1, MN1):
     """ Compute the shock wave angle beta from the upstream Mach number and
     its normal component.
@@ -404,9 +400,10 @@ def Beta_From_Upstream_Mach(M1, MN1):
     MN1 = np.asarray(MN1)
     assert np.all(M1 >= 1), "The upstream Mach number must be > 1."
     assert M1.shape == MN1.shape, "M1 and MN1 must have the same number of elements and the same shape."
+    assert np.all(M1 - MN1 >= 0), "Upstream Mach number must be >= of the normal upstream Mach number."
     return np.rad2deg(np.arcsin(MN1 / M1))
 
-@convert_first_argument
+@Check_Shockwave
 def Normal_Mach_Upstream(M1, beta=None, theta=None, flag="weak"):
     """ Compute the upstream normal Mach Number, which can then be used
     to evaluate all other ratios.
@@ -423,8 +420,6 @@ def Normal_Mach_Upstream(M1, beta=None, theta=None, flag="weak"):
         flag : string
             Can be either 'weak' or 'strong'. Default to 'weak'. Chose what value to 
             compute if theta is provided.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
@@ -442,6 +437,7 @@ def Normal_Mach_Upstream(M1, beta=None, theta=None, flag="weak"):
 
     MN1 = -1
     if beta != None:
+        print("asd", beta)
         beta = np.deg2rad(beta)
         MN1 = M1 * np.sin(beta)
     elif theta != None:
@@ -496,7 +492,7 @@ def Get_Upstream_Normal_Mach_From_Ratio(ratioName, ratio, gamma=1.4):
 
     return ratios[ratioName](ratio, gamma)
 
-@check_M_gamma_shockwave
+@Check_Shockwave
 def Get_Ratios_From_Normal_Mach_Upstream(Mn, gamma=1.4):
     """
     Compute the ratios of the quantities across a Shock Wave given the Normal Mach number.
@@ -522,6 +518,7 @@ def Get_Ratios_From_Normal_Mach_Upstream(Mn, gamma=1.4):
         mn2 : array_like
             Normal Mach number dowstream of the shock wave.
     """
+    # TODO: use __no_check
     pr = Pressure_Ratio(Mn, gamma)
     dr = Density_Ratio(Mn, gamma)
     tr = Temperature_Ratio(Mn, gamma)
@@ -530,63 +527,7 @@ def Get_Ratios_From_Normal_Mach_Upstream(Mn, gamma=1.4):
 
     return pr, dr, tr, tpr, mn2
 
-
-def Upstream_Mach_From_Normal_Mach_Theta(Mn, theta, flag="weak", gamma=1.4):
-    """
-    Compute the Mach number from a given deflection angle theta and the normal Mach number.
-
-    Parameters
-    ----------
-        Mn : float
-            Normal Mach number. Must be Mn > 1.
-        theta : float
-            Deflection angle in degrees. Must be 0 <= theta <= 90.
-        flag : string
-            Can be either 'weak' or 'strong'. Default to 'weak'. Chose what value of
-            the shock wave angle to compute if theta is provided.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-    
-    Returns
-    -------
-        M : float
-            Mach number.
-    """
-    # TODO:
-    # Doed it make sense 0 <= theta <= 90????
-
-
-    raise NotImplementedError("Upstream_Mach_From_Normal_Mach_Theta not yet implemented.")
-
-
-    #############################
-    # IMPOSSIBLE TO UNIQUELY SOLVE?!?!?!?!?
-    #############################  
-
-    # assert isinstance(Mn, (int, float)) and Mn > 1, "The normal Mach number must be > 1." 
-    # assert isinstance(theta, (int, float)) and theta >= 0 and theta <= 90, "The deflection angle must be 0 <= theta <= 90."
-    # flag = flag.lower()
-    # assert flag in ["weak", "strong"], "Flag must be either 'weak' or 'strong'."
-    # assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heats ratio must be > 1." 
-
-    # def func(M1):
-    #     beta = Beta_From_Mach_Theta(M1, theta, gamma)[flag]
-    #     Mn1 = M1 * np.sin(np.rad2deg(beta))
-    #     print(beta, Mn1)
-    #     return Mn1 - Mn
-    
-    # # import matplotlib.pyplot as plt
-    # # x = np.linspace(Mn, 10, 100)
-    # # y = func(x)
-    # # plt.plot(x,y)
-    # # plt.grid()
-    # # plt.show()
-    # a = Mn
-    # # TODO: 
-    # # 1. what if the actual M is > 1000???
-    # b = 1000
-    # return bisect(func, a, b)
-
+@Check_Shockwave
 def Maximum_Mach_From_Deflection_Angle(theta, gamma=1.4):
     """
     Compute the maximum Mach number from a given Deflection angle theta.
@@ -603,9 +544,9 @@ def Maximum_Mach_From_Deflection_Angle(theta, gamma=1.4):
         M : float
             The maximum Mach number for the specified theta.
     """
-    assert isinstance(theta, (int, float)) and theta >= 0 and theta <= 90, "The deflection angle must be a number 0 <= theta <= 90."
-    assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heats ratio must be > 1." 
-
+    upper_lim = Max_Theta_From_Mach(np.finfo(np.float32).max, gamma)
+    assert theta < upper_lim, "The flow deflection angle must be < {}, which correspond to Mach=infinity.".format(upper_lim)
+    
     def function(t):
         def func(M):
             theta_max = Max_Theta_From_Mach(M, gamma)
@@ -626,17 +567,34 @@ def Maximum_Mach_From_Deflection_Angle(theta, gamma=1.4):
         return Max_M
     return function(theta)
 
-@check_M_gamma_shockwave
-def Max_Theta_From_Mach(M, gamma=1.4):
-# def Max_Deflection_Angle_From_Mach(M, gamma=1.4):
+@Check_Shockwave
+def Mimimum_Beta_From_Mach(M1):
     """
-    Compute the maximum deflection angle for a given the Mach number.
+    Compute the minimum shock wave angle for a given upstream Mach number.
 
     Parameters
     ----------
         M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
+            Upstream Mach number. Must be >= 1.
+    
+    Returns
+    -------
+        beta: float
+            Shock wave angle in degrees
+    """
+    return np.rad2deg(np.arcsin(1 / M1))
+
+@Check_Shockwave
+def Max_Theta_From_Mach(M1, gamma=1.4):
+# def Max_Deflection_Angle_From_Mach(M, gamma=1.4):
+    """
+    Compute the maximum deflection angle for a given upstream Mach number.
+
+    Parameters
+    ----------
+        M1 : array_like
+            Upstream Mach number. If float, list, tuple is given as input,
+            a conversion will be attempted. Must be M1 >= 1.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
     
@@ -665,24 +623,24 @@ def Max_Theta_From_Mach(M, gamma=1.4):
         # Therefore theta_max = arctan(1 / func(beta_min))
         return np.rad2deg(np.arctan(1 / func(res.x)))
 
-    if M.shape:
-        theta_max = np.zeros_like(M)
-        for i, m in enumerate(M):
+    if M1.shape:
+        theta_max = np.zeros_like(M1)
+        for i, m in enumerate(M1):
             theta_max[i] = function(m)
         return theta_max
-    return function(M)
+    return function(M1)
 
-@check_M_gamma_shockwave
-def Beta_From_Mach_Max_Theta(M, gamma=1.4):
+@Check_Shockwave
+def Beta_From_Mach_Max_Theta(M1, gamma=1.4):
     """
     Compute the shock wave angle beta corresponding to the maximum deflection angle theta
     given an upstream Mach number.
 
     Parameters
     ----------
-        M : array_like
+        M1 : array_like
             Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
+            will be attempted. Must be M1 >= 1.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
     
@@ -692,27 +650,27 @@ def Beta_From_Mach_Max_Theta(M, gamma=1.4):
             The shock angle in degrees.
     """
 
-    theta_max = Max_Theta_From_Mach.__bypass_decorator(M, gamma)
+    theta_max = Max_Theta_From_Mach.__no_check(M1, gamma)
 
-    if M.shape:
-        beta = np.zeros_like(M)
-        for i, (m, t) in enumerate(zip(M, theta_max)):
+    if M1.shape:
+        beta = np.zeros_like(M1)
+        for i, (m, t) in enumerate(zip(M1, theta_max)):
             # here I chose 'weak', but in this case it's the same as 'strong'!
             beta[i] = Beta_From_Mach_Theta(m, t)["weak"]
         return beta
-    return Beta_From_Mach_Theta(M, theta_max)["weak"]
+    return Beta_From_Mach_Theta(M1, theta_max)["weak"]
 
-@convert_first_argument
-def Beta_Theta_Max_For_Unit_Mach_Downstream(M, gamma=1.4):
+@Check_Shockwave
+def Beta_Theta_Max_For_Unit_Mach_Downstream(M1, gamma=1.4):
     """
     Compute the shock maximum deflection angle, theta_max, as well as the
     wave angle beta corresponding to the unitary downstream Mach number, M2 = 1.
 
     Parameters
     ----------
-        M : array_like
+        M1 : array_like
             Upstream Mach number. If float, list, tuple is given as input,
-            a conversion will be attempted. Must be M >= 1.
+            a conversion will be attempted. Must be M1 >= 1.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
     
@@ -723,25 +681,26 @@ def Beta_Theta_Max_For_Unit_Mach_Downstream(M, gamma=1.4):
         Theta max : array_like
             The maximum deflection angle in degrees corresponding to M2=1.
     """
-    assert np.all(M >= 1), "Upstream Mach number must be M >= 1."
+    # assert np.all(M >= 1), "Upstream Mach number must be M >= 1."
 
     def func(b, M, t):
         return ((1 + (gamma - 1) / 2 * (M * np.sin(b))**2) / (gamma * (M * np.sin(b))**2 - (gamma - 1) / 2)) - np.sin(b - t)**2
     
-    theta_max = np.deg2rad(Max_Theta_From_Mach.__bypass_decorator(M, gamma))
+    theta_max = np.deg2rad(Max_Theta_From_Mach.__no_check(M1, gamma))
 
-    if M.shape:
-        beta = np.zeros_like(M)
-        for i, (m, t) in enumerate(zip(M, theta_max)):
+    if M1.shape:
+        beta = np.zeros_like(M1)
+        for i, (m, t) in enumerate(zip(M1, theta_max)):
             a = np.arcsin(1 / m)
-            b = np.deg2rad(Beta_From_Mach_Max_Theta.__bypass_decorator(m, gamma))
+            b = np.deg2rad(Beta_From_Mach_Max_Theta.__no_check(m, gamma))
             beta[i] = bisect(func, a, b, args=(m, t))
         return np.rad2deg(beta), np.rad2deg(theta_max)
 
-    a = np.arcsin(1 / M)
-    b = np.deg2rad(Beta_From_Mach_Max_Theta.__bypass_decorator(M, gamma))
-    return np.rad2deg(bisect(func, a, b, args=(M, theta_max))), np.rad2deg(theta_max)
+    a = np.arcsin(1 / M1)
+    b = np.deg2rad(Beta_From_Mach_Max_Theta.__no_check(M1, gamma))
+    return np.rad2deg(bisect(func, a, b, args=(M1, theta_max))), np.rad2deg(theta_max)
 
+@Check_Shockwave([0, 1])
 def Mach_From_Theta_Beta(theta, beta, gamma=1.4):
     """
     Compute the upstream Mach number given the flow deflection angle and the shock wave angle.
@@ -762,6 +721,8 @@ def Mach_From_Theta_Beta(theta, beta, gamma=1.4):
         Mach : ndarray
             The upstream Mach number.
     """
+    assert beta.shape == theta.shape, "Flow deflection angle and Shock wave angle must have the same shape."
+
     # case beta == 90 and theta == 0, which leaves M to be indeterminate, NaN
     idx0 = np.bitwise_and(beta == 90, theta == 0)
     # if beta == 0 and theta == 0, mach goes to infinity. But out num and den both
@@ -788,6 +749,7 @@ def Mach_From_Theta_Beta(theta, beta, gamma=1.4):
     mach[idx1] = np.inf
     return mach
 
+@Check_Shockwave
 def Shock_Polar(M1, gamma=1.4, N=100):
     """
     Compute the ratios (Vx/a*), (Vy/a*) for plotting a Shock Polar.
@@ -808,8 +770,6 @@ def Shock_Polar(M1, gamma=1.4, N=100):
         (Vy/a*) : ndarray [1 x N]
             y-coordinate for the shock polar plot
     """
-    assert isinstance(M1, (int, float)) and M1 > 1, "Mach number must be > 1."
-    assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heat ratio must be > 1."
     assert isinstance(N, (int)) and N > 1, "The number of discretization steps must be integer and > 1."
 
     M1s = Characteristic_Mach_Number(M1, gamma)
@@ -837,14 +797,14 @@ def Shock_Polar(M1, gamma=1.4, N=100):
 
     return Vx_as, Vy_as
 
-
-def Pressure_Deflection(M, gamma=1.4, N=100):
+@Check_Shockwave
+def Pressure_Deflection(M1, gamma=1.4, N=100):
     """
     Helper function to build Pressure-Deflection plots.
 
     Parameters
     ----------
-        M : float
+        M1 : float
             Upstream Mach number. Must be > 1.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
@@ -861,14 +821,14 @@ def Pressure_Deflection(M, gamma=1.4, N=100):
         pr : array_like
             Pressure ratios computed for the given Mach and the above deflection angles.
     """    
-    theta_max = Max_Theta_From_Mach(M, gamma)
+    theta_max = Max_Theta_From_Mach.__no_check(M1, gamma)
 
     theta = np.linspace(0, theta_max, N)
     theta = np.append(theta, theta[::-1])
     beta = np.zeros_like(theta)
 
     for i in range(N):
-        betas = Beta_From_Mach_Theta(M, theta[i], gamma)
+        betas = Beta_From_Mach_Theta.__no_check(M1, theta[i], gamma)
         beta[i] = betas["weak"]
         beta[len(theta) -1 - i] = betas["strong"]
     
@@ -877,9 +837,9 @@ def Pressure_Deflection(M, gamma=1.4, N=100):
     # idx = np.where(np.isnan(beta))
     # beta[idx] = 1
 
-    Mn = M * np.sin(np.deg2rad(beta))
+    Mn = M1 * np.sin(np.deg2rad(beta))
 
-    return theta, Pressure_Ratio(Mn, gamma)
+    return theta, Pressure_Ratio.__no_check(Mn, gamma)
 
 
 ###########################################################################################
@@ -907,7 +867,6 @@ def Taylor_Maccoll(theta, V, gamma=1.4):
             Taylor-Maccoll differential equation.
     """
     # Reorganizing Anderson's equation 10.15:
-    # V_theta = dV_r / dtheta
     V_r, V_theta = V
 
     dV_dtheta = [
@@ -917,7 +876,7 @@ def Taylor_Maccoll(theta, V, gamma=1.4):
 
     return dV_dtheta
 
-@convert_first_argument
+@Check_Shockwave
 def Nondimensional_Velocity(M, gamma=1.4):
     """
     Compute the Nondimensional Velocity given the Mach number.
@@ -935,13 +894,10 @@ def Nondimensional_Velocity(M, gamma=1.4):
         V : array_like
             Nondimensional Velocity
     """
-    assert np.all(M >= 0), "Mach number must be M >= 0."
-    assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heats ratio must be > 1." 
-    
     # Anderson's equation 10.16
     return np.sqrt((gamma - 1) * M**2 / (2 + (gamma - 1) * M**2))
 
-@convert_first_argument
+@Check_Shockwave
 def Mach_From_Nondimensional_Velocity(V, gamma=1.4):
     """
     Compute the Mach number given the Nondimensional Velocity.
@@ -960,12 +916,10 @@ def Mach_From_Nondimensional_Velocity(V, gamma=1.4):
             Mach number
     """
     assert np.all(V > 0), "Nondimensional velocity must be V > 0."
-    assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heats ratio must be > 1." 
-    
     # inverse Anderson's equation 10.16
     return np.sqrt(2 * V**2 / ((gamma - 1) * (1 - V**2)))
 
-
+# @Check
 def Mach_Cone_Angle_From_Shock_Angle(M, beta, gamma=1.4):
     """
     Compute the half-cone angle and the Mach number at the surface of the cone.
@@ -1002,7 +956,7 @@ def Mach_Cone_Angle_From_Shock_Angle(M, beta, gamma=1.4):
     # NEED TO TAKE CARE OF THIS
 
     # flow deflection angle
-    delta = Theta_From_Mach_Beta.__bypass_decorator(M, beta, gamma)
+    delta = Theta_From_Mach_Beta.__no_check(M, beta, gamma)
 
     # TODO:
     # this check need to be done correctly
@@ -1016,7 +970,7 @@ def Mach_Cone_Angle_From_Shock_Angle(M, beta, gamma=1.4):
     M_2 = MN2 / np.sin(np.deg2rad(beta - delta))
 
     # compute the nondimensional velocity components
-    V0 = Nondimensional_Velocity.__bypass_decorator(M_2, gamma)
+    V0 = Nondimensional_Velocity.__no_check(M_2, gamma)
     V0_r = V0 * np.cos(np.deg2rad(beta - delta))
     V0_theta = -V0 * np.sin(np.deg2rad(beta - delta))
 
@@ -1052,10 +1006,11 @@ def Mach_Cone_Angle_From_Shock_Angle(M, beta, gamma=1.4):
     # at the cone surface, V_theta = 0, therefore V = V_r
     Vc = result.y[0, -1]
     # Mach number at the cone surface
-    Mc = Mach_From_Nondimensional_Velocity.__bypass_decorator(Vc, gamma)
+    Mc = Mach_From_Nondimensional_Velocity.__no_check(Vc, gamma)
 
     return Mc, theta_c
 
+@Check_Shockwave
 def Shock_Angle_From_Mach_Cone_Angle(M, theta_c, gamma=1.4, step=0.0025):
     """
     Compute the shock wave angle.
@@ -1074,7 +1029,9 @@ def Shock_Angle_From_Mach_Cone_Angle(M, theta_c, gamma=1.4, step=0.0025):
     Returns
     -------
         Mc : float
-            Mach number at the surface of the cone
+            Mach number at the surface of the cone, computed.
+        theta_c : float
+            Half cone angle of the cone in degrees.
         beta : float
             Shock wave angle in degrees. 
     """
@@ -1100,15 +1057,16 @@ def Shock_Angle_From_Mach_Cone_Angle(M, theta_c, gamma=1.4, step=0.0025):
 
     return Mc_hp, theta_c_hp, beta_hp
 
-def Shock_Angle_From_Machs(M, Mc, gamma=1.4, step=0.0025):
+@Check_Shockwave
+def Shock_Angle_From_Machs(M1, Mc, gamma=1.4, step=0.0025):
     """
     Compute the shock wave angle.
 
     Parameters
     ----------
-        M : float
+        M1 : float
             Upstream Mach number. Must be > 1.
-        M : float
+        Mc : float
             Mach number at the surface of the cone.
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
@@ -1118,16 +1076,18 @@ def Shock_Angle_From_Machs(M, Mc, gamma=1.4, step=0.0025):
     Returns
     -------
         Mc : float
-            Mach number at the surface of the cone
+            Mach number at the surface of the cone, computed.
+        theta_c : float
+            Half cone angle of the cone in degrees.
         beta : float
             Shock wave angle in degrees. 
     """
 
     # assume a shock wave angle beta.
     # use the mach angle since mu < beta < 90 deg
-    beta_hp = np.rad2deg(np.arcsin(1 / M))
+    beta_hp = np.rad2deg(np.arcsin(1 / M1))
     
-    Mc_hp, theta_c_hp = Mach_Cone_Angle_From_Shock_Angle(M, beta_hp, gamma)
+    Mc_hp, theta_c_hp = Mach_Cone_Angle_From_Shock_Angle(M1, beta_hp, gamma)
 
     # TODO:
     # the while loop is slow, really really slow.
@@ -1136,7 +1096,7 @@ def Shock_Angle_From_Machs(M, Mc, gamma=1.4, step=0.0025):
 
     while Mc_hp > Mc:
         beta_hp += step
-        Mc_hp, theta_c_hp = Mach_Cone_Angle_From_Shock_Angle(M, beta_hp, gamma)
+        Mc_hp, theta_c_hp = Mach_Cone_Angle_From_Shock_Angle(M1, beta_hp, gamma)
         
         # check for detachment
         if Mc_hp == None and theta_c_hp == None:

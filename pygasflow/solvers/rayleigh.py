@@ -87,7 +87,7 @@ def Rayleigh_Solver(param_name, param_value, gamma=1.4):
         'velocity': ray.M_From_Critical_Velocity_Ratio,
     }
     if param_name in func_dict.keys():
-        M = func_dict[param_name].__bypass_decorator(param_value, gamma)
+        M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
     prs, drs, trs, tprs, ttrs, urs, eps = ray.Get_Ratios_From_Mach(M, gamma)

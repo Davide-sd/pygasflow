@@ -1,5 +1,4 @@
 import numpy as np
-from pygasflow.utils.decorators import execution_time
 from scipy.optimize import bisect
 
 def Apply_Bisection(ratio, func, flag="sub"):
@@ -9,7 +8,7 @@ def Apply_Bisection(ratio, func, flag="sub"):
     Args:
         ratio:  Ratio (or parameter) passed to the function.
         func:   Function returning a number.
-        flag:   Can be either "sub" or "sup".
+        flag:   Can be either "sub" or "super".
     
     Return:
         The zero of the given function.
@@ -43,7 +42,7 @@ def iterate_Mach(r, gamma, func, flag, tol=1e-08):
         r:      Target value for the given ratio
         gamma:  Specific heats ratio
         func:   Function to evaluate
-        flag:   'sub' or 'sup'
+        flag:   'sub' or 'super'
         tol:    Tolerance to use. Default to 1e-08.
     
     Return:
@@ -111,7 +110,6 @@ def iterate_Mach_supersonic(r, gamma, func, tol=1e-08):
         fdiff = np.abs(r - y)
     return x
 
-@execution_time
 def iterate_ShockWave_location(pr, gamma, func, area_ratio, tol=1e-08):
     """
     Find the root of the function with the bisection method.

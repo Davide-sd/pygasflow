@@ -75,9 +75,9 @@ def Isentropic_Solver(param_name, param_value, gamma=1.4):
         'prandtl_meyer': ise.M_From_Prandtl_Meyer_Angle,
     }
     if param_name in func_dict.keys():
-        M = func_dict[param_name].__bypass_decorator(param_value, gamma)
+        M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
-    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.Get_Ratios_From_Mach.__bypass_decorator(M, gamma)
+    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.Get_Ratios_From_Mach.__no_check(M, gamma)
     
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

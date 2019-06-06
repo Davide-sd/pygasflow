@@ -174,7 +174,7 @@ class Flow_State(object):
 
         print(self)
         print(a)
-        b = Flow(
+        b = Flow_State(
             # self.gas,
             name=a.downstream_idx,
             p=self.pressure * a.pressure_ratio,

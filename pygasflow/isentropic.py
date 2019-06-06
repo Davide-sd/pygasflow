@@ -1,14 +1,14 @@
 import numpy as np
-from pygasflow.utils.decorators import check_M_gamma, check_ratio_gamma, do_nothing, convert_first_argument
-from pygasflow.utils.roots import Apply_Bisection
 from scipy.optimize import bisect
+
+from pygasflow.utils.roots import Apply_Bisection
+from pygasflow.utils.decorators import Check
 
 # TODO:
 # 1. In the functions where the bisection is used, evaluate if the initial mach range
 #   for supersonic case is sufficient for all gamma and ratios.
 # 2. Evaluate if scipy.brentq and scipy.brenth performs better than scipy.bisect
 # 3. Provide tolerance and maxiter arguments to the function where bisect is used.
-# 4. Look at the possibility to change the argument flag="sub" (or "sup") to a Boolean.
 
 # NOTE: certain function could very well be computed by using other functions.
 #   For instance, Critical_Temperature_Ratio could be computed using Temperature_Ratio.
@@ -17,7 +17,7 @@ from scipy.optimize import bisect
 #   called by root finding methods.
 #   Therefore, I use plain formulas as much as possible.
 
-@check_M_gamma
+@Check
 def Critical_Velocity_Ratio(M, gamma=1.4):
     """
     Compute the critical velocity ratio U/U*. 
@@ -35,9 +35,13 @@ def Critical_Velocity_Ratio(M, gamma=1.4):
         out : ndarray
             Critical velocity ratio U/U*. 
     """
-    return 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M * (1 + (gamma - 1) / 2 * M**2)**0.5)
+    # need to deal with division by 0
+    ratio = np.zeros_like(M)
+    ratio[M == 0] = 0
+    ratio[M != 0] = 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M[M != 0] * (1 + (gamma - 1) / 2 * M[M != 0]**2)**0.5)
+    return ratio
 
-@check_M_gamma
+@Check
 def Critical_Temperature_Ratio(M, gamma=1.4):
     """
     Compute the critical temperature ratio T/T*. 
@@ -55,10 +59,10 @@ def Critical_Temperature_Ratio(M, gamma=1.4):
         out : ndarray
             Critical Temperature ratio T/T*. 
     """
-    # return Temperature_Ratio.__bypass_decorator(M, gamma) * 0.5 * (gamma + 1)
+    # return Temperature_Ratio.__no_check(M, gamma) * 0.5 * (gamma + 1)
     return ((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2)
 
-@check_M_gamma
+@Check
 def Critical_Pressure_Ratio(M, gamma=1.4):
     """
     Compute the critical pressure ratio P/P*. 
@@ -76,10 +80,10 @@ def Critical_Pressure_Ratio(M, gamma=1.4):
         out : ndarray
             Critical Pressure ratio P/P*. 
     """
-    # return Pressure_Ratio.__bypass_decorator(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
+    # return Pressure_Ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
     return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(gamma / (gamma - 1))
 
-@check_M_gamma
+@Check
 def Critical_Density_Ratio(M, gamma=1.4):
     """
     Compute the critical density ratio rho*/rho. 
@@ -97,11 +101,11 @@ def Critical_Density_Ratio(M, gamma=1.4):
         out : ndarray
             Critical density ratio rho*/rho. 
     """
-    # this first version appears to be faster!
-    return Density_Ratio.__bypass_decorator(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
+    # TODO: this first version appears to be faster!
+    return Density_Ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
     # return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(1 / (gamma - 1))
 
-@check_M_gamma
+@Check
 def Critical_Area_Ratio(M, gamma=1.4):
     """
     Compute the critical area ratio A/A*. 
@@ -119,11 +123,13 @@ def Critical_Area_Ratio(M, gamma=1.4):
         out : ndarray
             Critical area ratio A/A*. 
     """
-    # return 1  / Critical_Density_Ratio.__bypass_decorator(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__bypass_decorator(M, gamma)) / M
+    # return 1  / Critical_Density_Ratio.__no_check(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__no_check(M, gamma)) / M
+    # TODO: here, division by M=0 produce the correct results, infinity.
+    # Do I need to suppress the warning???
     return (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
 
 
-@check_M_gamma
+@Check
 def Pressure_Ratio(M, gamma=1.4):
     """
     Compute the pressure ratio P/P0. 
@@ -143,7 +149,7 @@ def Pressure_Ratio(M, gamma=1.4):
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-gamma / (gamma - 1))
 
-@check_M_gamma
+@Check
 def Temperature_Ratio(M, gamma=1.4):
     """
     Compute the temperature ratio T/T0. 
@@ -163,7 +169,7 @@ def Temperature_Ratio(M, gamma=1.4):
     """
     return 1 / (1 + (gamma - 1) / 2 * M**2)
 
-@check_M_gamma
+@Check
 def Density_Ratio(M, gamma=1.4):
     """
     Parameters
@@ -181,58 +187,7 @@ def Density_Ratio(M, gamma=1.4):
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-1 / (gamma - 1))
 
-@convert_first_argument
-def Sound_Speed(T, R=287.058, gamma=1.4):
-    """
-    Compute the sound speed.
-
-    Parameters
-    ----------
-        T : array_like
-            Temperature. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be T >= 0.
-        R : float
-            Specific Gas Constant. Default is air, R=287.058
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-    
-    Returns
-    -------
-        out : ndarray
-            Sound Speed. 
-    """
-    assert np.all(T >= 0), "Temperature must be >= 0."
-    assert R > 0, "Specific gas constant must be >= 0."
-    assert gamma > 1, "Specific heats ratio must be > 1."
-    return np.sqrt(gamma * R * T)
-
-# TODO: no check is done over a.
-@do_nothing
-def Mach_Number(U, a):
-    """
-    Compute the Mach number.
-
-    Parameters
-    ----------
-        U : array_like
-            Velocity. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be U >= 0.
-        a : array_like
-            Sound Speed. If float, list, tuple is given as input, a conversion
-            will be attempted. If array_like, must be U.shape == a.shape.
-    
-    Returns
-    -------
-        out : ndarray
-            Mach Number. 
-    """
-    U = np.asarray(U)
-    a = np.asarray(a)
-    if a.size > 1:
-        assert U.shape == a.shape, "U and a must have the same shape."
-    return U / a
-
-@check_ratio_gamma
+@Check
 def M_From_Temperature_Ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given the Isentropic Temperature Ratio T/T0.
@@ -253,7 +208,7 @@ def M_From_Temperature_Ratio(ratio, gamma=1.4):
     assert np.all(ratio >= 0) and np.all(ratio <= 1), "Temperature ratio must be 0 <= T/T0 <= 1."
     return np.sqrt(2 * (1 / ratio - 1) / (gamma - 1))
 
-@check_ratio_gamma
+@Check
 def M_From_Pressure_Ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given the Isentropic Pressure Ratio P/P0.
@@ -274,7 +229,7 @@ def M_From_Pressure_Ratio(ratio, gamma=1.4):
     assert np.all(ratio >= 0) and np.all(ratio <= 1), "Pressure ratio must be 0 <= P/P0 <= 1."
     return np.sqrt(2 / (gamma - 1) * (1 / ratio**((gamma - 1) / gamma) - 1))
 
-@check_ratio_gamma
+@Check
 def M_From_Density_Ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given the Isentropic Density Ratio rho/rho0.
@@ -295,7 +250,7 @@ def M_From_Density_Ratio(ratio, gamma=1.4):
     assert np.all(ratio >= 0) and np.all(ratio <= 1), "Density ratio must be 0 <= rho/rho0 <= 1."
     return np.sqrt(2 / (gamma - 1) * (1 / ratio**(gamma - 1) - 1))
 
-@check_ratio_gamma
+@Check
 def M_From_Critical_Area_Ratio(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given the Isentropic Critical Area Ratio A/A*.
@@ -316,15 +271,13 @@ def M_From_Critical_Area_Ratio(ratio, flag="sub", gamma=1.4):
             Mach Number.
     """
     assert np.all(ratio >= 1), "Area ratio must be A/A* >= 1."
-    flag = flag.lower()
-    assert flag in ["sub", "sup"], "flag can be either 'sub' or 'sup'."
-    
+
     func = lambda M, r: r - (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
-    # func = lambda M, r: r - Critical_Area_Ratio.__bypass_decorator(M, gamma)
+    # func = lambda M, r: r - Critical_Area_Ratio.__no_check(M, gamma)
     return Apply_Bisection(ratio, func, flag=flag)
 
-
-@check_ratio_gamma
+# with arguments True, I want to convert to np.ndarray the first two parameters
+@Check([0, 1])
 def M_From_Critical_Area_Ratio_And_Pressure_Ratio(a_ratio, p_ratio, gamma=1.4):
     """
     Compute the Mach number given the Critical Area Ratio (A/A*) and
@@ -347,14 +300,13 @@ def M_From_Critical_Area_Ratio_And_Pressure_Ratio(a_ratio, p_ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    p_ratio = np.asarray(p_ratio)
     assert np.all(a_ratio >= 1), "Area ratio must be A/A* >= 1."
     assert np.all(p_ratio >= 0) and np.all(p_ratio <= 1), "Pressure ratio must be 0 <= P/P0 <= 1."
     assert a_ratio.shape == p_ratio.shape, "The Critical Area Ratio and Pressure Ratio must have the same number of elements and the same shape."
     # eq. 5.28, Modern Compressible Flow, 3rd Edition, John D. Anderson
     return np.sqrt(-1 / (gamma - 1) + np.sqrt(1 / (gamma - 1)**2 + 2 / (gamma - 1) * (2 / (gamma + 1))**((gamma + 1) / (gamma - 1)) / a_ratio**2 / p_ratio**2))
 
-@check_ratio_gamma
+@Check
 def M_From_Mach_Angle(angle, gamma=1.4):
     """
     Compute the Mach number given the Mach Angle.
@@ -375,7 +327,7 @@ def M_From_Mach_Angle(angle, gamma=1.4):
     assert np.all(angle >= 0) and np.all(angle <= 90), "Mach angle must be between 0° and 90°."
     return 1 / np.sin(np.deg2rad(angle))
 
-@check_M_gamma
+@Check
 def Mach_Angle(M, gamma=1.4):
     """
     Compute the Mach angle given the Mach number.
@@ -401,7 +353,7 @@ def Mach_Angle(M, gamma=1.4):
     angle[M < 1] = np.nan
     return angle
 
-@convert_first_argument
+@Check
 def M_From_Prandtl_Meyer_Angle(angle, gamma=1.4):
     """
     Compute the Mach number given the Prandtl Meyer angle.
@@ -426,7 +378,7 @@ def M_From_Prandtl_Meyer_Angle(angle, gamma=1.4):
 
     return Apply_Bisection(angle, func, flag="sup")
 
-@check_M_gamma
+@Check
 def Prandtl_Meyer_Angle(M, gamma=1.4):
     """
     Compute the Prandtl Meyer function given the Mach number.
@@ -454,7 +406,7 @@ def Prandtl_Meyer_Angle(M, gamma=1.4):
     nu[M < 1] = np.nan
     return nu
 
-@check_M_gamma
+@Check
 def Get_Ratios_From_Mach(M, gamma):
     """
     Compute all isentropic ratios given the Mach number.
@@ -490,15 +442,15 @@ def Get_Ratios_From_Mach(M, gamma):
             Prandtl-Meyer Angle
     """
 
-    pr = Pressure_Ratio.__bypass_decorator(M, gamma)
-    dr = Density_Ratio.__bypass_decorator(M, gamma)
-    tr = Temperature_Ratio.__bypass_decorator(M, gamma)
-    prs = Critical_Pressure_Ratio.__bypass_decorator(M, gamma)
-    drs = Critical_Density_Ratio.__bypass_decorator(M, gamma)
-    trs = Critical_Temperature_Ratio.__bypass_decorator(M, gamma)
-    urs = Critical_Velocity_Ratio.__bypass_decorator(M, gamma)
-    ar = Critical_Area_Ratio.__bypass_decorator(M, gamma)
-    ma = Mach_Angle.__bypass_decorator(M, gamma)
-    pm = Prandtl_Meyer_Angle.__bypass_decorator(M, gamma)
+    pr = Pressure_Ratio.__no_check(M, gamma)
+    dr = Density_Ratio.__no_check(M, gamma)
+    tr = Temperature_Ratio.__no_check(M, gamma)
+    prs = Critical_Pressure_Ratio.__no_check(M, gamma)
+    drs = Critical_Density_Ratio.__no_check(M, gamma)
+    trs = Critical_Temperature_Ratio.__no_check(M, gamma)
+    urs = Critical_Velocity_Ratio.__no_check(M, gamma)
+    ar = Critical_Area_Ratio.__no_check(M, gamma)
+    ma = Mach_Angle.__no_check(M, gamma)
+    pm = Prandtl_Meyer_Angle.__no_check(M, gamma)
 
     return pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

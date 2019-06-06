@@ -1,5 +1,4 @@
 import numpy as np
-from pygasflow.nozzles.geometry import Internal_Tangents_To_Two_Circles
 
 def Nozzle_Length(Rt, Re, R, K=1, alpha=15):
     """
