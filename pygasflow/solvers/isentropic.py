@@ -82,28 +82,3 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
     
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
-
-
-
-def print_isentropic(M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm):
-    print("M \t\t {}".format(M))
-    print("P/P0 \t\t {}".format(pr))
-    print("rho/rho0 \t {}".format(dr))
-    print("T/T0 \t\t {}".format(tr))
-    print("P/P* \t\t {}".format(prs))
-    print("rho/rho* \t {}".format(drs))
-    print("T/T* \t\t {}".format(trs))
-    print("U/U* \t\t {}".format(urs))
-    print("A/A* \t\t {}".format(ar))
-    print("Mach Angle \t {}".format(ma))
-    print("Prandtl-Meyer \t {}".format(pm))
-    print()
-
-
-def main():
-    s = isentropic_solver('m', 2, gamma=1.4)
-    print(s)
-    print_isentropic(*s)
-
-if __name__ == "__main__":
-    main()
