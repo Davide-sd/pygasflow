@@ -1,17 +1,17 @@
 import numpy as np
 
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
-from pygasflow.nozzles.utils import Convergent
+from pygasflow.nozzles.utils import convergent
 from pygasflow.isentropic import (
-    Prandtl_Meyer_Angle,
-    M_From_Prandtl_Meyer_Angle,
-    M_From_Critical_Area_Ratio,
-    Mach_Angle
+    prandtl_meyer_angle,
+    m_from_prandtl_meyer_angle,
+    m_from_critical_area_ratio,
+    mach_angle
 )
 
 from scipy import interpolate
 
-def Min_Length_Supersonic_Nozzle_MOC(ht, n, Me=None, A_ratio=None, gamma=1.4):
+def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
     """
     Compute the contour of the minimum length supersonic nozzle in a planar
     case with the Method of characteristics.
@@ -68,12 +68,12 @@ def Min_Length_Supersonic_Nozzle_MOC(ht, n, Me=None, A_ratio=None, gamma=1.4):
         assert Me > 1, "Exit Mach number must be > 1."
     elif A_ratio:
         assert A_ratio > 1, "Area ratio must be > 1."
-        Me = M_From_Critical_Area_Ratio(A_ratio, "sup", gamma)
+        Me = m_from_critical_area_ratio(A_ratio, "super", gamma)
     else:
         raise ValueError("Either Me or A_ratio must be provided.")
 
     # Prandtl-Meyer function for the designed exit Mach number
-    vme = Prandtl_Meyer_Angle(Me, gamma)
+    vme = prandtl_meyer_angle(Me, gamma)
 
     # max angle of the wall downstream of the throat (equation 11.33)
     theta_w_max = vme / 2
@@ -125,8 +125,8 @@ def Min_Length_Supersonic_Nozzle_MOC(ht, n, Me=None, A_ratio=None, gamma=1.4):
                 left_runn_chars[i]["nu"][j] = left_runn_chars[i]["Km"][j] - left_runn_chars[i]["theta"][j]
                 
             left_runn_chars[i]["Kp"][j] = left_runn_chars[i]["theta"][j] - left_runn_chars[i]["nu"][j]
-            left_runn_chars[i]["M"][j] = M_From_Prandtl_Meyer_Angle(left_runn_chars[i]["nu"][j], gamma)
-            left_runn_chars[i]["mu"][j] = Mach_Angle(left_runn_chars[i]["M"][j], gamma)
+            left_runn_chars[i]["M"][j] = m_from_prandtl_meyer_angle(left_runn_chars[i]["nu"][j], gamma)
+            left_runn_chars[i]["mu"][j] = mach_angle(left_runn_chars[i]["M"][j])
         
         left_runn_chars[i]["theta"][j + 1] = left_runn_chars[i]["theta"][j]
         left_runn_chars[i]["nu"][j + 1] = left_runn_chars[i]["nu"][j]
@@ -300,9 +300,9 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
 
         # compute the intersection points of the different curves
         # composing the nozzle.
-        self._Compute_Intersection_Points()
+        self._compute_intersection_points()
 
-        x, y = self.Build_Geometry(N)
+        x, y = self.build_geometry(N)
         self._length_array = x
         self._wall_radius_array = y
         self._area_ratio_array = 2 * y / self._At
@@ -315,7 +315,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         s += "\ttheta__w_max\t{}\n".format(self._theta_w_max)
         return s
     
-    def _Compute_Intersection_Points(self):
+    def _compute_intersection_points(self):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
         Rj = self._Rj
@@ -323,7 +323,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         gamma = self._gamma
 
         # find interesting points for the convergent
-        x0, y0, x1, y1, xc, yc = Convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
+        x0, y0, x1, y1, xc, yc = convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
         # convergent length
         self._Lc = xc
         # offset to the left, I want x=0 to be throat section
@@ -331,7 +331,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         x1 -= xc
 
         # compute the wall points
-        wall, _, _, theta_w_max = Min_Length_Supersonic_Nozzle_MOC(Rt, n, None, self._Ae / self._At, gamma)
+        wall, _, _, theta_w_max = min_length_supersonic_nozzle_moc(Rt, n, None, self._Ae / self._At, gamma)
         # divergent length
         self._Ld = wall[-1, 0]
         # max angle at the wall downstream of the throat
@@ -348,10 +348,10 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         }
     
     @property
-    def Intersection_Points(self):
+    def intersection_points(self):
         return self._intersection_points
 
-    def Build_Geometry(self, N):
+    def build_geometry(self, N):
         """
         Parameters
         ----------
@@ -362,8 +362,8 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         R0 = self._R0
         Rj = self._Rj
 
-        Lc = self.Length_Convergent
-        Ld = self.Length_Divergent
+        Lc = self.length_convergent
+        Ld = self.length_divergent
         
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
@@ -409,7 +409,7 @@ def main():
     theta_c = 40
 
     nozzle = CD_Min_Length_Nozzle(Ri, Re, Rt, Rj, R0, theta_c, 10)
-    x, y = nozzle.Build_Geometry(1000)
+    x, y = nozzle.build_geometry(1000)
     print(nozzle)
 
     import matplotlib.pyplot as plt
@@ -425,7 +425,7 @@ def main():
     # Me = 5
     # gamma = 1.4
 
-    # wall, characteristics, left_runn_chars, theta_w_max = Min_Length_Supersonic_Nozzle_MOC(ht, n, Me, None, gamma)
+    # wall, characteristics, left_runn_chars, theta_w_max = min_length_supersonic_nozzle_moc(ht, n, Me, None, gamma)
 
     # print("ht \t\t {}".format(ht))
     # print("n \t\t {}".format(n))

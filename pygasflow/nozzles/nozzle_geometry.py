@@ -61,51 +61,51 @@ class Nozzle_Geometry(object):
         self._wall_radius_array = None
     
     @property
-    def Inlet_Radius(self):
+    def inlet_radius(self):
         return self._Ri
 
     @property
-    def Outlet_Radius(self):
+    def outlet_radius(self):
         return self._Re
     
     @property
-    def Critical_Radius(self):
+    def critical_radius(self):
         return self._Rt
 
     @property
-    def Inlet_Area(self):
+    def inlet_area(self):
         return self._Ai
 
     @property
-    def Outlet_Area(self):
+    def outlet_area(self):
         return self._Ae
     
     @property
-    def Critical_Area(self):
+    def critical_area(self):
         return self._At
     
     @property
-    def Length_Convergent(self):
+    def length_convergent(self):
         return self._Lc
     
     @property
-    def Length_Divergent(self):
+    def length_divergent(self):
         return self._Ld
     
     @property
-    def Length(self):
+    def length(self):
         return self._Lc + self._Ld
     
     @property
-    def Length_Array(self):
+    def length_array(self):
         return self._length_array
     
     @property
-    def Wall_Radius_Array(self):
+    def wall_radius_array(self):
         return self._wall_radius_array
     
     @property
-    def Area_Ratio_Array(self):
+    def area_ratio_array(self):
         return self._area_ratio_array
     
     def __str__(self):
@@ -119,12 +119,12 @@ class Nozzle_Geometry(object):
         s += "\tAe\t{}\n".format(self._Ae)
         s += "\tAt\t{}\n".format(self._At)
         s += "Lengths:\n"
-        s += "\tLc\t{}\n".format(self.Length_Convergent)
-        s += "\tLd\t{}\n".format(self.Length_Divergent)
-        s += "\tL\t{}\n".format(self.Length)
+        s += "\tLc\t{}\n".format(self.length_convergent)
+        s += "\tLd\t{}\n".format(self.length_divergent)
+        s += "\tL\t{}\n".format(self.length)
         return s
     
-    def Get_Points(self, area_ratio=False, offset=1.2):
+    def get_points(self, area_ratio=False, offset=1.2):
         """ 
         Helper function used to construct a matrix of points representing the nozzle
         for visualization purposes.
@@ -162,7 +162,7 @@ class Nozzle_Geometry(object):
 
         return nozzle, container
     
-    def Location_Divergent_From_Area_Ratio(self, A_ratio):
+    def location_divergent_from_area_ratio(self, A_ratio):
         """
         Given an area ratio, compute the location on the divergent where
         this area ratio is located.

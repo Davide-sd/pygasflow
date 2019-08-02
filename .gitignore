@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 myenv/
+pygasflow/solvers/scramjet.py
 
 # C extensions
 *.so

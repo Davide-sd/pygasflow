@@ -1,7 +1,7 @@
 import numpy as np
 
-from pygasflow.utils.roots import Apply_Bisection
-from pygasflow.utils.decorators import Check
+from pygasflow.utils.roots import apply_bisection
+from pygasflow.utils.decorators import check
 
 # TODO:
 # PRIORITY: take a look at the TODO in M_From_Critical_Friction.
@@ -16,8 +16,8 @@ from pygasflow.utils.decorators import Check
 #   called by root finding methods.
 #   Therefore, I use plain formulas as much as possible.
 
-@Check
-def Critical_Temperature_Ratio(M, gamma=1.4):
+@check
+def critical_temperature_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Temperature Ratio T/T*.
 
@@ -36,8 +36,8 @@ def Critical_Temperature_Ratio(M, gamma=1.4):
     """
     return ((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2)
 
-@Check
-def Critical_Pressure_Ratio(M, gamma=1.4):
+@check
+def critical_pressure_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Pressure Ratio P/P*.
 
@@ -58,8 +58,8 @@ def Critical_Pressure_Ratio(M, gamma=1.4):
     # Do I need to suppress the warning???
     return (1 / M) * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2))
 
-@Check
-def Critical_Density_Ratio(M, gamma=1.4):
+@check
+def critical_density_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Density Ratio rho/rho*.
 
@@ -80,8 +80,8 @@ def Critical_Density_Ratio(M, gamma=1.4):
     # Do I need to suppress the warning???
     return (1 / M) * np.sqrt((2 + (gamma - 1) * M**2) / (gamma + 1))
 
-@Check	
-def Critical_Total_Pressure_Ratio(M, gamma=1.4):
+@check	
+def critical_total_pressure_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Total Pressure Ratio P0/P0*.
 
@@ -102,8 +102,8 @@ def Critical_Total_Pressure_Ratio(M, gamma=1.4):
     # Do I need to suppress the warning???
     return (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
 
-@Check
-def Critical_Velocity_Ratio(M, gamma=1.4):
+@check
+def critical_velocity_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Velocity Ratio U/U*.
 
@@ -123,8 +123,8 @@ def Critical_Velocity_Ratio(M, gamma=1.4):
     return M * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2))
 
 # Fanno's Maximum Limit Friction Parameter (4 f Lmax / D)
-@Check
-def Critical_Friction_Parameter(M, gamma=1.4):
+@check
+def critical_friction_parameter(M, gamma=1.4):
     """
     Compute the Fanno's Critical Friction Parameter 4fL*/D.
 
@@ -147,8 +147,8 @@ def Critical_Friction_Parameter(M, gamma=1.4):
     f[M != 0] = ((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M[M != 0]**2 / (1 + ((gamma - 1) / 2) * M[M != 0]**2)) + (1 / gamma) * (1 / M[M != 0]**2 - 1)
     return f
 
-@Check		
-def Critical_Entropy_Parameter(M, gamma=1.4):
+@check		
+def critical_entropy_parameter(M, gamma=1.4):
     """
     Compute the Fanno's Critical Entropy Parameter (s*-s)/R.
 
@@ -169,8 +169,8 @@ def Critical_Entropy_Parameter(M, gamma=1.4):
     # Do I need to suppress the warning???
     return np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
 
-@Check
-def M_From_Critical_Temperature_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_temperature_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Temperature Ratio T/T*.
 
@@ -188,12 +188,12 @@ def M_From_Critical_Temperature_Ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    upper_lim = Critical_Temperature_Ratio(0, gamma)
+    upper_lim = critical_temperature_ratio(0, gamma)
     assert np.all(ratio > 0) and np.all(ratio < upper_lim), "It must be 0 < T/T* < {}.".format(upper_lim)
     return np.sqrt(-ratio * (gamma - 1) * (2 * ratio - gamma - 1)) / (ratio * gamma - ratio)
 
-@Check
-def M_From_Critical_Pressure_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Pressure Ratio P/P*.
 
@@ -212,8 +212,8 @@ def M_From_Critical_Pressure_Ratio(ratio, gamma=1.4):
     """
     return np.sqrt(-ratio * (gamma - 1) * (ratio - np.sqrt(ratio**2 + gamma**2 - 1))) / (ratio * gamma - ratio)
 
-@Check
-def M_From_Critical_Density_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_density_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Density Ratio rho/rho*.
 
@@ -236,8 +236,8 @@ def M_From_Critical_Density_Ratio(ratio, gamma=1.4):
     return np.sqrt(2 / ((gamma + 1) * ratio**2 - (gamma - 1)))
 
 
-@Check
-def M_From_Critical_Total_Pressure_Ratio(ratio, flag="sub", gamma=1.4):
+@check
+def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Total Pressure Ratio P0/P0*.
 
@@ -261,10 +261,10 @@ def M_From_Critical_Total_Pressure_Ratio(ratio, flag="sub", gamma=1.4):
     # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
     func = lambda M, r: r - (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
 
-    return Apply_Bisection(ratio, func, flag=flag)
+    return apply_bisection(ratio, func, flag=flag)
     
-@Check
-def M_From_Critical_Velocity_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Velocity Ratio U/U*.
 
@@ -290,8 +290,8 @@ def M_From_Critical_Velocity_Ratio(ratio, gamma=1.4):
     assert np.all(ratio >= 0) and np.all(ratio < upper_lim), "It must be 0 <= U/U* < {}.".format(upper_lim)
     return 2 * ratio / np.sqrt(2 * gamma + 2 - 2 * ratio**2 * gamma + 2 * ratio**2)
 
-@Check
-def M_From_Critical_Friction(fp, flag="sub", gamma=1.4):
+@check
+def m_from_critical_friction(fp, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Friction Parameter 4fL*/D.
 
@@ -327,10 +327,10 @@ def M_From_Critical_Friction(fp, flag="sub", gamma=1.4):
     # func = lambda M, r: r - Critical_Friction_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - (((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M**2 / (1 + ((gamma - 1) / 2) * M**2)) + (1 / gamma) * (1 / M**2 - 1))
     
-    return Apply_Bisection(fp, func, flag=flag)
+    return apply_bisection(fp, func, flag=flag)
 
-@Check
-def M_From_Critical_Entropy(ep, flag="sub", gamma=1.4):
+@check
+def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Fanno's Critical Entropy Parameter (s*-s)/R.
 
@@ -355,10 +355,10 @@ def M_From_Critical_Entropy(ep, flag="sub", gamma=1.4):
     # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
     
-    return Apply_Bisection(ep, func, flag=flag)
+    return apply_bisection(ep, func, flag=flag)
 
-@Check
-def Get_Ratios_From_Mach(M, gamma):
+@check
+def get_ratios_from_mach(M, gamma):
     """
     Compute all fanno ratios given the Mach number.
 
@@ -386,12 +386,12 @@ def Get_Ratios_From_Mach(M, gamma):
         eps : array_like
             Critical Entropy Ratio (s*-s)/R
     """
-    prs = Critical_Pressure_Ratio.__no_check(M, gamma)
-    drs = Critical_Density_Ratio.__no_check(M, gamma)
-    trs = Critical_Temperature_Ratio.__no_check(M, gamma)
-    tprs = Critical_Total_Pressure_Ratio.__no_check(M, gamma)
-    urs = Critical_Velocity_Ratio.__no_check(M, gamma)
-    fps = Critical_Friction_Parameter.__no_check(M, gamma)
-    eps = Critical_Entropy_Parameter.__no_check(M, gamma)
+    prs = critical_pressure_ratio.__no_check(M, gamma)
+    drs = critical_density_ratio.__no_check(M, gamma)
+    trs = critical_temperature_ratio.__no_check(M, gamma)
+    tprs = critical_total_pressure_ratio.__no_check(M, gamma)
+    urs = critical_velocity_ratio.__no_check(M, gamma)
+    fps = critical_friction_parameter.__no_check(M, gamma)
+    eps = critical_entropy_parameter.__no_check(M, gamma)
 
     return prs, drs, trs, tprs, urs, fps, eps

@@ -1,12 +1,12 @@
 import numpy as np
 
 from pygasflow.utils.decorators import (
-    As_Array,
-    Check
+    as_array,
+    check
 )
 
-@Check
-def Sound_Speed(T, R=287.058, gamma=1.4):
+@check
+def sound_speed(T, R=287.058, gamma=1.4):
     """
     Compute the sound speed for a perfect gas. It also hold for thermally
     perfect as well as calorically perfect gases.
@@ -33,8 +33,8 @@ def Sound_Speed(T, R=287.058, gamma=1.4):
     assert R > 0, "Specific gas constant must be >= 0."
     return np.sqrt(gamma * R * T)
 
-@As_Array([0, 1])
-def Mach_Number(U, a):
+@as_array([0, 1])
+def mach_number(U, a):
     """
     Compute the Mach number.
 
@@ -57,8 +57,8 @@ def Mach_Number(U, a):
     assert np.all(a > 0), "Must be a > 0."
     return U / a
 
-@Check
-def Characteristic_Mach_Number(M, gamma=1.4):
+@check
+def characteristic_mach_number(M, gamma=1.4):
     """
     Compute the Characteristic Mach number M* from a given M.
 
@@ -77,8 +77,8 @@ def Characteristic_Mach_Number(M, gamma=1.4):
     """
     return np.sqrt(M**2 * (gamma + 1) / (2 + M**2 * (gamma - 1)))
 
-@Check
-def Mach_From_Characteristic_Mach_Number(Ms, gamma):
+@check
+def mach_from_characteristic_mach_number(Ms, gamma):
     """
     Compute M from a given Characteristic Mach number M*.
 
@@ -100,7 +100,7 @@ def Mach_From_Characteristic_Mach_Number(Ms, gamma):
     assert isinstance(gamma, (float)) and gamma > 1, "The specific heat ratio must be > 1."
     return np.sqrt(2 / ((gamma + 1) / Ms**2 - (gamma - 1)))
 
-def Stagnation_Temperature(T, u, cp):
+def stagnation_temperature(T, u, cp):
     """
     Compute the stagnation temperature.
 

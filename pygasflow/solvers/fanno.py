@@ -1,7 +1,8 @@
 import numpy as np
 import pygasflow.fanno as fanno
+from pygasflow.utils.common import convert_to_ndarray
 
-def Fanno_Solver(param_name, param_value, gamma=1.4):
+def fanno_solver(param_name, param_value, gamma=1.4):
     """
     Compute all Fanno ratios and Mach number given an input parameter.
 
@@ -53,35 +54,35 @@ def Fanno_Solver(param_name, param_value, gamma=1.4):
     assert param_name in ['m', 'pressure', 'density', 'temperature', 'total_pressure_sub', 'total_pressure_super', 'velocity', 'friction_sub', 'friction_super', 'entropy_sub', 'entropy_super'], "param_name not recognized."
     
     # compute the Mach number
-    param_value = np.asarray(param_value)
+    param_value = convert_to_ndarray(param_value)
 
     M = None
     if param_name == "m":
         M = param_value
         assert np.all(M >= 0), "Mach number must be >= 0."
     elif param_name == 'total_pressure_sub':
-        M = fanno.M_From_Critical_Total_Pressure_Ratio(param_value, "sub", gamma)
+        M = fanno.m_from_critical_total_pressure_ratio(param_value, "sub", gamma)
     elif param_name == 'total_pressure_super':
-        M = fanno.M_From_Critical_Total_Pressure_Ratio(param_value, "sup", gamma)
+        M = fanno.m_from_critical_total_pressure_ratio(param_value, "super", gamma)
     elif param_name == 'friction_sub':
-        M = fanno.M_From_Critical_Friction(param_value, "sub", gamma)
+        M = fanno.m_from_critical_friction(param_value, "sub", gamma)
     elif param_name == 'friction_super':
-        M = fanno.M_From_Critical_Friction(param_value, "sup", gamma)
+        M = fanno.m_from_critical_friction(param_value, "super", gamma)
     elif param_name == 'entropy_sub':
-        M = fanno.M_From_Critical_Entropy(param_value, "sub", gamma)
+        M = fanno.m_from_critical_entropy(param_value, "sub", gamma)
     elif param_name == 'entropy_super':
-        M = fanno.M_From_Critical_Entropy(param_value, "sup", gamma)
+        M = fanno.m_from_critical_entropy(param_value, "super", gamma)
 
     func_dict = {
-        'pressure': fanno.M_From_Critical_Pressure_Ratio,
-        'density': fanno.M_From_Critical_Density_Ratio,
-        'temperature': fanno.M_From_Critical_Temperature_Ratio,
-        'velocity': fanno.M_From_Critical_Velocity_Ratio,
+        'pressure': fanno.m_from_critical_pressure_ratio,
+        'density': fanno.m_from_critical_density_ratio,
+        'temperature': fanno.m_from_critical_temperature_ratio,
+        'velocity': fanno.m_from_critical_velocity_ratio,
     }
     if param_name in func_dict.keys():
         M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
-    prs, drs, trs, tprs, urs, fps, eps = fanno.Get_Ratios_From_Mach(M, gamma)
+    prs, drs, trs, tprs, urs, fps, eps = fanno.get_ratios_from_mach(M, gamma)
     
     return M, prs, drs, trs, tprs, urs, fps, eps

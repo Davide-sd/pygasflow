@@ -1,7 +1,8 @@
 import numpy as np
 import pygasflow.rayleigh as ray
+from pygasflow.utils.common import convert_to_ndarray
 
-def Rayleigh_Solver(param_name, param_value, gamma=1.4):
+def rayleigh_solver(param_name, param_value, gamma=1.4):
     """
     Compute all Rayleigh ratios and Mach number given an input parameter.
 
@@ -58,38 +59,38 @@ def Rayleigh_Solver(param_name, param_value, gamma=1.4):
                         'entropy_sub', 'entropy_super'], "param_name not recognized."
     
     # compute the Mach number
-    param_value = np.asarray(param_value)
+    param_value = convert_to_ndarray(param_value)
 
     M = None
     if param_name == "m":
         M = param_value
         assert np.all(M >= 0), "Mach number must be >= 0."
     elif param_name == 'total_pressure_sub':
-        M = ray.M_From_Critical_Total_Pressure_Ratio(param_value, "sub", gamma)
+        M = ray.m_from_critical_total_pressure_ratio(param_value, "sub", gamma)
     elif param_name == 'total_pressure_super':
-        M = ray.M_From_Critical_Total_Pressure_Ratio(param_value, "sup", gamma)
+        M = ray.m_from_critical_total_pressure_ratio(param_value, "super", gamma)
     elif param_name == 'total_temperature_sub':
-        M = ray.M_From_Critical_Total_Temperature_Ratio(param_value, "sub", gamma)
+        M = ray.m_from_critical_total_temperature_ratio(param_value, "sub", gamma)
     elif param_name == 'total_temperature_super':
-        M = ray.M_From_Critical_Total_Temperature_Ratio(param_value, "sup", gamma)
+        M = ray.m_from_critical_total_temperature_ratio(param_value, "super", gamma)
     elif param_name == 'temperature_sub':
-        M = ray.M_From_Critical_Temperature_Ratio(param_value, "sub", gamma)
+        M = ray.m_from_critical_temperature_ratio(param_value, "sub", gamma)
     elif param_name == 'temperature_super':
-        M = ray.M_From_Critical_Temperature_Ratio(param_value, "sup", gamma)
+        M = ray.m_from_critical_temperature_ratio(param_value, "super", gamma)
     elif param_name == 'entropy_sub':
-        M = ray.M_From_Critical_Entropy(param_value, "sub", gamma)
+        M = ray.m_from_critical_entropy(param_value, "sub", gamma)
     elif param_name == 'entropy_super':
-        M = ray.M_From_Critical_Entropy(param_value, "sup", gamma)
+        M = ray.m_from_critical_entropy(param_value, "super", gamma)
 
     func_dict = {
-        'pressure': ray.M_From_Critical_Pressure_Ratio,
-        'density': ray.M_From_Critical_Density_Ratio,
-        'velocity': ray.M_From_Critical_Velocity_Ratio,
+        'pressure': ray.m_from_critical_pressure_ratio,
+        'density': ray.m_from_critical_density_ratio,
+        'velocity': ray.m_from_critical_velocity_ratio,
     }
     if param_name in func_dict.keys():
         M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
-    prs, drs, trs, tprs, ttrs, urs, eps = ray.Get_Ratios_From_Mach(M, gamma)
+    prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach(M, gamma)
     
     return M, prs, drs, trs, tprs, ttrs, urs, eps

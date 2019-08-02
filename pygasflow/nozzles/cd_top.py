@@ -1,10 +1,10 @@
 import numpy as np
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.nozzles.utils import (
-    Quadratic_Bezier_Parabola,
-    Rotated_Parabola,
-    Convergent,
-    Nozzle_Length
+    quadratic_bezier_parabola,
+    rotated_parabola,
+    convergent,
+    nozzle_length
 )
 from pygasflow.nozzles.rao_parabola_angles import Rao_Parabola_Angles
 
@@ -83,9 +83,9 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         self._R0 = R0
         self._theta_c = theta_c
 
-        self._Compute_Intersection_Points()
+        self._compute_intersection_points()
         
-        x, y = self.Build_Geometry(N)
+        x, y = self.build_geometry(N)
         self._length_array = x
         self._wall_radius_array = y
         self._area_ratio_array = 2 * y / self._At
@@ -109,7 +109,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
     def Intersection_Points(self):
         return self._intersection_points
 
-    def _Compute_Intersection_Points(self):
+    def _compute_intersection_points(self):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         A_ratio_exit = self._Ae / self._At
         K = self._K
@@ -118,19 +118,19 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
         # find Rao's approximation parabola angles
         pangles = Rao_Parabola_Angles()
-        theta_N, theta_e = pangles.Angles_From_Lf_Ar(K * 100, A_ratio_exit)
+        theta_N, theta_e = pangles.angles_from_Lf_Ar(K * 100, A_ratio_exit)
         self._theta_N = theta_N
         self._theta_e = theta_e
         theta_N = np.deg2rad(theta_N)
         theta_e = np.deg2rad(theta_e)
 
         # divergent length
-        self._Ld = Nozzle_Length(Rt, Re, 0.382 * Rt, K)
+        self._Ld = nozzle_length(Rt, Re, 0.382 * Rt, K)
 
         # Rao used a radius of 1.5 * Rt for curve 1 (at the left of the throat)
         factor = 1.5
         # find interesting points for the convergent
-        x0, y0, x1, y1, xc, yc = Convergent(theta_c, Ri, R0, Rt, factor)
+        x0, y0, x1, y1, xc, yc = convergent(theta_c, Ri, R0, Rt, factor)
         # convergent length
         self._Lc = xc
         # offset to the left, I want x=0 to be throat section
@@ -150,7 +150,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
             "E": [self._Ld, Re] # end point
         }
 
-    def Build_Geometry(self, N):
+    def build_geometry(self, N):
         """
         Parameters
         ----------
@@ -160,8 +160,8 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
 
-        Lc = self.Length_Convergent
-        Ld = self.Length_Divergent
+        Lc = self.length_convergent
+        Ld = self.length_divergent
         
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
@@ -188,8 +188,8 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         # curve 2: junction between convergent and divergent, right of throat
         idx = np.bitwise_and(x > 0, x < xN)
         y[idx] = -np.sqrt((0.382 * Rt)**2 - x[idx]**2) + 1.382 * Rt
-        # parabola: here I use Rotated_Parabola for conveniance
-        y[x >= xN] = Rotated_Parabola(
+        # parabola: here I use rotated_parabola for conveniance
+        y[x >= xN] = rotated_parabola(
             (xN, RN), (Ld, Re),
             theta_N, theta_e,
             x[x >= xN]
@@ -208,9 +208,9 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
 
 def main():
-    Ai = 5
+    Ai = 7
     Ae = 20
-    At = 2
+    At = 4
 
     geom = CD_TOP_Nozzle(Ai, Ae, At, 0.40, 30, 0.7)
     print(geom)
@@ -219,7 +219,7 @@ def main():
     import matplotlib.patches as patches
 
     N = 1000
-    x, y = geom.Build_Geometry(N)
+    x, y = geom.build_geometry(N)
 
     plt.plot(x, y)
     for k in geom.Intersection_Points.keys():

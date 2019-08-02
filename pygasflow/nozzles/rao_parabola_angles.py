@@ -67,7 +67,7 @@ class Rao_Parabola_Angles(object):
         self._theta_n = theta_n
         self._theta_e = theta_e
 
-    def _Find_Lf_Range(self, Lf):
+    def _find_Lf_range(self, Lf):
         """
         Compute the interval where to interpolate the fractional length.
         
@@ -88,7 +88,7 @@ class Rao_Parabola_Angles(object):
         Lf_sup = int(np.ceil(Lf)) * 10
         return Lf_inf, Lf_sup
 
-    def Angles_From_Lf_Ar(self, Lf, Ar):
+    def angles_from_Lf_Ar(self, Lf, Ar):
         """
         Compute the angles at the end points of Rao's parabola.
         Note that linear interpolation is used if Lf is different
@@ -111,7 +111,7 @@ class Rao_Parabola_Angles(object):
         assert Lf >= 60 and Lf <= 100, "Fractional length must be 60 <= Lf <= 100."
         assert Ar >= 5 and Ar <= 50, "Area ratio must be 5 <= Ar <= 50."
 
-        Lf_inf, Lf_sup = self._Find_Lf_Range(Lf)
+        Lf_inf, Lf_sup = self._find_Lf_range(Lf)
 
         if Lf == Lf_inf or Lf == Lf_sup:
             thn = self._theta_n[Lf]["spline"](Ar)
@@ -128,7 +128,7 @@ class Rao_Parabola_Angles(object):
             the = the_inf + (Lf - Lf_inf) / (Lf_sup - Lf_inf) * (the_sup - the_inf)
         return thn, the
 
-    def Area_Ratio_From_Lf_Angle(self, Lf=60, **args):
+    def area_ratio_from_Lf_angle(self, Lf=60, **args):
         """
         Compute the Area Ratio given.
 
@@ -178,7 +178,7 @@ class Rao_Parabola_Angles(object):
         if Lf in [60, 70, 80, 90, 100]:
             Ar = func(theta_dict[int(Lf)]["data"])
         else:
-            Lf_inf, Lf_sup = self._Find_Lf_Range(Lf)
+            Lf_inf, Lf_sup = self._find_Lf_range(Lf)
 
             def Min_Max(arr):
                 return min(arr), max(arr)
@@ -203,7 +203,7 @@ class Rao_Parabola_Angles(object):
 
         return Ar
     
-    def Plot(self, N=30):
+    def plot(self, N=30):
         """
         Plot the relation.
 
@@ -238,7 +238,7 @@ class Rao_Parabola_Angles(object):
         ax1.set_xlim(0, 50)
         ax1.set_ylim(0, 50)
         ax2.set_ylim(0, 50)
-        plt.title("Plot 4-16")
+        plt.title("plot 4-16")
         ax1.set_xlabel(r"Area Ratio, $\varepsilon$")
         ax1.set_ylabel(r"$\theta_e$ [deg]")
         ax2.set_ylabel(r"$\theta_n$ [deg]")
@@ -259,9 +259,9 @@ class Rao_Parabola_Angles(object):
 
 def main():
     a = Rao_Parabola_Angles()
-    print(a.Angles_From_Lf_Ar(68, 35))
-    print(a.Area_Ratio_From_Lf_Angle(68, theta_n=35))
-    a.Plot()
+    print(a.angles_from_Lf_Ar(68, 35))
+    print(a.area_ratio_from_Lf_angle(68, theta_n=35))
+    a.plot()
 
 
 if __name__ == "__main__":

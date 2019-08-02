@@ -1,5 +1,17 @@
 import numpy as np
 
+def convert_to_ndarray(x):
+    """
+    Check if the input parameter is of type np.ndarray.
+    If not, convert it to np.ndarray and make sure it is at least 
+    1 dimensional.
+    """
+    if not isinstance(x, np.ndarray):
+        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+    if x.ndim == 0:
+        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+    return x
+
 class Ideal_Gas(object):
     def __init__(self, R=287.058, gamma=1.4):
         self._R = R
@@ -63,14 +75,14 @@ class Flow_State(object):
 
         assert args, "Must be arguments to create a flow!!!"
 
-        self.name = ""
-        self.Mach = 0
-        self.Normal_Mach = 0
-        self.pressure = 0
-        self.static_temperature = 0
-        self.density = 0
-        self.total_pressure = 0
-        self.total_temperature = 0
+        self._name = ""
+        self._mach = 0
+        self._normal_mach = 0
+        self._pressure = 0
+        self._static_temperature = 0
+        self._density = 0
+        self._total_pressure = 0
+        self._total_temperature = 0
 
         # self.name = ""
         # self.Mach = None
@@ -83,10 +95,11 @@ class Flow_State(object):
 
         # convert all keywords to lower case
         args = {k.lower(): v for k,v in args.items()}
+        
 
         if "name" in args.keys(): self.name = args["name"]
-        if "m" in args.keys(): self.Mach = args["m"]
-        if "mn" in args.keys(): self.Normal_Mach = args["mn"]
+        if "m" in args.keys(): self.mach = args["m"]
+        if "mn" in args.keys(): self.normal_mach = args["mn"]
         if "p" in args.keys(): self.pressure = args["p"]
         if "t" in args.keys(): self.static_temperature = args["t"]
         if "rho" in args.keys(): self.density = args["rho"]
@@ -104,19 +117,19 @@ class Flow_State(object):
         self._name = name
     
     @property
-    def Mach(self):
+    def mach(self):
         return self._mach
     
-    @Mach.setter
-    def Mach(self, mach):
+    @mach.setter
+    def mach(self, mach):
         self._mach = mach
     
     @property
-    def Normal_Mach(self):
+    def normal_mach(self):
         return self._normal_mach
     
-    @Normal_Mach.setter
-    def Normal_Mach(self, normal_mach):
+    @normal_mach.setter
+    def normal_mach(self, normal_mach):
         self._normal_mach = normal_mach
     
     @property
@@ -161,7 +174,7 @@ class Flow_State(object):
     
     def __str__(self):
         s = "State {}\n".format(self.name)
-        s += "\tM\t{}\n".format(self.Mach)
+        s += "\tM\t{}\n".format(self.mach)
         s += "\tP\t{}\n".format(self.pressure)
         s += "\tT\t{}\n".format(self.static_temperature)
         s += "\trho\t{}\n".format(self.density)
@@ -170,18 +183,35 @@ class Flow_State(object):
         return s
     
     def __mul__(self, a):
-        assert "Ratios" in type(a).__name__, "Flow instance can only be multiplied with Ratios instance."
-
-        print(self)
-        print(a)
+        # new values
+        m, pn, rn, tn, p0n, t0n = None, None, None, None, None, None
+        # print(a)
+        # print("self.pressure", self.pressure, type(self.pressure))
+        # print("a['pressure_ratio']", a["pressure_ratio"], type(a["pressure_ratio"]))
+        # print("pn", pn, type(pn))
+        if "m" in a.keys():
+            m = a["m"]
+        if "pressure_ratio" in a.keys():
+            pn = self.pressure * a["pressure_ratio"]
+        if "density_ratio" in a.keys():
+            rn = self.density * a["density_ratio"]
+        if "temperature_ratio" in a.keys():
+            tn = self.static_temperature * a["temperature_ratio"]
+        if "total_pressure_ratio" in a.keys():
+            p0n = self.total_pressure * a["total_pressure_ratio"]
+        if "total_temperature_ratio" in a.keys():
+            t0n = self.total_temperature * a["total_temperature_ratio"]
+        # print("pn", pn, type(pn))
+        # print(self.pressure * a["pressure_ratio"])
+        
         b = Flow_State(
-            # self.gas,
-            name=a.downstream_idx,
-            p=self.pressure * a.pressure_ratio,
-            rho=self.density * a.density_ratio,
-            t=self.static_temperature * a.static_temperature_ratio,
-            p0=self.total_pressure * a.total_pressure_ratio,
-            t0=self.total_temperature * a.total_temperature_ratio,
+            name = "",
+            m = m,
+            p = pn,
+            rho = rn,
+            t = tn,
+            p0 = p0n,
+            t0 = t0n,
         )
         
         return b

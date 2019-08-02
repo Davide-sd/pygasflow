@@ -1,24 +1,26 @@
 import numpy as np
 
 from pygasflow.isentropic import (
-    Pressure_Ratio as ise_PR,
-    Density_Ratio as ise_DR,
-    Temperature_Ratio as ise_TR
+    pressure_ratio as ise_PR,
+    density_ratio as ise_DR,
+    temperature_ratio as ise_TR
 )
 
 from pygasflow.shockwave import (
-    Mach_From_Theta_Beta,
-    Get_Upstream_Normal_Mach_From_Ratio,
-    Get_Ratios_From_Normal_Mach_Upstream,
-    Normal_Mach_Upstream,
-    Theta_From_Mach_Beta,
-    Beta_From_Mach_Theta,
-    Shock_Angle_From_Machs,
-    Mach_Cone_Angle_From_Shock_Angle,
-    Shock_Angle_From_Mach_Cone_Angle,
+    mach_from_theta_beta,
+    get_upstream_normal_mach_from_ratio,
+    get_ratios_from_normal_mach_upstream,
+    normal_mach_upstream,
+    theta_from_mach_beta,
+    beta_from_mach_theta,
+    shock_angle_from_machs,
+    mach_cone_angle_from_shock_angle,
+    shock_angle_from_mach_cone_angle,
 )
 
-def Shockwave_Solver(param_name, param_value, angle_name="beta", angle_value=90, gamma=1.4, flag="weak"):
+from pygasflow.utils.common import convert_to_ndarray
+
+def shockwave_solver(param_name, param_value, angle_name="beta", angle_value=90, gamma=1.4, flag="weak"):
     """ 
     Try to compute all the ratios, angles and mach numbers across the shock wave.
 
@@ -99,7 +101,7 @@ def Shockwave_Solver(param_name, param_value, angle_name="beta", angle_value=90,
     assert param_name in ['beta', 'theta', 'pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2'], "param_name must be either one of ['pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2']."
     
     if param_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']:
-        MN1 = Get_Upstream_Normal_Mach_From_Ratio(param_name, param_value, gamma)
+        MN1 = get_upstream_normal_mach_from_ratio(param_name, param_value, gamma)
     elif param_name == "mn1":
         MN1 = param_value
     elif param_name == "m1":
@@ -108,13 +110,13 @@ def Shockwave_Solver(param_name, param_value, angle_name="beta", angle_value=90,
         assert beta != None, "If you provide param_name='theta', it must be angle_name='beta'."
         theta = param_value
         assert theta >= 0 and theta <= 90, "The flow angle theta must be 0 <= theta <= 90."
-        M1 = Mach_From_Theta_Beta(theta, beta)
+        M1 = mach_from_theta_beta(theta, beta)
         # pass
     elif param_name == "beta":
         assert theta != None, "If you provide param_name='beta', it must be angle_name='theta'."
         beta = param_value
         assert beta >= 0 and beta <= 90, "The shock wave angle must be 0 <= beta <= 90."
-        M1 = Mach_From_Theta_Beta(theta, beta)
+        M1 = mach_from_theta_beta(theta, beta)
     else:   # 'm2'
         # TODO:
         # Is it even possible to solve it knowing only M2, beta or M2, theta?????
@@ -127,23 +129,23 @@ def Shockwave_Solver(param_name, param_value, angle_name="beta", angle_value=90,
     
     if M1:
         # at this point, either beta or theta is set, not both!
-        MN1 = Normal_Mach_Upstream(M1, beta, theta, flag)
+        MN1 = normal_mach_upstream(M1, beta, theta, flag)
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = Get_Ratios_From_Normal_Mach_Upstream(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
 
         if beta:
-            theta = Theta_From_Mach_Beta(M1, beta, gamma)
+            theta = theta_from_mach_beta(M1, beta, gamma)
         else:
-            beta = Beta_From_Mach_Theta(M1, theta, gamma)[flag]
+            beta = beta_from_mach_theta(M1, theta, gamma)[flag]
         
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
     else:
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = Get_Ratios_From_Normal_Mach_Upstream(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
 
         if beta:
             M1 = MN1 / np.sin(np.deg2rad(beta))
-            theta = Theta_From_Mach_Beta(M1, beta, gamma)
+            theta = theta_from_mach_beta(M1, beta, gamma)
         else:
             # TODO:
             # Is it even possible to uniquely determine M1 = f(MN1, beta)????
@@ -160,7 +162,7 @@ def Shockwave_Solver(param_name, param_value, angle_name="beta", angle_value=90,
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 
-def Conical_Shockwave_Solver(M1, param_name, param_value, gamma=1.5, step=0.025):
+def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025):
     """ 
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
@@ -229,18 +231,18 @@ def Conical_Shockwave_Solver(M1, param_name, param_value, gamma=1.5, step=0.025)
         assert isinstance(theta_c, (int, float)) and theta_c > 0 and theta_c < 90, "The half cone angle must be 0 < theta_c < 90."
     
     if Mc:
-        _, theta_c, beta = Shock_Angle_From_Machs(M1, Mc, gamma, step)
+        _, theta_c, beta = shock_angle_from_machs(M1, Mc, gamma, step)
     elif beta:
-        Mc, theta_c = Mach_Cone_Angle_From_Shock_Angle(M1, beta, gamma)
+        Mc, theta_c = mach_cone_angle_from_shock_angle(M1, beta, gamma)
     elif theta_c:
-        Mc, _, beta = Shock_Angle_From_Mach_Cone_Angle(M1, theta_c, gamma, step)
+        Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, step)
     
     # compute the ratios across the shockwave
     MN1 = M1 * np.sin(np.deg2rad(beta))
-    pr, dr, tr, tpr, MN2 = Get_Ratios_From_Normal_Mach_Upstream(MN1, gamma)
+    pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
     
     # delta is the flow deflection angle (Anderson's Figure 10.4)
-    delta = Theta_From_Mach_Beta(M1, beta, gamma)
+    delta = theta_from_mach_beta(M1, beta, gamma)
     M_2 = MN2 /  np.sin(np.deg2rad(beta - delta))
 
     # ratios between cone surface and upstream conditions. Note that

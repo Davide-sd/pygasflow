@@ -2,8 +2,8 @@ import numpy as np
 
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.nozzles.utils import (
-    Convergent,
-    Nozzle_Length
+    convergent,
+    nozzle_length
 )
 
 class CD_Conical_Nozzle(Nozzle_Geometry):
@@ -59,9 +59,9 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
 
         # compute the intersection points of the different curves
         # composing the nozzle.
-        self._Compute_Intersection_Points()
+        self._compute_intersection_points()
 
-        x, y = self.Build_Geometry(N)
+        x, y = self.build_geometry(N)
         self._length_array = x
         self._wall_radius_array = y
         self._area_ratio_array = 2 * y / self._At
@@ -76,16 +76,16 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         s += "\ttheta_N\t{}\n".format(self._theta_N)
         return s
     
-    def _Compute_Intersection_Points(self):
+    def _compute_intersection_points(self):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
         Rj = self._Rj
 
         # divergent length
-        self._Ld = Nozzle_Length(Rt, Re, Rj, 1, self._theta_N)
+        self._Ld = nozzle_length(Rt, Re, Rj, 1, self._theta_N)
         
         # find interesting points for the convergent
-        x0, y0, x1, y1, xc, yc = Convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
+        x0, y0, x1, y1, xc, yc = convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
         # convergent length
         self._Lc = xc
         # offset to the left, I want x=0 to be throat section
@@ -105,10 +105,10 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         }
     
     @property
-    def Intersection_Points(self):
+    def intersection_points(self):
         return self._intersection_points
 
-    def Build_Geometry(self, N):
+    def build_geometry(self, N):
         """
         Discretize the length of the nozzle and compute the nozzle profile.
 
@@ -128,8 +128,8 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         R0 = self._R0
         Rj = self._Rj
 
-        Lc = self.Length_Convergent
-        Ld = self.Length_Divergent
+        Lc = self.length_convergent
+        Ld = self.length_divergent
         
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
@@ -171,10 +171,10 @@ def main():
     import matplotlib.patches as patches
 
     N = 1000
-    x, y = geom.Build_Geometry(N)
+    x, y = geom.build_geometry(N)
     plt.plot(x, y)
-    for k in geom.Intersection_Points.keys():
-        plt.plot(*geom.Intersection_Points[k], 'v')
+    for k in geom.intersection_points.keys():
+        plt.plot(*geom.intersection_points[k], 'v')
     plt.axis('equal')
     plt.grid()
     plt.show()

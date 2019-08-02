@@ -36,22 +36,22 @@ To install this package:
 
 The easiest way to use this code is to call the interested solver. At the moment, the following solvers are implemented:
 
-* `Isentropic_Solver`
-* `Fanno_Solver`
-* `Rayleigh_Solver`
-* `Shockwave_Solver`
-* `Conical_Shockwave_Solver`
+* `isentropic_solver`
+* `fanno_solver`
+* `rayleigh_solver`
+* `shockwave_solver`
+* `conical_shockwave_solver`
 * `De_Laval_Solver`: isentropic expansion through the Convergent-Divergent nozzle.
 
-All the solver are located into the `solvers` sub-package. For example, if you need to use the `Isentropic_Solver`, just import it like this: 
+All the solver are located into the `solvers` sub-package. For example, if you need to use the `isentropic_solver`, just import it like this: 
 
-`from pygasflow.solvers import Isentropic_Solver`
+`from pygasflow.solvers import isentropic_solver`
 
 The [examples](examples/) folder provide a few usage examples. I strongly suggest to take a look at them.
 
-Should the solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits you. The code is well documented: I went for a natural language nomenclature since (I bet) most of us are using and advanced editor with autocompletion. For instance, the critical temperature T/T* is defined as Critical_Temperature_Ratio across the different flows, and so on. To import a function defined inside a specific flow, you can do (for instance):
+Should the solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits you. The code is well documented: I went for a natural language nomenclature since (I bet) most of us are using and advanced editor with autocompletion. For instance, the critical temperature T/T* is defined as `critical_temperature_ratio` across the different flows, and so on. To import a function defined inside a specific flow, you can do (for instance):
 
-`from pygasflow.isentropic import Critical_Temperature_Ratio`
+`from pygasflow.isentropic import critical_temperature_ratio`
 
 **_TODO_**:
 

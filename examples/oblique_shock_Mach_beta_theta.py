@@ -5,14 +5,14 @@ import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
 from pygasflow.shockwave import (
-    Beta_From_Mach_Theta,
-    Theta_From_Mach_Beta,
-    Max_Theta_From_Mach,
-    Beta_From_Mach_Max_Theta,
-    Beta_Theta_Max_For_Unit_Mach_Downstream,
+    beta_from_mach_theta,
+    theta_from_mach_beta,
+    max_theta_from_mach,
+    beta_from_mach_max_theta,
+    beta_theta_max_for_unit_mach_downstream,
 )
 
-def Fast_Version(M, gamma):
+def fast_version(M, gamma):
     """
     To compute the Mach curves, this function discretize the Shock Wave Angle
     range and then compute the respective Deflection Angles.
@@ -34,13 +34,13 @@ def Fast_Version(M, gamma):
     for i, m in enumerate(M):
         beta_min = np.rad2deg(np.arcsin(1 / m))
         betas = np.linspace(beta_min, 90, N)
-        thetas = Theta_From_Mach_Beta(m, betas, gamma)
+        thetas = theta_from_mach_beta(m, betas, gamma)
         plt.plot(thetas, betas, color=c[i], linewidth=1, label=lbls[i])
 
     # compute the line passing through (M,theta_max) and the line M2 = 1
     M1 = np.logspace(0, 3, 5 * N)
-    beta = Beta_From_Mach_Max_Theta(M1, gamma)
-    beta_M2_equal_1, theta_max = Beta_Theta_Max_For_Unit_Mach_Downstream(M1, gamma)
+    beta = beta_from_mach_max_theta(M1, gamma)
+    beta_M2_equal_1, theta_max = beta_theta_max_for_unit_mach_downstream(M1, gamma)
     
     plt.plot(theta_max, beta, '--', color="0.2", linewidth=1)
     plt.plot(theta_max, beta_M2_equal_1, ':', color="0.3", linewidth=1)
@@ -87,7 +87,7 @@ def Fast_Version(M, gamma):
     plt.legend(loc="lower right")
     plt.show()
 
-def Slow_Version(M, gamma):
+def slow_version(M, gamma):
     """
     To compute the Mach curves, this function first find the maximum Deflection
     angle of each Mach curve, than discretize the deflection angle in the range
@@ -118,12 +118,12 @@ def Slow_Version(M, gamma):
         return scale_diff / (scale[0] - scale[-1]) * (b - a) + a
     
     for i, m in enumerate(M):
-        theta_max = Max_Theta_From_Mach(m)
+        theta_max = max_theta_from_mach(m)
         # pack the theta points around theta_max
         thetas = logspace(0, theta_max, N)
         betas = np.zeros(2 * N)
         for j, t in enumerate(thetas):
-            b = Beta_From_Mach_Theta(m, t, gamma)
+            b = beta_from_mach_theta(m, t, gamma)
             betas[j] = b["weak"]
             betas[2 * N - 1 - j] = b["strong"]
 
@@ -133,8 +133,8 @@ def Slow_Version(M, gamma):
 
     # compute the line passing through (M,theta_max) and the line M2 = 1
     M1 = np.logspace(0, 3, 2 * N)
-    beta = Beta_From_Mach_Max_Theta(M1, gamma)
-    beta_M2_equal_1, theta_max = Beta_Theta_Max_For_Unit_Mach_Downstream(M1, gamma)
+    beta = beta_from_mach_max_theta(M1, gamma)
+    beta_M2_equal_1, theta_max = beta_theta_max_for_unit_mach_downstream(M1, gamma)
     
     plt.plot(theta_max, beta, '--', color="0.2", linewidth=1)
     plt.plot(theta_max, beta_M2_equal_1, ':', color="0.3", linewidth=1)
@@ -185,8 +185,8 @@ def main():
     gamma = 1.4
     M1 = [1.1, 1.5, 2, 3, 5, 10, 1e9]
 
-    Fast_Version(M1, gamma)
-    # Slow_Version(M1, gamma)
+    fast_version(M1, gamma)
+    # slow_version(M1, gamma)
 
 if __name__ == "__main__":
     main()

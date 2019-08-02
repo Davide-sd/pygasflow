@@ -1,7 +1,7 @@
 import numpy as np
 
-from pygasflow.utils.roots import Apply_Bisection
-from pygasflow.utils.decorators import Check
+from pygasflow.utils.roots import apply_bisection
+from pygasflow.utils.decorators import check
 
 # TODO:
 # 1. In the functions where the bisection is used, evaluate if the initial mach range
@@ -15,8 +15,8 @@ from pygasflow.utils.decorators import Check
 #   called by root finding methods.
 #   Therefore, I use plain formulas as much as possible.
 
-@Check	
-def Critical_Total_Temperature_Ratio(M, gamma=1.4):
+@check	
+def critical_total_temperature_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Total Temperature Ratio T0/T0*.
 
@@ -35,8 +35,8 @@ def Critical_Total_Temperature_Ratio(M, gamma=1.4):
     """
     return 2 * (1 + gamma) * M**2 / (1 + gamma * M**2)**2 * (1 + ((gamma - 1) / 2) * M**2)
 
-@Check	
-def Critical_Temperature_Ratio(M, gamma=1.4):
+@check	
+def critical_temperature_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Temperature Ratio T/T*.
 
@@ -55,8 +55,8 @@ def Critical_Temperature_Ratio(M, gamma=1.4):
     """
     return M**2 * (1 + gamma)**2 / (1 + gamma * M**2)**2
 
-@Check	
-def Critical_Pressure_Ratio(M, gamma=1.4):
+@check	
+def critical_pressure_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Pressure Ratio P/P*.
 
@@ -75,8 +75,8 @@ def Critical_Pressure_Ratio(M, gamma=1.4):
     """
     return (1 + gamma) / (1 + gamma * M**2)
 
-@Check	
-def Critical_Density_Ratio(M, gamma=1.4):
+@check	
+def critical_density_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Density Ratio rho/rho*.
 
@@ -97,8 +97,8 @@ def Critical_Density_Ratio(M, gamma=1.4):
     # Do I need to suppress the warning???
     return (1 + gamma * M**2) / ((gamma + 1) * M**2)
 
-@Check	
-def Critical_Total_Pressure_Ratio(M, gamma=1.4):
+@check	
+def critical_total_pressure_ratio(M, gamma=1.4):
     """
     Parameters
     ----------
@@ -115,8 +115,8 @@ def Critical_Total_Pressure_Ratio(M, gamma=1.4):
     """
     return (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
 
-@Check	
-def Critical_Velocity_Ratio(M, gamma=1.4):
+@check	
+def critical_velocity_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Velocity Ratio U/U*.
 
@@ -135,8 +135,8 @@ def Critical_Velocity_Ratio(M, gamma=1.4):
     """
     return (1 + gamma) * M**2 / (1 + gamma * M**2)
 
-@Check	
-def Critical_Entropy_Parameter(M, gamma=1.4):
+@check	
+def critical_entropy_parameter(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Entropy parameter (s*-s)/R.
 
@@ -157,8 +157,8 @@ def Critical_Entropy_Parameter(M, gamma=1.4):
     # Do I need to suppress the warning???
     return -gamma /(gamma - 1) * np.log(M**2 * ((gamma + 1) / (1 + gamma * M**2))**((gamma + 1) / gamma))
 
-@Check
-def M_From_Critical_Total_Temperature_Ratio(ratio, flag="sub", gamma=1.4):
+@check
+def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Total Temperature Ratio T0/T0*.
 
@@ -194,8 +194,8 @@ def M_From_Critical_Total_Temperature_Ratio(ratio, flag="sub", gamma=1.4):
     r[ratio == 1] = 1
     return r
 
-@Check
-def M_From_Critical_Temperature_Ratio(ratio, flag="sub", gamma=1.4):
+@check
+def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Temperature Ratio T/T*.
 
@@ -221,7 +221,7 @@ def M_From_Critical_Temperature_Ratio(ratio, flag="sub", gamma=1.4):
     # compute the maximum value of the Critical Temperature Ratio.
     # the Mach number corresponding to this CTR has been computed with
     # d(CTR)/dM = 0
-    upper_lim = Critical_Temperature_Ratio(1 / np.sqrt(gamma))
+    upper_lim = critical_temperature_ratio(1 / np.sqrt(gamma))
     assert np.all(ratio >= 0) and np.all(ratio < upper_lim), "It must be 0 < T/T* < {}.".format(upper_lim)
     
     M = np.zeros_like(ratio)
@@ -233,8 +233,8 @@ def M_From_Critical_Temperature_Ratio(ratio, flag="sub", gamma=1.4):
         M[ratio != 0] = np.sqrt(-2 * ratio[ratio != 0] * (2 * ratio[ratio != 0] * gamma - 1 - 2 * gamma - gamma**2 - np.sqrt(1 - 4 * ratio[ratio != 0] * gamma - 8 * ratio[ratio != 0] * gamma**2 - 4 * ratio[ratio != 0] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[ratio != 0] * gamma)
     return M
 
-@Check
-def M_From_Critical_Pressure_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Pressure Ratio P/P*.
 
@@ -252,15 +252,15 @@ def M_From_Critical_Pressure_Ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    upper_lim = Critical_Pressure_Ratio(0, gamma)
+    upper_lim = critical_pressure_ratio(0, gamma)
     assert np.all(ratio >= 0) and np.all(ratio <= upper_lim), "It must be 0 <= P/P* <= {}.".format(upper_lim)
     M = np.zeros_like(ratio)
     M[ratio == 0] = np.inf
     M[ratio != 0] = np.sqrt(ratio[ratio != 0] * gamma * (1 + gamma - ratio[ratio != 0])) / (ratio[ratio != 0] * gamma)
     return M
 
-@Check
-def M_From_Critical_Total_Pressure_Ratio(ratio, flag="sub", gamma=1.4):
+@check
+def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Total Pressure Ratio P0/P0*.
 
@@ -283,7 +283,7 @@ def M_From_Critical_Total_Pressure_Ratio(ratio, flag="sub", gamma=1.4):
     """
 
     if flag == "sub":
-        upper_lim = Critical_Total_Pressure_Ratio(0, gamma)
+        upper_lim = critical_total_pressure_ratio(0, gamma)
         assert np.all(ratio >= 1) and np.all(ratio < upper_lim), "It must be 1 <= P0/P0* < {}".format(upper_lim)
     else:
         assert np.all(ratio >= 1), "It must be P0/P0* >= 1"
@@ -291,10 +291,10 @@ def M_From_Critical_Total_Pressure_Ratio(ratio, flag="sub", gamma=1.4):
     # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
     func = lambda M, r: r - (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
 
-    return Apply_Bisection(ratio, func, flag=flag)
+    return apply_bisection(ratio, func, flag=flag)
 
-@Check	
-def M_From_Critical_Density_Ratio(ratio, gamma=1.4):
+@check	
+def m_from_critical_density_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Density Ratio rho/rho*.
 
@@ -316,8 +316,8 @@ def M_From_Critical_Density_Ratio(ratio, gamma=1.4):
     assert np.all(ratio > upper_lim), "It must be rho/rho* > {}.".format(upper_lim)
     return np.sqrt(1 / (ratio * (gamma + 1) - gamma))
 
-@Check
-def M_From_Critical_Velocity_Ratio(ratio, gamma=1.4):
+@check
+def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Velocity Ratio U/U*.
 
@@ -339,8 +339,8 @@ def M_From_Critical_Velocity_Ratio(ratio, gamma=1.4):
     assert np.all(ratio < upper_lim), "It must be 0 < U/U* < {}.".format(upper_lim)
     return -np.sqrt(-(ratio * gamma - 1 - gamma) * ratio) / (ratio * gamma - 1 - gamma)
 
-@Check
-def M_From_Critical_Entropy(ratio, flag="sub", gamma=1.4):
+@check
+def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Entropy (s*-s)/R.
 
@@ -368,10 +368,10 @@ def M_From_Critical_Entropy(ratio, flag="sub", gamma=1.4):
     # TODO: need to adjust the extreme of the range where to apply bisection.
     # If I try M_From_Critical_Entropy(1000) I get:
     # ValueError: f(a) and f(b) must have different signs
-    return Apply_Bisection(ratio, func, flag=flag)
+    return apply_bisection(ratio, func, flag=flag)
 
-@Check
-def Get_Ratios_From_Mach(M, gamma):
+@check
+def get_ratios_from_mach(M, gamma):
     """
     Compute all Rayleigh ratios given the Mach number.
 
@@ -399,12 +399,12 @@ def Get_Ratios_From_Mach(M, gamma):
         eps : array_like
             Critical Entropy Ratio (s*-s)/R
     """
-    prs = Critical_Pressure_Ratio.__no_check(M, gamma)
-    drs = Critical_Density_Ratio.__no_check(M, gamma)
-    trs = Critical_Temperature_Ratio.__no_check(M, gamma)
-    tprs = Critical_Total_Pressure_Ratio.__no_check(M, gamma)
-    ttrs = Critical_Total_Temperature_Ratio.__no_check(M, gamma)
-    urs = Critical_Velocity_Ratio.__no_check(M, gamma)
-    eps = Critical_Entropy_Parameter.__no_check(M, gamma)
+    prs = critical_pressure_ratio.__no_check(M, gamma)
+    drs = critical_density_ratio.__no_check(M, gamma)
+    trs = critical_temperature_ratio.__no_check(M, gamma)
+    tprs = critical_total_pressure_ratio.__no_check(M, gamma)
+    ttrs = critical_total_temperature_ratio.__no_check(M, gamma)
+    urs = critical_velocity_ratio.__no_check(M, gamma)
+    eps = critical_entropy_parameter.__no_check(M, gamma)
 
     return prs, drs, trs, tprs, ttrs, urs, eps

@@ -1,7 +1,8 @@
 import numpy as np
 import pygasflow.isentropic as ise
+from pygasflow.utils.common import convert_to_ndarray
 
-def Isentropic_Solver(param_name, param_value, gamma=1.4):
+def isentropic_solver(param_name, param_value, gamma=1.4):
     """
     Compute all isentropic ratios and Mach number given an input parameter.
 
@@ -56,28 +57,28 @@ def Isentropic_Solver(param_name, param_value, gamma=1.4):
     assert param_name in ['m', 'pressure', 'density', 'temperature', 'crit_area_sub', 'crit_area_super', 'mach_angle', 'prandtl_meyer']
     
     # compute the Mach number
-    param_value = np.asarray(param_value)
+    param_value = convert_to_ndarray(param_value)
 
     M = None
     if param_name == "m":
         M = param_value
         assert np.all(M >= 0), "Mach number must be >= 0."
     elif param_name == "crit_area_sub":
-        M = ise.M_From_Critical_Area_Ratio(param_value, "sub", gamma)
+        M = ise.m_from_critical_area_ratio(param_value, "sub", gamma)
     elif param_name == "crit_area_super":
-        M = ise.M_From_Critical_Area_Ratio(param_value, "sup", gamma)
+        M = ise.m_from_critical_area_ratio(param_value, "super", gamma)
 
     func_dict = {
-        'pressure': ise.M_From_Pressure_Ratio,
-        'density': ise.M_From_Density_Ratio,
-        'temperature': ise.M_From_Temperature_Ratio,
-        'mach_angle': ise.M_From_Mach_Angle,
-        'prandtl_meyer': ise.M_From_Prandtl_Meyer_Angle,
+        'pressure': ise.m_from_pressure_ratio,
+        'density': ise.m_from_density_ratio,
+        'temperature': ise.m_from_temperature_ratio,
+        'mach_angle': ise.m_from_mach_angle,
+        'prandtl_meyer': ise.m_from_prandtl_meyer_angle,
     }
     if param_name in func_dict.keys():
         M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
-    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.Get_Ratios_From_Mach.__no_check(M, gamma)
+    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
     
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name = 'pygasflow',
-    version = '0.0.1',
+    version = '0.9.0',
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
     classifiers=[
@@ -15,12 +15,17 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: Engineering :: Propulsion',
     ],
-    keywords='funniest joke comedy flying circus',
+    keywords='gasdynamic shockwave fanno rayleigh isentropic flow',
     url = 'https://github.com/Davide-sd/pygasflow',
     author = 'Davide Sandona',
     author_email = 'sandona.davide@gmail.com',
     license='GNU GPL v3',
-    packages = ['pygasflow'],
+    packages = [
+        'pygasflow',
+        'pygasflow.nozzles',
+        'pygasflow.solvers',
+        'pygasflow.utils',
+    ],
     include_package_data=True,
     zip_safe = False,
     install_requires = [

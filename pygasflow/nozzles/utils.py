@@ -1,6 +1,6 @@
 import numpy as np
 
-def Nozzle_Length(Rt, Re, R, K=1, alpha=15):
+def nozzle_length(Rt, Re, R, K=1, alpha=15):
     """
     Compute the length of the nozzle, from the throat section to the
     exit section, with respect to a conical nozzle.
@@ -34,7 +34,7 @@ def Nozzle_Length(Rt, Re, R, K=1, alpha=15):
 
 # Quadratic Bézier parameterization
 # https://www.benjaminmunro.com/liquid-oxygen-methane-engine-development
-def Quadratic_Bezier_Parabola(P0, P2, theta_N, theta_e, t):
+def quadratic_bezier_parabola(P0, P2, theta_N, theta_e, t):
     """
     This is the Quadratic Bézier parameterization of a parabola.
     Given two points of a parabola and the slopes at each point,
@@ -90,7 +90,7 @@ def Quadratic_Bezier_Parabola(P0, P2, theta_N, theta_e, t):
 # https://www.freelists.org/post/arocket/Parabolic-Nozzle-Approximation-Function
 # pdf file created by Narayanan Komerath, 2004.
 # Slides 11 -> 15.
-def Rotated_Parabola(P0, P1, theta_N, theta_e, x):
+def rotated_parabola(P0, P1, theta_N, theta_e, x):
     """
     Given two points of a parabola and the slopes at each point,
     compute the coordinates of the rotated parabola.
@@ -137,21 +137,22 @@ def Rotated_Parabola(P0, P1, theta_N, theta_e, x):
     return RN + P * (x - xN) + Q + np.sqrt(S * (x - xN) + T)
 
 
-def Convergent(theta, Ri, R0, Rt, factor):
+def convergent(theta, Ri, R0, Rt, factor):
     """
     Helper function to compute the important points of the convergent.
     It's possible to create both conical or curved convergents. 
     The curved configuration is composed of:
     * Circular segment at the junction with the combustion chamber (from -Lc <= x <= x0).
     * Straight segment tangent to both circles (from x0 <= x <= x1).
-    * Circular segment at the outlet of the nozzle (from x1 <= x <= x0).
+    * Circular segment at the outlet of the nozzle (from x1 <= x <= 0).
 
     Note: to create a conical convergent, set R0=0 and factor=0.
 
     Parameters
     ----------
         theta : float
-            Convergent angle in degrees. Must be 0 < theta < 90.
+            # TODO: is this theta the half-cone angle? If so, should it be 0 < theta < 45???
+            Convergent half-cone angle in degrees. Must be 0 < theta < 90.
         Ri : float
             Inlet section radius. Must be >= 0.
         R0 : float
@@ -170,14 +171,15 @@ def Convergent(theta, Ri, R0, Rt, factor):
             x-coordinate of the end of the circular junction of radius R0.
         y0 : float
             y-coordinate of the end of the circular junction of radius R0.
-        theta_0 : float 
-            slope angle of the straight line in the convergent.
-        q0 : float 
-            intercept at x=0 of the straight line in the convergent.
         x1 : float 
             x-coordinate of the start of the circular junction of radius (factor * Rt).
         y1 : float
             y-coordinate of the start of the circular junction of radius (factor * Rt).
+        xc : float
+            x-coordinate of the end of the circular junction to the throat.
+            This represents the length of the convergent section.
+        yc : float
+            y-coordinate of the end of the circular junction to the throat.
     """
 
     assert theta > 0 and theta < 90, "The convergent angle must be 0 < theta < 90."
@@ -222,26 +224,31 @@ def Convergent(theta, Ri, R0, Rt, factor):
     return x0, y0, x1, y1, xc, yc
 
 def main():
-    Lc = 5
     Rt = 1
     Ri = 3 * Rt
     R0 = 0.5 * Rt
-    R0 = 0
-    factor = 0
-    N = 100
+    R0 = 0.5
+    factor = 1
+    N = 1000
+    theta_c = 50
 
-    x0, y0, theta_0, q0, x1, y1 = Convergent(Lc, Ri, R0, Rt, factor)
+    x0, y0, x1, y1, xc, yc = convergent(theta_c, Ri, R0, Rt, factor)
+    theta_c = np.deg2rad(theta_c)
+    x0 -= xc
+    x1 -= xc
+    q = y1 + x1 * np.tan(theta_c)
 
     # Compute the points
-    x = np.linspace(-Lc, 0, N)
+    x = np.linspace(-xc, 0, N)
     y = np.zeros_like(x)
+
     # junction between combustion chamber and convergent
-    y[x <= x0] = np.sqrt(R0**2 - (x[x <= x0] + Lc)**2) + (Ri - R0)
+    y[x <= x0] = np.sqrt(R0**2 - (x[x <= x0] + xc)**2) + (Ri - R0)
     # straight line in the convergent
-    y[np.bitwise_and(x > x0, x < x1)] = np.tan(theta_0) * x[np.bitwise_and(x > x0, x < x1)] + q0
+    y[(x > x0) & (x < x1)] = -np.tan(theta_c) * x[(x > x0) & (x < x1)] + q
     # junction between convergent and divergent
     y[x >= x1] = -np.sqrt((factor * Rt)**2 - x[x >= x1]**2) + (1 + factor) * Rt
-    
+
     import matplotlib.pyplot as plt
     plt.plot(x, y)
     plt.grid()
