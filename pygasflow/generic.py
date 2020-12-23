@@ -29,8 +29,10 @@ def sound_speed(T, R=287.058, gamma=1.4):
         out : ndarray
             Sound Speed. 
     """
-    assert np.all(T >= 0), "Temperature must be >= 0."
-    assert R > 0, "Specific gas constant must be >= 0."
+    if np.any(T < 0):
+        raise ValueError("Temperature must be >= 0.")
+    if R <= 0:
+        raise ValueError("Specific gas constant must be >= 0.")
     return np.sqrt(gamma * R * T)
 
 @as_array([0, 1])
@@ -52,9 +54,12 @@ def mach_number(U, a):
         out : ndarray
             Mach Number. 
     """
-    assert U.shape == a.shape, "U and a must have the same shape."
-    assert np.all(U >= 0), "Must be U >= 0."
-    assert np.all(a > 0), "Must be a > 0."
+    if U.shape != a.shape:
+        raise ValueError("U and a must have the same shape.")
+    if np.any(U < 0):
+        raise ValueError("Must be U >= 0.")
+    if np.any(a <= 0):
+        raise ValueError("Must be a > 0.")
     return U / a
 
 @check
@@ -96,8 +101,10 @@ def mach_from_characteristic_mach_number(Ms, gamma):
             Mach number
     """
     Ms_lim = np.sqrt((gamma + 1) / (gamma - 1))
-    assert np.all(Ms >= 0) and np.all(Ms <= Ms_lim), "It must be 0 < Ms < {}".format(Ms_lim)
-    assert isinstance(gamma, (float)) and gamma > 1, "The specific heat ratio must be > 1."
+    if np.any(Ms < 0) or np.any(Ms > Ms_lim):
+        raise ValueError("It must be 0 < Ms < {}".format(Ms_lim))
+    if (not isinstance(gamma, float)) or (gamma <= 1):
+        raise ValueError("The specific heat ratio must be > 1.")
     return np.sqrt(2 / ((gamma + 1) / Ms**2 - (gamma - 1)))
 
 def stagnation_temperature(T, u, cp):
@@ -126,8 +133,10 @@ def stagnation_temperature(T, u, cp):
     """
     T = np.asarray(T)
     u = np.asarray(u)
-    assert np.all(T >= 0), "The static temperature must be >= 0."
-    assert cp > 0, "The specific heat at constant pressure must be > 0."
+    if np.any(T < 0):
+        raise ValueError("The static temperature must be >= 0.")
+    if cp <= 0:
+        raise ValueError("The specific heat at constant pressure must be > 0.")
     return T + u**2 / 2 / cp
 
 # def Pressure_Coefficient():

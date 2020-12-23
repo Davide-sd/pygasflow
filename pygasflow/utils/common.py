@@ -12,6 +12,20 @@ def convert_to_ndarray(x):
         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
     return x
 
+def ret_correct_vals(x):
+    """ Many functions implemented in this package requires their input 
+    arguments to be Numpy arrays, hence a few decorators take care of the
+    conversion before applying the function.
+    However, If I pass a scalar value to a function, I would like it to return
+    a scalar value, and not a Numpy one-dimensional or zero-dimensional array.
+    These function extract the scalar array from a 0-D or 1-D Numpy array.
+    """
+    if isinstance(x, np.ndarray) and (x.ndim == 1) and (x.size == 1):
+        return x[0]
+    elif isinstance(x, np.ndarray) and (x.ndim == 0):
+        return x[()]
+    return x
+
 class Ideal_Gas(object):
     def __init__(self, R=287.058, gamma=1.4):
         self._R = R
@@ -36,7 +50,8 @@ class Ideal_Gas(object):
         return self._cv    
     
     def solve(self, **args):
-        assert args, "Need some input arguments."
+        if not args:
+            raise ValueError("Need some input arguments.")
 
         P, T, rho = None, None, None
         # convert all keywords to lower case
@@ -51,20 +66,25 @@ class Ideal_Gas(object):
 
         
         if P != None and T != None and rho != None:
-            assert P.size == T.size and P.size == rho.size, "P, T, rho must have the same number of elements"
-            assert np.all(np.abs(P - rho * self.R * T) > 1e-08), "The input arguments appear not to follow ideal gas low"
+            if (P.size != T.size) or (P.size != rho.size):
+                raise ValueError("P, T, rho must have the same number of elements")
+            if np.any(np.abs(P - rho * self.R * T) <= 1e-08):
+                raise ValueError("The input arguments appear not to follow ideal gas low")
             return None
         
         if P != None and T != None:
-            assert P.size == T.size, "P, T must have the same number of elements"
+            if P.size != T.size:
+                raise ValueError("P, T must have the same number of elements")
             return P / self.R / T
         
         if P != None and rho != None:
-            assert P.size == rho.size, "P, rho must have the same number of elements"
+            if P.size != rho.size:
+                raise ValueError("P, rho must have the same number of elements")
             return P / self.R / rho
         
         if T != None and rho != None:
-            assert T.size == rho.size, "T, rho must have the same number of elements"
+            if T.size != rho.size:
+                raise ValueError("T, rho must have the same number of elements")
             return rho * self.R * T
 
 class Flow_State(object):
@@ -73,7 +93,8 @@ class Flow_State(object):
     def __init__(self, **args):
         # self.gas = gas
 
-        assert args, "Must be arguments to create a flow!!!"
+        if args is None:
+            raise ValueError("Must be arguments to create a flow!!!")
 
         self._name = ""
         self._mach = 0

@@ -32,7 +32,8 @@ class Nozzle_Geometry(object):
                 'axisymmetric' or 'planar'
         """
         geometry_type = geometry_type.lower()
-        assert geometry_type in ['axisymmetric', 'planar'], "Geometry type can be 'axisymmetric' or 'planar'."
+        if geometry_type not in ['axisymmetric', 'planar']:
+            raise ValueError("Geometry type can be 'axisymmetric' or 'planar'.")
         self._geometry_type = geometry_type
 
         self._Ri = Ri
@@ -178,9 +179,12 @@ class Nozzle_Geometry(object):
                 x-coordinate along the divergent length.
         """
         A = A_ratio * self._At
-        assert A > 0, "The area ratio must be > 0."
-        assert A <= self._Ae, "The provided area ratio is located beyond the exit section."
-        assert A >= self._At, "The provided area ratio is located in the convergent."
+        if A <= 0:
+            raise ValueError("The area ratio must be > 0.")
+        if A > self._Ae:
+            raise ValueError("The provided area ratio is located beyond the exit section.")
+        if A < self._At:
+            raise ValueError("The provided area ratio is located in the convergent.")
 
         # compute the location of area ratio
         # https://stackoverflow.com/questions/1029207/interpolation-in-scipy-finding-x-that-produces-y

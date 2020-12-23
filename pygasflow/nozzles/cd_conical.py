@@ -43,13 +43,18 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
                 Number of discretization elements along the length of the nozzle. 
                 Default to 100.
         """
-
-        assert Ri > Rt and Re > Rt, "Must be Ai > At and Ae > At."
-        assert isinstance(N, (int)) and N > 1, "The number of elements for discretization must be N > 1."
-        assert Rj > 0, "Junction radius between Convergent and Divergent must be > 0."
-        assert R0 > 0, "Junction radius between Combustion Chamber and Convergent must be > 0."
-        assert theta_N > 0 and theta_N < 90, "The half cone angle of the divergent must be 0 < theta_N < 90."
-        assert theta_c > 0 and theta_c < 90, "The half cone angle of the convergent must be 0 < theta_N < 90."
+        if (Ri <= Rt) or (Re <= Rt):
+            raise ValueError("Must be Ai > At and Ae > At.")
+        if (not isinstance(N, int)) or (N <= 1):
+            raise ValueError("The number of elements for discretization must be N > 1.")
+        if Rj <= 0:
+            raise ValueError("Junction radius between Convergent and Divergent must be > 0.")
+        if R0 <= 0:
+            raise ValueError("Junction radius between Combustion Chamber and Convergent must be > 0.")
+        if (theta_N <= 0) or (theta_N >= 90):
+            raise ValueError("The half cone angle of the divergent must be 0 < theta_N < 90.")
+        if (theta_c <= 0) or (theta_c >= 90):
+            raise ValueError("The half cone angle of the convergent must be 0 < theta_N < 90.")
 
         super().__init__(Ri, Re, Rt, None, None, geometry_type)
         self._theta_N = theta_N

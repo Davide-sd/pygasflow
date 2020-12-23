@@ -182,11 +182,16 @@ def convergent(theta, Ri, R0, Rt, factor):
             y-coordinate of the end of the circular junction to the throat.
     """
 
-    assert theta > 0 and theta < 90, "The convergent angle must be 0 < theta < 90."
-    assert Ri >= 0, "Inlet section radius must be >= 0."
-    assert R0 >= 0, "Radius of the junction between combustion chamber and convergent must be >= 0."
-    assert Rt >= 0, "Throat radius must be >= 0."
-    assert factor >= 0, "Ratio of the radius' must be >= 0."
+    if (theta <= 0) and (theta >= 90):
+        raise ValueError("The convergent angle must be 0 < theta < 90.")
+    if Ri < 0:
+        raise ValueError("Inlet section radius must be >= 0.")
+    if R0 < 0:
+        raise ValueError("Radius of the junction between combustion chamber and convergent must be >= 0.")
+    if Rt < 0:
+        raise ValueError("Throat radius must be >= 0.")
+    if factor < 0:
+        raise ValueError("Ratio of the radius' must be >= 0.")
 
     R = factor * Rt
 

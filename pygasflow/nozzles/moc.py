@@ -59,15 +59,20 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         theta_w_max : float
             Maximum wall inclination at the sharp corner.
     """
-    assert ht > 0, "The throat height must be a number > 0."
+    if ht <= 0:
+        raise ValueError("The throat height must be a number > 0.")
     # TODO: is n > 2 correct?
-    assert n > 2, "The number of characteristic lines must be an integer > 2."
-    assert gamma > 1, "Specific heats ratio must be > 1."
+    if n <= 2:
+        raise ValueError("The number of characteristic lines must be an integer > 2.")
+    if gamma <= 1:
+        raise ValueError("Specific heats ratio must be > 1.")
 
     if Me:
-        assert Me > 1, "Exit Mach number must be > 1."
+        if Me <= 1:
+            raise ValueError("Exit Mach number must be > 1.")
     elif A_ratio:
-        assert A_ratio > 1, "Area ratio must be > 1."
+        if A_ratio <= 1:
+            raise ValueError("Area ratio must be > 1.")
         Me = m_from_critical_area_ratio(A_ratio, "super", gamma)
     else:
         raise ValueError("Either Me or A_ratio must be provided.")
@@ -282,14 +287,20 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
                 Number of discretization elements along the length of the nozzle. 
                 Default to 100.
         """
-
-        assert Ri > Rt and Re > Rt, "Must be Ai > At and Ae > At."
-        assert isinstance(n, (int)) and N > 2, "The number of characteristic lines must be n > 2."
-        assert isinstance(N, (int)) and N > 1, "The number of elements for discretization must be N > 1."
-        assert Rj > 0, "Junction radius between Convergent and Divergent must be > 0."
-        assert R0 > 0, "Junction radius between Combustion Chamber and Convergent must be > 0."
-        assert theta_c > 0 and theta_c < 90, "The half cone angle of the convergent must be 0 < theta_N < 90."
-        assert gamma > 1, "The specific heats ratio must be > 1."
+        if (Ri <= Rt) or (Re <= Rt):
+            raise ValueError("Must be Ai > At and Ae > At.")
+        if (not isinstance(n, int)) or (N <= 2):
+            raise ValueError("The number of characteristic lines must be n > 2.")
+        if (not isinstance(N, int)) or (N <= 1):
+            raise ValueError("The number of elements for discretization must be N > 1.")
+        if Rj <= 0:
+            raise ValueError("Junction radius between Convergent and Divergent must be > 0.")
+        if R0 <= 0:
+            raise ValueError("Junction radius between Combustion Chamber and Convergent must be > 0.")
+        if (theta_c <= 0) or (theta_c >= 90):
+            raise ValueError("The half cone angle of the convergent must be 0 < theta_N < 90.")
+        if gamma <= 1:
+            raise ValueError("The specific heats ratio must be > 1.")
 
         super().__init__(Ri, Re, Rt, None, None, "planar")
         self._theta_c = theta_c

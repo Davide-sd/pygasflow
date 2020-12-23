@@ -189,7 +189,8 @@ def m_from_critical_temperature_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     upper_lim = critical_temperature_ratio(0, gamma)
-    assert np.all(ratio > 0) and np.all(ratio < upper_lim), "It must be 0 < T/T* < {}.".format(upper_lim)
+    if np.any(ratio <= 0) or np.any(ratio >= upper_lim):
+        raise ValueError("It must be 0 < T/T* < {}.".format(upper_lim))
     return np.sqrt(-ratio * (gamma - 1) * (2 * ratio - gamma - 1)) / (ratio * gamma - ratio)
 
 @check
@@ -232,7 +233,8 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     lower_lim = np.sqrt((gamma - 1) / (gamma + 1))
-    assert ratio >= lower_lim, "The critical density ratio must be >= {}.".format(lower_lim)
+    if ratio < lower_lim:
+        raise ValueError("The critical density ratio must be >= {}.".format(lower_lim))
     return np.sqrt(2 / ((gamma + 1) * ratio**2 - (gamma - 1)))
 
 
@@ -256,8 +258,9 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 1), "It must be P/P* > 1."
-
+    if np.any(ratio < 1):
+        raise ValueError("It must be P/P* > 1.")
+    
     # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
     func = lambda M, r: r - (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
 
@@ -287,7 +290,8 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     # compute the upper limit of CVR
     lower_lim = np.sqrt((gamma - 1) / (gamma + 1))
     upper_lim = 1 / lower_lim
-    assert np.all(ratio >= 0) and np.all(ratio < upper_lim), "It must be 0 <= U/U* < {}.".format(upper_lim)
+    if np.any(ratio < 0) or np.any(ratio >= upper_lim):
+        raise ValueError("It must be 0 <= U/U* < {}.".format(upper_lim))
     return 2 * ratio / np.sqrt(2 * gamma + 2 - 2 * ratio**2 * gamma + 2 * ratio**2)
 
 @check
@@ -314,12 +318,13 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
     """
     
     if flag == "sub":
-        assert np.all(fp >= 0), 'It must be fp >= 0.'
+        if np.any(fp < 0):
+            raise ValueError('It must be fp >= 0.')
     else:
         upper_lim = ((gamma + 1) * np.log((gamma + 1) / (gamma - 1)) - 2) / (2 * gamma)
-        print(upper_lim)
-        assert np.all(fp >= 0) and np.all(fp <= upper_lim), 'It must be 0 <= fp <= {}'.format(upper_lim)
-    
+        if np.any(fp < 0) or np.any(fp > upper_lim):
+            raise ValueError('It must be 0 <= fp <= {}'.format(upper_lim))
+        
     # TODO: when solving the supersonic case, and ratio -> upper limit,
     # I get: ValueError: f(a) and f(b) must have different signs
     # need to be dealt with!
@@ -350,8 +355,9 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ep >= 0), "It must be (s* - s) / R >= 0."
-
+    if np.any(ep < 0):
+        raise ValueError("It must be (s* - s) / R >= 0.")
+    
     # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
     

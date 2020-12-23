@@ -6,16 +6,15 @@ def readme():
 
 setup(
     name = 'pygasflow',
-    version = '0.9.0',
+    version = '1.0.0',
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
     classifiers=[
-        'Development Status :: 1 - Alpha',
         'License :: GNU GPL v3',
         'Programming Language :: Python :: 3.6',
         'Topic :: Engineering :: Propulsion',
     ],
-    keywords='gasdynamic shockwave fanno rayleigh isentropic flow',
+    keywords='gasdynamic shockwave fanno rayleigh isentropic flow perfect gas',
     url = 'https://github.com/Davide-sd/pygasflow',
     author = 'Davide Sandona',
     author_email = 'sandona.davide@gmail.com',

@@ -70,13 +70,18 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
             N : int
                 Number of discretization elements along the length of the nozzle. Default to 100.
         """
-
-        assert Ri > 0 and Re > 0 and Rt > 0, "All input areas must be > 0."
-        assert Ri > Rt and Re > Rt, "Must be Ai > At and Ae > At."
-        assert isinstance(N, (int)) and N > 1, "The number of elements for discretization must be N > 1."
-        assert K > 0, "The fractional Length must be K > 0."
-        assert R0 > 0, "Junction radius between Combustion Chamber and Convergent must be > 0."
-        assert theta_c > 0 and theta_c < 90, "It must be 0 < theta_c < 90."
+        if (Ri <= 0) or (Re <= 0) or (Rt <= 0):
+            raise ValueError("All input areas must be > 0.")
+        if (Ri <= Rt) or (Re <= Rt):
+            raise ValueError("Must be Ai > At and Ae > At.")
+        if (not isinstance(N, (int))) and (N <= 1):
+            raise ValueError("The number of elements for discretization must be N > 1.")
+        if K <= 0:
+            raise ValueError("The fractional Length must be K > 0.")
+        if R0 <= 0:
+            raise ValueError("Junction radius between Combustion Chamber and Convergent must be > 0.")
+        if (theta_c <= 0) or (theta_c >= 90):
+            raise ValueError("It must be 0 < theta_c < 90.")
 
         super().__init__(Ri, Re, Rt, None, None, geometry_type)
         self._K = K

@@ -178,8 +178,9 @@ def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 0) and np.all(ratio <= 1), "It must be 0 <= T0/T0* <= 1."
-
+    if np.any(ratio < 0) or np.any(ratio > 1):
+        raise ValueError("It must be 0 <= T0/T0* <= 1.")
+    
     # When ratio = 1 the values into the sqrt() should be zero, 
     # instead it's some very small negative number (rounding/truncation 
     # errors), returning NaN instead of 1.
@@ -222,7 +223,8 @@ def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
     # the Mach number corresponding to this CTR has been computed with
     # d(CTR)/dM = 0
     upper_lim = critical_temperature_ratio(1 / np.sqrt(gamma))
-    assert np.all(ratio >= 0) and np.all(ratio < upper_lim), "It must be 0 < T/T* < {}.".format(upper_lim)
+    if np.any(ratio < 0) or np.any(ratio > upper_lim):
+        raise ValueError("It must be 0 < T/T* < {}.".format(upper_lim))
     
     M = np.zeros_like(ratio)
     if flag == "sub":
@@ -253,7 +255,8 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     upper_lim = critical_pressure_ratio(0, gamma)
-    assert np.all(ratio >= 0) and np.all(ratio <= upper_lim), "It must be 0 <= P/P* <= {}.".format(upper_lim)
+    if np.any(ratio < 0) or np.any(ratio > upper_lim):
+        raise ValueError("It must be 0 <= P/P* <= {}.".format(upper_lim))
     M = np.zeros_like(ratio)
     M[ratio == 0] = np.inf
     M[ratio != 0] = np.sqrt(ratio[ratio != 0] * gamma * (1 + gamma - ratio[ratio != 0])) / (ratio[ratio != 0] * gamma)
@@ -284,9 +287,11 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
 
     if flag == "sub":
         upper_lim = critical_total_pressure_ratio(0, gamma)
-        assert np.all(ratio >= 1) and np.all(ratio < upper_lim), "It must be 1 <= P0/P0* < {}".format(upper_lim)
+        if np.any(ratio < 1) or np.any(ratio >= upper_lim):
+            raise ValueError("It must be 1 <= P0/P0* < {}".format(upper_lim))
     else:
-        assert np.all(ratio >= 1), "It must be P0/P0* >= 1"
+        if np.any(ratio < 1):
+            raise ValueError("It must be P0/P0* >= 1")
 
     # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
     func = lambda M, r: r - (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
@@ -313,7 +318,8 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     upper_lim = gamma / (gamma + 1)
-    assert np.all(ratio > upper_lim), "It must be rho/rho* > {}.".format(upper_lim)
+    if np.any(ratio <= upper_lim):
+        raise ValueError("It must be rho/rho* > {}.".format(upper_lim))
     return np.sqrt(1 / (ratio * (gamma + 1) - gamma))
 
 @check
@@ -336,7 +342,8 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     upper_lim = (1 + gamma) / gamma
-    assert np.all(ratio < upper_lim), "It must be 0 < U/U* < {}.".format(upper_lim)
+    if np.any(ratio >= upper_lim):
+        raise ValueError("It must be 0 < U/U* < {}.".format(upper_lim))
     return -np.sqrt(-(ratio * gamma - 1 - gamma) * ratio) / (ratio * gamma - 1 - gamma)
 
 @check
@@ -360,8 +367,9 @@ def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 0), "It must be (s*-s)/R >= 0."
-
+    if np.any(ratio < 0):
+        raise ValueError("It must be (s*-s)/R >= 0.")
+    
     # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - (-gamma /(gamma - 1) * np.log(M**2 * ((gamma + 1) / (1 + gamma * M**2))**((gamma + 1) / gamma)))
 

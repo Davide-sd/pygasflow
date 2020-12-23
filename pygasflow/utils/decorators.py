@@ -1,5 +1,5 @@
 import numpy as np
-from pygasflow.utils.common import convert_to_ndarray
+from pygasflow.utils.common import convert_to_ndarray, ret_correct_vals
 from timeit import default_timer as timer
 from functools import wraps
 import inspect
@@ -9,19 +9,23 @@ import inspect
 # if it doesn't, that's your problem: read the docs and be smart. :)
 
 def _check_specific_heat_ratio(gamma):
-    assert gamma > 1, "The specific heats ratio must be > 1."
+    if gamma < 1:
+        raise ValueError("The specific heats ratio must be > 1.")
 
 def _check_mach_number(M, value):
-    assert np.all(M >= value), "The Mach number must be >= {}.".format(value)
+    if not np.all(M >= value):
+        raise ValueError("The Mach number must be >= {}.".format(value))
 
 def _check_flag(flag):
     flag = flag.lower()
-    assert flag in ["sub", "super"], "Flag can be either 'sub' or 'super'."
+    if flag not in ["sub", "super"]:
+        raise ValueError("Flag can be either 'sub' or 'super'.")
     return flag
 
 def _check_flag_shockwave(flag):
     flag = flag.lower()
-    assert flag in ["weak", "strong"], "Flag can be either 'weak' or 'strong'."
+    if flag not in ["weak", "strong"]:
+        raise ValueError("Flag can be either 'weak' or 'strong'.")
     return flag
 
 # TODO: this approach let the user insert an angle=None even into
@@ -30,7 +34,8 @@ def _check_angle(angle_name, angle):
     #  some functions can accept an angle with value None!
     if angle is not None:
         angle = np.asarray(angle)
-        assert np.all(angle >= 0) and np.all(angle <= 90), "The {} must be 0 <= {} <= 90.".format(*angle_name)
+        if np.any(angle < 0) or np.any(angle > 90):
+            raise ValueError("The {} must be 0 <= {} <= 90.".format(*angle_name))
 
 
 # This decorator is used to convert and check the arguments of the
@@ -66,8 +71,13 @@ def check_shockwave(var=None):
             if "flag" in all_param.keys() and len(args) == len(all_param.keys()):
                 args[-1] = _check_flag_shockwave(all_param["flag"])
 
-            return original_function(*args, **kwargs)
-        wrapper_function.__no_check = original_function
+            res = original_function(*args, **kwargs)
+            return ret_correct_vals(res)
+        
+        def no_check_function(*args, **kwargs):
+            res = original_function(*args, **kwargs)
+            return ret_correct_vals(res)
+        wrapper_function.__no_check = no_check_function
         return wrapper_function
 
     if callable(var):
@@ -92,6 +102,14 @@ def check(var=None):
 
             if "M" in all_param.keys():
                 _check_mach_number(all_param["M"], 0)
+            # TODO: the following check is used in the shockwave.mach_downstream
+            # function. Ideally, it should be inside check_shockwave decorator,
+            # but that already does a check for M1. Alternatives:
+            # 1. build a new ad-hoc decorator only for shockwave.mach_downstream
+            # 2. see if it's possible to pass comparison arguments to the decorator,
+            # for example to say check M1 > 0.
+            if "M1" in all_param.keys():
+                _check_mach_number(all_param["M1"], 0)
             if "gamma" in all_param.keys():
                 _check_specific_heat_ratio(all_param["gamma"])
             
@@ -100,15 +118,19 @@ def check(var=None):
             if "flag" in all_param.keys() and len(args) > 1:
                 args[1] = _check_flag(all_param["flag"])
 
-            return original_function(*args, **kwargs)
-        wrapper_function.__no_check = original_function
+            res = original_function(*args, **kwargs)
+            return ret_correct_vals(res)
+        
+        def no_check_function(*args, **kwargs):
+            res = original_function(*args, **kwargs)
+            return ret_correct_vals(res)
+        wrapper_function.__no_check = no_check_function
         return wrapper_function
 
     if callable(var):
         return decorator(var)
     else:
         return decorator
-
 
 # Convert the arguments specified in index_list to np.ndarray.
 # By applying this conversion, the function will be able to handle

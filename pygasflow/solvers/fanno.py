@@ -1,6 +1,6 @@
 import numpy as np
 import pygasflow.fanno as fanno
-from pygasflow.utils.common import convert_to_ndarray
+from pygasflow.utils.common import convert_to_ndarray, ret_correct_vals
 
 def fanno_solver(param_name, param_value, gamma=1.4):
     """
@@ -47,19 +47,26 @@ def fanno_solver(param_name, param_value, gamma=1.4):
             Critical Entropy Ratio (s*-s)/R
     """
 
-    assert isinstance(gamma, (int, float)) and gamma > 1, "The specific heats ratio must be a number > 1."
-
-    assert isinstance(param_name, str), "param_name must be a string"
+    if (not isinstance(gamma, (int, float))) or gamma <= 1:
+        raise ValueError("The specific heats ratio must be a number > 1.")
+    if not isinstance(param_name, str):
+        raise ValueError("param_name must be a string")
     param_name = param_name.lower()
-    assert param_name in ['m', 'pressure', 'density', 'temperature', 'total_pressure_sub', 'total_pressure_super', 'velocity', 'friction_sub', 'friction_super', 'entropy_sub', 'entropy_super'], "param_name not recognized."
-    
+    available_pnames = ['m', 'pressure', 'density', 'temperature', 'total_pressure_sub', 'total_pressure_super', 'velocity', 'friction_sub', 'friction_super', 'entropy_sub', 'entropy_super']
+    if param_name not in available_pnames:
+        raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
+
     # compute the Mach number
     param_value = convert_to_ndarray(param_value)
 
     M = None
     if param_name == "m":
         M = param_value
-        assert np.all(M >= 0), "Mach number must be >= 0."
+        if not np.all(M >= 0):
+            raise ValueError("Mach number must be >= 0.")
+        # if there is only one mach number, doesn't make any sense to keep it
+        # into a numpy array. Let's extract it.
+        M = ret_correct_vals(M)
     elif param_name == 'total_pressure_sub':
         M = fanno.m_from_critical_total_pressure_ratio(param_value, "sub", gamma)
     elif param_name == 'total_pressure_super':

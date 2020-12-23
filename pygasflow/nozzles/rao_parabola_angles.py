@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 from scipy import interpolate
+from pygasflow.utils.common import ret_correct_vals
 
 class Rao_Parabola_Angles(object):
     """
@@ -108,8 +109,10 @@ class Rao_Parabola_Angles(object):
             theta_e : float
                 Angle in degrees at the end of the parabola (at the exit section).
         """
-        assert Lf >= 60 and Lf <= 100, "Fractional length must be 60 <= Lf <= 100."
-        assert Ar >= 5 and Ar <= 50, "Area ratio must be 5 <= Ar <= 50."
+        if (Lf < 60) or (Lf > 100):
+            raise ValueError("Fractional length must be 60 <= Lf <= 100.")
+        if (Ar < 5) or (Ar > 50):
+            raise ValueError("Area ratio must be 5 <= Ar <= 50.")
 
         Lf_inf, Lf_sup = self._find_Lf_range(Lf)
 
@@ -130,7 +133,7 @@ class Rao_Parabola_Angles(object):
 
     def area_ratio_from_Lf_angle(self, Lf=60, **args):
         """
-        Compute the Area Ratio given.
+        Compute the Area Ratio given Lf, theta_n or theta_e.
 
         Example usage: Find_Area_Ratio(65, theta_n=35)
 
@@ -149,7 +152,8 @@ class Rao_Parabola_Angles(object):
                 Note that linear interpolation is used if Lf is different
                 than 60, 70, 80, 90, 100.
         """
-        assert Lf >= 60 and Lf <= 100, "Fractional length must be 60 <= Lf <= 100."
+        if (Lf < 60) or (Lf > 100):
+            raise ValueError("Fractional length must be 60 <= Lf <= 100.")
 
         # convert all keywords to lower case
         args = {k.lower(): v for k,v in args.items()}
@@ -201,7 +205,7 @@ class Rao_Parabola_Angles(object):
             # use linear interpolation in the range (Lf_inf, Lf_sup)
             Ar = Ar_inf + (Lf - Lf_inf) / (Lf_sup - Lf_inf) * (Ar_sup - Ar_inf)
 
-        return Ar
+        return ret_correct_vals(Ar)
     
     def plot(self, N=30):
         """

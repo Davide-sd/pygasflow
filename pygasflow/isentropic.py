@@ -205,7 +205,8 @@ def m_from_temperature_ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 0) and np.all(ratio <= 1), "Temperature ratio must be 0 <= T/T0 <= 1."
+    if np.any(ratio < 0) or np.any(ratio > 1):
+        raise ValueError("Temperature ratio must be 0 <= T/T0 <= 1.")
     return np.sqrt(2 * (1 / ratio - 1) / (gamma - 1))
 
 @check
@@ -226,7 +227,8 @@ def m_from_pressure_ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 0) and np.all(ratio <= 1), "Pressure ratio must be 0 <= P/P0 <= 1."
+    if np.any(ratio < 0) or np.any(ratio > 1):
+        raise ValueError("Pressure ratio must be 0 <= P/P0 <= 1.")
     return np.sqrt(2 / (gamma - 1) * (1 / ratio**((gamma - 1) / gamma) - 1))
 
 @check
@@ -247,7 +249,8 @@ def m_from_density_ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 0) and np.all(ratio <= 1), "Density ratio must be 0 <= rho/rho0 <= 1."
+    if np.any(ratio < 0) or np.any(ratio > 1):
+        raise ValueError("Density ratio must be 0 <= rho/rho0 <= 1.")
     return np.sqrt(2 / (gamma - 1) * (1 / ratio**(gamma - 1) - 1))
 
 @check
@@ -270,7 +273,8 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(ratio >= 1), "Area ratio must be A/A* >= 1."
+    if np.any(ratio < 1):
+        raise ValueError("Area ratio must be A/A* >= 1.")
 
     func = lambda M, r: r - (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
     # func = lambda M, r: r - Critical_Area_Ratio.__no_check(M, gamma)
@@ -300,9 +304,12 @@ def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(a_ratio >= 1), "Area ratio must be A/A* >= 1."
-    assert np.all(p_ratio >= 0) and np.all(p_ratio <= 1), "Pressure ratio must be 0 <= P/P0 <= 1."
-    assert a_ratio.shape == p_ratio.shape, "The Critical Area Ratio and Pressure Ratio must have the same number of elements and the same shape."
+    if np.any(a_ratio < 1):
+        raise ValueError("Area ratio must be A/A* >= 1.")
+    if np.any(p_ratio < 0) or np.any(p_ratio > 1):
+        raise ValueError("Pressure ratio must be 0 <= P/P0 <= 1.")
+    if a_ratio.shape != p_ratio.shape:
+        raise ValueError("The Critical Area Ratio and Pressure Ratio must have the same number of elements and the same shape.")
     # eq. 5.28, Modern Compressible Flow, 3rd Edition, John D. Anderson
     return np.sqrt(-1 / (gamma - 1) + np.sqrt(1 / (gamma - 1)**2 + 2 / (gamma - 1) * (2 / (gamma + 1))**((gamma + 1) / (gamma - 1)) / a_ratio**2 / p_ratio**2))
 
@@ -324,7 +331,8 @@ def m_from_mach_angle(angle, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    assert np.all(angle >= 0) and np.all(angle <= 90), "Mach angle must be between 0° and 90°."
+    if np.any(angle < 0) or np.any(angle > 90):
+        raise ValueError("Mach angle must be between 0° and 90°.")
     return 1 / np.sin(np.deg2rad(angle))
 
 @check
@@ -368,7 +376,8 @@ def m_from_prandtl_meyer_angle(angle, gamma=1.4):
             Mach Number.
     """
     nu_max = (np.sqrt((gamma + 1) / (gamma - 1)) - 1) * 90
-    assert np.all(angle >= 0) and np.all(angle <= nu_max), "Prandtl-Meyer angle must be between 0 and {}".format(nu_max)
+    if np.any(angle < 0) or np.any(angle > nu_max):
+        raise ValueError("Prandtl-Meyer angle must be between 0 and {}".format(nu_max))
     angle = np.deg2rad(angle)
 
     func = lambda M, a: a - (np.sqrt((gamma + 1) / (gamma - 1)) * np.arctan(np.sqrt((gamma - 1) / (gamma + 1) * (M**2 - 1))) - np.arctan(np.sqrt(M**2 - 1)))
