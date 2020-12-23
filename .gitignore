@@ -6,6 +6,7 @@ __pycache__/
 myenv/
 pygasflow/solvers/scramjet.py
 .directory
+.vscode
 
 # C extensions
 *.so
