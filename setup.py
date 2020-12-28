@@ -6,7 +6,7 @@ def readme():
 
 setup(
     name = 'pygasflow',
-    version = '1.0.0',
+    version = '1.0.1',
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
     classifiers=[
