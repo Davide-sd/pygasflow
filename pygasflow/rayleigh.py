@@ -317,9 +317,9 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
         out : ndarray
             Mach Number.
     """
-    upper_lim = gamma / (gamma + 1)
-    if np.any(ratio <= upper_lim):
-        raise ValueError("It must be rho/rho* > {}.".format(upper_lim))
+    lower_lim = gamma / (gamma + 1)
+    if np.any(ratio <= lower_lim):
+        raise ValueError("It must be rho/rho* > {}.".format(lower_lim))
     return np.sqrt(1 / (ratio * (gamma + 1) - gamma))
 
 @check
@@ -342,7 +342,7 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     upper_lim = (1 + gamma) / gamma
-    if np.any(ratio >= upper_lim):
+    if np.any(ratio >= upper_lim) or np.any(ratio <= 0):
         raise ValueError("It must be 0 < U/U* < {}.".format(upper_lim))
     return -np.sqrt(-(ratio * gamma - 1 - gamma) * ratio) / (ratio * gamma - 1 - gamma)
 

@@ -20,6 +20,16 @@ def ret_correct_vals(x):
     a scalar value, and not a Numpy one-dimensional or zero-dimensional array.
     These function extract the scalar array from a 0-D or 1-D Numpy array.
     """
+    if isinstance(x, tuple):
+        # Many functions return a tuple of elements. If I give in input a single
+        # mach number, it may happens that the function return a tuple of 1-D 
+        # Numpy arrays. But I want a tuple of numbers. Hence, the following lines
+        # of code extract the values from the 1-D array and return a modified
+        # tuple of elements.
+        new_x = []
+        for e in x:
+            new_x.append(ret_correct_vals(e))
+        return new_x
     if isinstance(x, np.ndarray) and (x.ndim == 1) and (x.size == 1):
         return x[0]
     elif isinstance(x, np.ndarray) and (x.ndim == 0):

@@ -233,7 +233,7 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
             Mach Number.
     """
     lower_lim = np.sqrt((gamma - 1) / (gamma + 1))
-    if ratio < lower_lim:
+    if np.any(ratio < lower_lim):
         raise ValueError("The critical density ratio must be >= {}.".format(lower_lim))
     return np.sqrt(2 / ((gamma + 1) * ratio**2 - (gamma - 1)))
 

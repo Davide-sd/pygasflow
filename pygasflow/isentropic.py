@@ -37,8 +37,8 @@ def critical_velocity_ratio(M, gamma=1.4):
     """
     # need to deal with division by 0
     ratio = np.zeros_like(M)
-    ratio[M == 0] = 0
-    ratio[M != 0] = 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M[M != 0] * (1 + (gamma - 1) / 2 * M[M != 0]**2)**0.5)
+    idx = M != 0
+    ratio[idx] = 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M[idx] * (1 + (gamma - 1) / 2 * M[idx]**2)**0.5)
     return ratio
 
 @check
@@ -460,10 +460,3 @@ def get_ratios_from_mach(M, gamma):
     pm = prandtl_meyer_angle.__no_check(M, gamma)
 
     return pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
-
-def main():
-    # print(critical_velocity_ratio(2))
-    print(m_from_critical_area_ratio(5, "super"))
-
-if __name__ == "__main__":
-    main()

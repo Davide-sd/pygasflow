@@ -9,11 +9,9 @@
 # function implemented in the shockwave.py module. Hence I can easily compare 
 # the result with known values.
 
-# TODO: 
-# 1. Implement and test multiple Mach numbers for Conical Shock Waves
-
 import numpy as np
 import pytest
+from pytest import raises
 from pygasflow.solvers.shockwave import (
     shockwave_solver as ss,
     conical_shockwave_solver as css
@@ -28,8 +26,36 @@ from pygasflow.shockwave import (
 def check_val(v1, v2, tol=1e-05):
     assert abs(v1 - v2) < tol
 
+def func(err, fn, *args, **kwargs):
+    with raises(err):
+        fn(*args, **kwargs)
+
 gamma = 1.4
 tol = 1e-05
+
+# Raise error when:
+func(ValueError, ss, "m1", 2, "asd", 4) # p2_name not in ["beta", "theta", "mn1"]
+func(ValueError, ss, "m1", 2, "beta", None) # p2_value = None
+func(ValueError, ss, "m1", 2, "beta", -10) # beta < 0
+func(ValueError, ss, "m1", [2, 4], "beta", [20, -10]) # at least one beta < 0
+func(ValueError, ss, "m1", 2, "beta", 100) # beta > 90
+func(ValueError, ss, "m1", [2, 4], "beta", [20, 100]) # at least one beta > 90
+func(ValueError, ss, "m1", 2, "theta", -10) # beta < 0
+func(ValueError, ss, "m1", [2, 4], "theta", [20, -10]) # at least one beta < 0
+func(ValueError, ss, "m1", 2, "theta", 100) # beta > 90
+func(ValueError, ss, "m1", [2, 4], "theta", [20, 100]) # at least one beta > 90
+func(ValueError, ss, "asd", 2, "beta", 4) # p1_name not in available_p1names
+func(ValueError, ss, "mn1", 2, "mn1", 4) # p1_name = p2_name
+func(ValueError, ss, "theta", 2) # p1_name = theta and beta=None
+func(ValueError, ss, "theta", -10, "beta", 4) # p1_name = theta and theta < 0
+func(ValueError, ss, "theta", 100, "beta", 4) # p1_name = theta and theta > 90
+func(ValueError, ss, "beta", 2) # p1_name = beta and theta=None
+func(ValueError, ss, "beta", -10, "theta", 4) # p1_name = theta and theta < 0
+func(ValueError, ss, "beta", 100, "theta", 4) # p1_name = theta and theta > 90
+func(ValueError, ss, "beta", 60, "theta", 45) # detachment
+func(ValueError, ss, "beta", 89, "theta", 10) # detachment
+func(ValueError, ss, "beta", 5, "theta", 10) # detachment
+
 
 # Normal Shock Wave: beta=90deg
 def test_1(param_name, value, er, gamma=1.4):
@@ -137,6 +163,18 @@ test_2("m1", 5, "beta", 84.5562548, expected_res, 1.4, flag="strong")
 test_2("m1", 5, "mn1", 4.97744911, expected_res, 1.4, flag="strong")
 
 # Conical Shock Wave
+# Raise error when:
+func(ValueError, css, 2, "mcc", 1.5) # wrong parameter name
+func(ValueError, css, 2, "mc", 2) # Mc = M1
+func(ValueError, css, 2, "mc", 3) # Mc > M1
+func(ValueError, css, 2, "beta", -30) # beta < 0
+func(ValueError, css, 2, "beta", 100) # beta > 90
+func(ValueError, css, 2, "theta_c", -30) # theta_c < 0
+func(ValueError, css, 2, "theta_c", 100) # theta_c > 90
+func(ValueError, css, 2, "theta_c", 45) # detachment
+func(ValueError, css, 2, "beta", 20) # detachment
+
+
 def test_3(m1, param_name, value, er, gamma=1.4, tol=1e-05):
     r = css(m1, param_name, value, gamma)
     assert len(r) == len(er)
@@ -170,7 +208,8 @@ expected_res = [
     1.83257331, # Tc/T1
 ]
 
-# very high tolerances since we are dealing with fixed step iterative procedures
+# very high tolerances since the online calculator is using a fixed-step 
+# iterative procedure, where I'm using bisection
 test_3(5, "theta_c", 20, expected_res, 1.4, 1e-01)
 test_3(5, "beta", 24.9785489, expected_res, 1.4, 1e-01)
 test_3(5, "mc", 3.37200575, expected_res, 1.4, 1e-01)

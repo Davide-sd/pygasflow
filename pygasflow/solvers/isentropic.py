@@ -1,7 +1,9 @@
 import numpy as np
 import pygasflow.isentropic as ise
-from pygasflow.utils.common import convert_to_ndarray, ret_correct_vals
+from pygasflow.utils.common import ret_correct_vals
+from pygasflow.utils.decorators import check
 
+@check([1])
 def isentropic_solver(param_name, param_value, gamma=1.4):
     """
     Compute all isentropic ratios and Mach number given an input parameter.
@@ -50,29 +52,25 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
             Prandtl-Meyer Angle
     """
 
-    if (not isinstance(gamma, (int, float))) or (gamma <= 1):
-        raise ValueError("The specific heats ratio must be a number > 1.")
     if not isinstance(param_name, str):
         raise ValueError("param_name must be a string")
     param_name = param_name.lower()
     available_pnames = ['m', 'pressure', 'density', 'temperature', 'crit_area_sub', 'crit_area_super', 'mach_angle', 'prandtl_meyer']
     if param_name not in available_pnames:
         raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
-    
-    # compute the Mach number
-    # the conversion to ndarray is necessary because the functions requires
-    # this type of data to work properly
-    param_value = convert_to_ndarray(param_value)
 
     M = None
     if param_name == "m":
         M = param_value
         if not np.all(M >= 0):
             raise ValueError("Mach number must be >= 0.")
+        # if a single mach number was provided, convert it to scalar so that
+        # we have all scalar values in the output
+        M = ret_correct_vals(M)
     elif param_name == "crit_area_sub":
-        M = ise.m_from_critical_area_ratio(param_value, "sub", gamma)
+        M = ise.m_from_critical_area_ratio.__no_check(param_value, "sub", gamma)
     elif param_name == "crit_area_super":
-        M = ise.m_from_critical_area_ratio(param_value, "super", gamma)
+        M = ise.m_from_critical_area_ratio.__no_check(param_value, "super", gamma)
 
     func_dict = {
         'pressure': ise.m_from_pressure_ratio,
@@ -85,9 +83,5 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         M = func_dict[param_name].__no_check(param_value, gamma)
     # compute the different ratios
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
-    
-    # if a single mach number was provided, convert it to scalar so that
-    # we have all scalar values in the output
-    M = ret_correct_vals(M)
     
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

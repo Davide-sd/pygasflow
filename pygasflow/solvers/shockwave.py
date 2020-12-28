@@ -22,7 +22,13 @@ from pygasflow.shockwave import (
 )
 
 from pygasflow.utils.common import convert_to_ndarray
+from pygasflow.utils.decorators import check_shockwave
 
+# TODO:
+# detachment detection, when provided theta > theta_max for the specified Mach
+# number
+
+@check_shockwave([1, 3])
 def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak"):
     """ 
     Try to compute all the ratios, angles and mach numbers across the shock wave.
@@ -32,7 +38,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     Parameters
     ----------
         p1_name : string
-            Name of the parameter given in input. Can be either one of:
+            Name of the first parameter given in input. Can be either one of:
                 ['pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2', 'beta', 'theta']
             If the parameter is a ratio, it is in the form downstream/upstream:
                 'pressure': p2/p1
@@ -47,9 +53,10 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         p1_value : float
             Actual value of the parameter.
         p2_name : string
-            Name of the angle given as parameter. It could either be:
+            Name of the second parameter. It could either be:
                 'beta': Shock wave angle.
                 'theta: Flow deflection angle.
+                'mn1': Input Normal Mach number
             Default to 'beta'.
         p2_value : float
             Value of the angle in degrees.
@@ -95,12 +102,12 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         raise ValueError("p2_value must be a real positive number.")
     if p2_name == 'beta':
         beta = p2_value
-        if (not np.all(np.asarray(beta) >= 0)) or (not np.all(np.asarray(beta) <= 90)):
+        if (not np.all(beta >= 0)) or (not np.all(beta <= 90)):
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
     elif p2_name == 'theta':
         theta = p2_value
         # TODO: is this condition correct? The 0 and 90 part????
-        if np.any(np.asarray(theta) is None) or np.any(np.asarray(theta) < 0) or np.any(np.asarray(theta) > 90):
+        if np.any(theta < 0) or np.any(theta > 90):
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
     else:
         MN1 = p2_value
@@ -111,7 +118,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     if p1_name not in available_p1names:
         raise ValueError("p1_name must be either one of {}".format(available_p1names))
     if p1_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']:
-        MN1 = get_upstream_normal_mach_from_ratio(p1_name, p1_value, gamma)
+        MN1 = get_upstream_normal_mach_from_ratio.__no_check(p1_name, p1_value, gamma)
     elif p1_name == "mn1":
         if p1_name == p2_name:
             raise ValueError("p1_name must be different than p2_name")
@@ -124,40 +131,38 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         theta = p1_value
         if (theta < 0) or (theta > 90):
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
-        M1 = mach_from_theta_beta(theta, beta)
-        # pass
+        if not isinstance(beta, np.ndarray):
+            beta = beta * np.ones_like(theta)
+        M1 = mach_from_theta_beta.__no_check(theta, beta)
     elif p1_name == "beta":
         if theta is None:
             raise ValueError("If you provide p1_name='beta', it must be p2_name='theta'.")
         beta = p1_value
         if (beta < 0) or (beta > 90):
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
-        M1 = mach_from_theta_beta(theta, beta)
+        if not isinstance(theta, np.ndarray):
+            theta = theta * np.ones_like(beta)
+        M1 = mach_from_theta_beta.__no_check(theta, beta)
     else:   # 'm2'
         # TODO:
         # Is it even possible to solve it knowing only M2, beta or M2, theta?????
         raise NotImplementedError("Solving a shock wave with a given M2 is not yet implemented.")
 
-
-    flag = flag.lower()
-    if flag not in ["weak", "strong"]:
-        raise ValueError("Flag can be either 'weak' or 'strong'.")
-
     if (M1 is not None) and (MN1 is not None):
-        beta = beta_from_upstream_mach(M1, MN1)
-        theta = theta_from_mach_beta(M1, beta, gamma)
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
+        beta = beta_from_upstream_mach.__no_check(M1, MN1)
+        theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
-    elif M1:
+    elif M1 is not None:
         # at this point, either beta or theta is set, not both!
-        MN1 = normal_mach_upstream(M1, beta, theta, flag)
+        MN1 = normal_mach_upstream.__no_check(M1, beta, theta, gamma, flag)
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
 
-        if beta:
-            theta = theta_from_mach_beta(M1, beta, gamma)
+        if beta is not None:
+            theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
         else:
-            beta = beta_from_mach_theta(M1, theta, gamma)[flag]
+            beta = beta_from_mach_theta.__no_check(M1, theta, gamma)[flag]
         
         if isinstance(M1, (list, tuple, np.ndarray)):
             beta *= np.ones_like(M1)
@@ -166,11 +171,11 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
     else:
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
 
-        if beta:
+        if beta is not None:
             M1 = MN1 / np.sin(np.deg2rad(beta))
-            theta = theta_from_mach_beta(M1, beta, gamma)
+            theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
             if isinstance(M1, (list, tuple, np.ndarray)):
                 beta *= np.ones_like(M1)
         else:
@@ -189,8 +194,8 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     #     
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
-
-def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025):
+@check_shockwave
+def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"):
     """ 
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
@@ -211,8 +216,9 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025)
                 0 < theta_c < 90
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
-        step : float
-            Angle-increment used on the shock wave angle iteration. Default to 0.025 deg.
+        flag : string
+            Can be either 'weak' or 'strong'. Default to 'weak' (in conical
+            shockwaves, the strong solution is rarely encountered).
     
     Returns
     -------
@@ -241,7 +247,6 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025)
         Tc_T1 : float
             Temperature ratio between the cone's surface and the upstream condition.
     """
-
     param_name = param_name.lower()
     if param_name not in ["mc", "beta", "theta_c"]:
         raise ValueError("param_name can be either 'beta' or 'mc' or 'theta_c'.")
@@ -249,6 +254,8 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025)
     Mc, beta, theta_c = None, None, None
     if param_name == 'mc':
         Mc = param_value
+        if np.any(M1 <= Mc):
+            raise ValueError("It must be M1 > Mc.")
         if (not isinstance(Mc, (int, float))) or (Mc < 0):
             raise ValueError("The Mach number at the cone's surface must be Mc >= 0.")
     elif param_name == 'beta':
@@ -261,11 +268,11 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025)
             raise ValueError("The half cone angle must be 0 < theta_c < 90.")
     
     if Mc:
-        _, theta_c, beta = shock_angle_from_machs(M1, Mc, gamma, step)
+        _, theta_c, beta = shock_angle_from_machs(M1, Mc, gamma, flag)
     elif beta:
         Mc, theta_c = mach_cone_angle_from_shock_angle(M1, beta, gamma)
     elif theta_c:
-        Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, step)
+        Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag)
     
     # compute the ratios across the shockwave
     MN1 = M1 * np.sin(np.deg2rad(beta))
@@ -273,12 +280,29 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.5, step=0.025)
     
     # delta is the flow deflection angle (Anderson's Figure 10.4)
     delta = theta_from_mach_beta(M1, beta, gamma)
-    M_2 = MN2 /  np.sin(np.deg2rad(beta - delta))
+    M2 = MN2 /  np.sin(np.deg2rad(beta - delta))
 
     # ratios between cone surface and upstream conditions. Note that
     # p0c/p01 = p02/p01, already computed
     pc_p1 = ise_PR(Mc) * tpr / ise_PR(M1)
-    rhoc_rho1 = ise_DR(Mc) / ise_DR(M_2) * dr
-    Tc_T1 = ise_TR(Mc) / ise_TR(M_2) * tr
+    rhoc_rho1 = ise_DR(Mc) / ise_DR(M2) * dr
+    Tc_T1 = ise_TR(Mc) / ise_TR(M2) * tr
+
+    # set Mc, theta_c to have the same shape as M1 and the other ratios. This is
+    # necessary because Mc or theta_c are parameters passed in by the user, in 
+    # that case they are scalars.
+    theta_c = theta_c * np.ones_like(M1)
+    if not isinstance(Mc, np.ndarray):
+        Mc = Mc * np.ones_like(M1)
 
     return M1, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
+
+if __name__ == "__main__":
+    # print(conical_shockwave_solver(2, "theta_c", 38.76391345757847))
+    # print(conical_shockwave_solver(2, "beta", 61.485371643068866))
+    # print(conical_shockwave_solver(3, "mc", 2))
+    # print(conical_shockwave_solver(2, 'theta_c', 45))
+    # print(shockwave_solver("m1", [2, 5], "theta", [20, 20]))
+    # print(shockwave_solver("beta", 60, "theta", 45))
+    # print(conical_shockwave_solver(2, "beta", 20))
+    print(conical_shockwave_solver(2, "mc", 0.8))

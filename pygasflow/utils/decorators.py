@@ -4,12 +4,58 @@ from timeit import default_timer as timer
 from functools import wraps
 import inspect
 
-# NOTE: I have decided to not explicitely do a type chek on variables.
-# This means you can pass any value on any variable: if it works, great,
-# if it doesn't, that's your problem: read the docs and be smart. :)
+# NOTE: 
+# Decorators are used to get rid of repetitive code. For example, consider
+# the isentropic functions; many of them requires an input Mach number which
+# must be positive. Instead of repeating the same code on every function, I use
+# a decorator.
+#
+# At the moment there are two main decorators:
+# * check: used in isentropic, fanno, rayleigh flows.
+# * check_shockwave: used in shockwave functions.
+# 
+# Each function expect Numpy-like data structures. Therefore, each decorator
+#  can be called:
+# * without arguments: in that case, only the first function parameter will be
+#   converted to a Numpy array.
+# * with an argument of type list, specifing the indeces of the arguments that 
+#   needs to be converted to a Numpy array.
+#
+# On top of that, each decorator check the validity of common parameters, such
+# as the mach number for flows and shockwave, the specific heat ratio (gamma), 
+# the flag (sub, super, weak, strong), or the angles beta, theta for oblique 
+# showckwaves. Any other check is left to the specific function.
+#
+# The decorators check and check_shockwave also implements a __no_check 
+# function. This is useful to avoid the function to execute the decorator's 
+# code: in this way, solvers can call all the specific functions without having
+# to execute the same conversion/check every time, thus improving performance.
+#
+# If I pass a single mach number, the decorator converts it to a 1-D array. 
+# However, I would like the function to return a scalar value, not a 1-D result 
+# array. The decorator is supposed to convert 0-D or 1-D outputs to scalar 
+# values. If a function returns a tuple of elements, the decorators will repeat 
+# the same process to each element. In doing so:
+# 1. If I provide a scalar value, the functions will return either a scalar
+#    value or a tuple of scalars.
+# 2. If I provide a list or array of values (with more than one element), the
+#    function will return either an array or a tuple of arrays
+#
+# Finally:
+# 1. I have decided to not explicitely do a type chek on variables.
+#    This means you can pass any value on any variable: if it works, great,
+#    if it doesn't, that's your problem: read the docs and be smart. :)
+#
+# 2. The `check` decorator requires that the `flag` argument must be
+#    the second parameter to the (isentropic) functions. Do not change
+#    the parameter orders if you don't know what you are doing.
+#
+# 2. The `check__shockwave` decorator requires that the `flag` argument must be
+#    the last parameter to the (shockwave) functions. Do not change
+#    the parameter orders if you don't know what you are doing.
 
 def _check_specific_heat_ratio(gamma):
-    if gamma < 1:
+    if gamma <= 1:
         raise ValueError("The specific heats ratio must be > 1.")
 
 def _check_mach_number(M, value):
@@ -58,6 +104,7 @@ def check_shockwave(var=None):
                 _check_mach_number(all_param["M1"], 1)
             if "MN1" in all_param.keys():
                 _check_mach_number(all_param["MN1"], 0)
+                # TODO: should I check that MN1 <= M1?
             if "gamma" in all_param.keys():
                 _check_specific_heat_ratio(all_param["gamma"])
             if "beta" in all_param.keys():
@@ -115,9 +162,12 @@ def check(var=None):
             
             # all_param include all parameters, even if they were not specified.
             # therefore, I need to check if flag has been effectively given!
-            if "flag" in all_param.keys() and len(args) > 1:
-                args[1] = _check_flag(all_param["flag"])
-
+            if "flag" in all_param.keys():
+                flag = _check_flag(all_param["flag"])
+                if len(args) > 1:
+                    args[1] = flag
+                else:
+                    kwargs["flag"] = flag
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
         
@@ -148,22 +198,11 @@ def as_array(index_list=[0]):
     def decorator(original_function):
         @wraps(original_function)
         def wrapper_function(*args, **kwargs):
-            # def func(x):
-            #     """
-            #     Check if it is of type np.ndarray.
-            #     If not, convert to np.ndarray and make sure it is at least 
-            #     1 dimensional.
-            #     """
-            #     if not isinstance(x, np.ndarray):
-            #         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
-            #     if x.ndim == 0:
-            #         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
-            #     return x
             
             args = list(args)
             for i in index_list:
-                # args[i] = np.asarray(args[i], dtype=np.float64)
-                args[i] = convert_to_ndarray(args[i])
+                if i < len(args):
+                    args[i] = convert_to_ndarray(args[i])
             return original_function(*args, **kwargs)
         wrapper_function.__no_check = original_function
         return wrapper_function
@@ -174,11 +213,13 @@ def get_parameters_dict(original_function, *args, **kwargs):
     """
     Get a dictionary of parameters passed to the original_function.
     """
+    # https://stackoverflow.com/a/53715901/2329968
     param = inspect.signature(original_function).parameters
     all_param = {
         k: args[n] if n < len(args) else v.default
         for n, (k, v) in enumerate(param.items()) if k != 'kwargs'
     }
+    all_param.update(kwargs)
     return all_param
 
 # This decorator is used to compute the average execution time of a function.
