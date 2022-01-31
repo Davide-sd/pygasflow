@@ -1,3 +1,4 @@
+from pygasflow._version import __version__
 from pygasflow.solvers import (
     isentropic_solver,
     fanno_solver,

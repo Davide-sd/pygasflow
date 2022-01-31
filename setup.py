@@ -1,4 +1,10 @@
 from setuptools import setup
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
+version_ns = {}
+with open(os.path.join(here, 'spb', '_version.py')) as f:
+    exec (f.read(), {}, version_ns)
 
 def readme():
     with open('README.md') as f:
@@ -6,7 +12,7 @@ def readme():
 
 setup(
     name = 'pygasflow',
-    version = '1.0.1',
+    version = version_ns["__version__"],
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
     classifiers=[
