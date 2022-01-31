@@ -25,16 +25,16 @@ def pressure_ratio(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Pressure Ratio P2/P1
+    out : ndarray
+        Pressure Ratio P2/P1
     """
     return (2 * gamma * M1**2 - gamma + 1) / (gamma + 1)
 
@@ -44,16 +44,16 @@ def temperature_ratio(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Temperature Ratio T2/T1
+    out : ndarray
+        Temperature Ratio T2/T1
     """
     return ((2 * gamma * M1**2 - gamma + 1) * (2 + (gamma - 1) * M1**2)
             / ((gamma + 1)**2 * M1**2))
@@ -64,16 +64,16 @@ def density_ratio(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Density Ratio rho2/rho1
+    out : ndarray
+        Density Ratio rho2/rho1
     """
     return ((gamma + 1) * M1**2) / ((gamma - 1) * M1**2 + 2)
 
@@ -83,16 +83,16 @@ def total_pressure_ratio(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Total Pressure Ratio p02/p01
+    out : ndarray
+        Total Pressure Ratio p02/p01
     """
     a = (gamma + 1) * M1**2 / (2 + (gamma - 1) * M1**2)
     b = (gamma + 1) / (2 * gamma * M1**2 - gamma + 1)
@@ -104,16 +104,16 @@ def total_temperature_ratio(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Total Temperature Ratio T02/T01 (spoiler: always equal to 1 :P )
+    out : ndarray
+        Total Temperature Ratio T02/T01 (spoiler: always equal to 1 :P )
     """
     return np.ones_like(M1)
 
@@ -124,16 +124,16 @@ def entropy_difference(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Dimensionless Entropy Difference, (s2 - s1) / C_p
+    out : ndarray
+        Dimensionless Entropy Difference, (s2 - s1) / C_p
     """
     a = np.log((1 + 2 * gamma / (gamma + 1) * (M1**2 - 1)) * ((2 + (gamma - 1) * M1**2) / ((gamma + 1) * M1**2)))
     b = (gamma - 1) / gamma * np.log(1 + 2 * gamma / (gamma + 1) * (M1**2 - 1))
@@ -151,17 +151,18 @@ def mach_downstream(M1, gamma=1.4):
     
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Because this function can be used to compute M1 given
-            M2, it will not perform a check wheter M1 >= 1. Be careful on your use!
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Because this function can be used to compute M1
+        given M2, it will not perform a check wheter M1 >= 1.
+        Be careful on your use!
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Downstream Mach Number M2
+    out : ndarray
+        Downstream Mach Number M2
     """
     if np.any(M1 < 0):
         raise ValueError("The provided Mach number must be positive")
@@ -174,16 +175,16 @@ def m1_from_pressure_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Pressure Ratio P2/P1. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be P2/P1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Pressure Ratio P2/P1. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be P2/P1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Upstream Mach number M1.
+    out : ndarray
+        Upstream Mach number M1.
     """
     if np.any(ratio < 1):
         raise ValueError("The pressure ratio must be P2/P1 >= 1")
@@ -196,16 +197,16 @@ def m1_from_temperature_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Temperature Ratio T2/T1. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be T2/T1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Temperature Ratio T2/T1. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be T2/T1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Upstream Mach number M1.
+    out : ndarray
+        Upstream Mach number M1.
     """
     if np.any(ratio < 1):
         raise ValueError("The temperature ratio must be T2/T1 >= 1")
@@ -221,16 +222,17 @@ def m1_from_density_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Density Ratio rho2/rho1. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be 1 <= rho2/rho1 < (gamma + 1) / (gamma - 1).
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Density Ratio rho2/rho1. If float, list, tuple is given as input, 
+        a conversion will be attempted.
+        Must be 1 <= rho2/rho1 < (gamma + 1) / (gamma - 1).
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Upstream Mach number M1.
+    out : ndarray
+        Upstream Mach number M1.
     """
     gr = (gamma + 1) / (gamma - 1)
     if np.any(ratio < 1) or np.any(ratio > gr):
@@ -244,16 +246,16 @@ def m1_from_total_pressure_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Total Pressure Ratio. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be 0 <= P02/P01 <= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Total Pressure Ratio. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be 0 <= P02/P01 <= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Upstream Mach number M1.
+    out : ndarray
+        Upstream Mach number M1.
     """
     if np.any(ratio < 0) or np.any(ratio > 1):
         raise ValueError("The total pressure ratio must be 0 <= P02/P01 <= 1")
@@ -268,16 +270,17 @@ def m1_from_m2(M2, gamma=1.4):
 
     Parameters
     ----------
-        M2 : array_like
-            Downstream Mach Number. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be ((gamma - 1) / 2 / gamma) < M_2 < 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M2 : array_like
+        Downstream Mach Number. If float, list, tuple is given as input, 
+        a conversion will be attempted.
+        Must be ((gamma - 1) / 2 / gamma) < M_2 < 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Upstream Mach number M1.
+    out : ndarray
+        Upstream Mach number M1.
     """
     lower_lim = (gamma - 1) / 2 / gamma
     if np.any(M2 < lower_lim) or np.any(M2 > 1):
@@ -296,18 +299,18 @@ def theta_from_mach_beta(M1, beta, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        beta : float
-            Shock wave angle in degrees.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    beta : float
+        Shock wave angle in degrees.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Flow angle Theta [degrees]
+    out : ndarray
+        Flow angle Theta [degrees]
     """
     beta = np.deg2rad(beta)
 
@@ -330,19 +333,19 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        theta : float
-            Flow turning angle in degrees.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    theta : float
+        Flow turning angle in degrees.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Dictionary of Shock angle beta [degrees] if it exists, else NaN: 
-            {"weak": beta_weak, "strong": beta_strong}.
+    out : ndarray
+        Dictionary of Shock angle beta [degrees] if it exists, else NaN: 
+        {"weak": beta_weak, "strong": beta_strong}.
     """
     # Exact and Approximate Solutions to the Oblique Shock Equations for
     # Real-Time Applications, T.T. Hartley, R. Brandis, and F. Mossayebi, 1991
@@ -422,17 +425,17 @@ def beta_from_upstream_mach(M1, MN1):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        MN1 : array_like
-            Normal Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be MN1.shape == M1.shape.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    MN1 : array_like
+        Normal Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be MN1.shape == M1.shape.
     
     Returns
     -------
-        out : ndarray
-            Shock angle Beta [degrees]
+    out : ndarray
+        Shock angle Beta [degrees]
     """
     MN1 = np.asarray(MN1)
     if np.any(M1 < 1):
@@ -450,25 +453,26 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        beta : float
-            The shock wave angle in degrees. If beta=None you must give in theta.
-        theta : float
-            The flow deflection angle in degrees. If theta=None you must give in beta.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        flag : string
-            Can be either 'weak' or 'strong'. Default to 'weak'. Chose what value to 
-            compute if theta is provided.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    beta : float, optional
+        The shock wave angle in degrees. If beta=None you must give in theta.
+    theta : float, optional
+        The flow deflection angle in degrees. If theta=None you must give
+        in beta.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    flag : string, optional
+        Can be either 'weak' or 'strong'. Default to 'weak'. Chose what
+        value to compute if theta is provided.
     
     Returns
     -------
-        out : ndarray
-            Normal Mach number upstream of the shock wave.
-            If theta is given, and flag="both" it returns a dictionary of Normal Mach
-            numbers: {"weak":weak_MN1, "strong":strong_MN1}.
+    out : ndarray
+        Normal Mach number upstream of the shock wave.
+        If theta is given, and flag="both" it returns a dictionary of
+        Normal Mach numbers: {"weak":weak_MN1, "strong":strong_MN1}.
     """
     # TODO: with the current check_shockwave decorator, flag can only be 'weak'
     # or 'strong'. If 'both' an error will be raised.
@@ -511,25 +515,28 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratioName : string
-            Name of the ratio given in input. Can be either one of:
-                    ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']
-            This ratio is in the form downstream/upstream, therefore:
-                'pressure': p2/p1
-                'temperature': t2/t1
-                'density': rho2/rho1
-                'total_pressure': p02/p01
-                'mn2': Normal Mach downstream of the shock wave
-        ratio : array_like
-            Actual value of the ratio. If float, list, tuple is given as input, 
-            a conversion will be attempted.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratioName : string
+        Name of the ratio given in input. Can be either one of:
+        ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']
+        
+        This ratio is in the form downstream/upstream, therefore:
+        
+        * 'pressure': p2/p1
+        * 'temperature': t2/t1
+        * 'density': rho2/rho1
+        * 'total_pressure': p02/p01
+        * 'mn2': Normal Mach downstream of the shock wave
+
+    ratio : array_like
+        Actual value of the ratio. If float, list, tuple is given as input, 
+        a conversion will be attempted.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            The upstream Mach number.
+    out : ndarray
+        The upstream Mach number.
     """
     ratioName = ratioName.lower()
     if isinstance(ratio, (list, tuple)):
@@ -556,24 +563,24 @@ def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
 
     Parameters
     ----------
-        Mn : array_like
-            Normal Mach number upstream of the shock wave. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    Mn : array_like
+        Normal Mach number upstream of the shock wave. If float, list, tuple
+        is given as input, a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        pr : array_like
-            Pressure ratio across the shock wave.
-        dr : array_like
-            Density ratio across the shock wave.
-        tr : array_like
-            Temperature ratio across the shock wave.
-        tpr : array_like
-            Total Pressure ratio across the shock wave.
-        mn2 : array_like
-            Normal Mach number dowstream of the shock wave.
+    pr : array_like
+        Pressure ratio across the shock wave.
+    dr : array_like
+        Density ratio across the shock wave.
+    tr : array_like
+        Temperature ratio across the shock wave.
+    tpr : array_like
+        Total Pressure ratio across the shock wave.
+    mn2 : array_like
+        Normal Mach number dowstream of the shock wave.
     """
     # TODO: use __no_check
     pr = pressure_ratio(Mn, gamma)
@@ -591,15 +598,15 @@ def maximum_mach_from_deflection_angle(theta, gamma=1.4):
 
     Parameters
     ----------
-        theta : float
-            Deflection angle in degrees. Must be 0 <= theta <= 90.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    theta : float
+        Deflection angle in degrees. Must be 0 <= theta <= 90.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        M : float
-            The maximum Mach number for the specified theta.
+    M : float
+        The maximum Mach number for the specified theta.
     """
     upper_lim = max_theta_from_mach(np.finfo(np.float32).max, gamma)
     if theta >= upper_lim:
@@ -632,13 +639,13 @@ def mimimum_beta_from_mach(M1):
 
     Parameters
     ----------
-        M : array_like
-            Upstream Mach number. Must be >= 1.
+    M : array_like
+        Upstream Mach number. Must be >= 1.
     
     Returns
     -------
-        beta: float
-            Shock wave angle in degrees
+    beta: float
+        Shock wave angle in degrees
     """
     return np.rad2deg(np.arcsin(1 / M1))
 
@@ -649,16 +656,16 @@ def max_theta_from_mach(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. If float, list, tuple is given as input,
-            a conversion will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Theta_max : ndarray
-            Maximum deflection angle theta in degrees
+    Theta_max : ndarray
+        Maximum deflection angle theta in degrees
     """
     # http://www.pdas.com/maxwedge.xml
 
@@ -690,21 +697,21 @@ def max_theta_from_mach(M1, gamma=1.4):
 @check_shockwave
 def beta_from_mach_max_theta(M1, gamma=1.4):
     """
-    Compute the shock wave angle beta corresponding to the maximum deflection angle theta
-    given an upstream Mach number.
+    Compute the shock wave angle beta corresponding to the maximum deflection
+    angle theta given an upstream Mach number.
 
     Parameters
     ----------
-        M1 : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Beta : array_like
-            The shock angle in degrees.
+    Beta : array_like
+        The shock angle in degrees.
     """
 
     theta_max = max_theta_from_mach.__no_check(M1, gamma)
@@ -721,22 +728,23 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     """
     Compute the shock maximum deflection angle, theta_max, as well as the
-    wave angle beta corresponding to the unitary downstream Mach number, M2 = 1.
+    wave angle beta corresponding to the unitary downstream Mach
+    number, M2 = 1.
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. If float, list, tuple is given as input,
-            a conversion will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Beta : array_like
-            The shock angle in degrees corresponding to M2=1.
-        Theta max : array_like
-            The maximum deflection angle in degrees corresponding to M2=1.
+    Beta : array_like
+        The shock angle in degrees corresponding to M2=1.
+    Theta max : array_like
+        The maximum deflection angle in degrees corresponding to M2=1.
     """
 
     def func(b, M, t):
@@ -763,19 +771,19 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
     
     Parameters
     ----------
-        theta : array_like
-            Flow deflection angle in degrees. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be 0 <= theta <= 90.
-        beta : array_like
-            Shock wave angle in degrees. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be 0 <= beta <= 90.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    theta : array_like
+        Flow deflection angle in degrees. If float, list, tuple is given
+        as input, a conversion will be attempted. Must be 0 <= theta <= 90.
+    beta : array_like
+        Shock wave angle in degrees. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be 0 <= beta <= 90.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Mach : ndarray
-            The upstream Mach number.
+    Mach : ndarray
+        The upstream Mach number.
     """
     if beta.shape != theta.shape:
         raise ValueError("Flow deflection angle and Shock wave angle must have the same shape.")
@@ -827,19 +835,19 @@ def shock_polar(M1, gamma=1.4, N=100):
 
     Parameters
     ----------
-        M1 : float
-            Upstream Mach number of the shock wave. Must be > 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        N : int
-            Number of discretization steps in the range [2, 2*pi]. Must be > 1.
+    M1 : float
+        Upstream Mach number of the shock wave. Must be > 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    N : int, optional
+        Number of discretization steps in the range [2, 2*pi]. Must be > 1.
     
     Returns
     -------
-        (Vx/a*) : ndarray [1 x N]
-            x-coordinate for the shock polar plot
-        (Vy/a*) : ndarray [1 x N]
-            y-coordinate for the shock polar plot
+    (Vx/a*) : ndarray [1 x N]
+        x-coordinate for the shock polar plot
+    (Vy/a*) : ndarray [1 x N]
+        y-coordinate for the shock polar plot
     """
     if (not isinstance(N, int)) or (N <= 1):
         raise ValueError("The number of discretization steps must be integer and > 1.")
@@ -876,22 +884,23 @@ def pressure_deflection(M1, gamma=1.4, N=100):
 
     Parameters
     ----------
-        M1 : float
-            Upstream Mach number. Must be > 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        N : int
-            Half number of points discretizing the range [0, theta_max]. 
-            This function compute N points in the range [0, theta_max] for the 'weak'
-            solution, then compute N points in the range [theta_max, 0] for the 
-            'strong' solution.
+    M1 : float
+        Upstream Mach number. Must be > 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    N : int, optional
+        Half number of points discretizing the range [0, theta_max]. 
+        This function compute N points in the range [0, theta_max] for
+        the 'weak' solution, then compute N points in the range
+        [theta_max, 0] for the 'strong' solution.
     
     Returns
     -------
-        theta : array_like
-            Deflection angles
-        pr : array_like
-            Pressure ratios computed for the given Mach and the above deflection angles.
+    theta : array_like
+        Deflection angles
+    pr : array_like
+        Pressure ratios computed for the given Mach and the above
+        deflection angles.
     """
     if (not isinstance(N, int)) or (N <= 1):
         raise ValueError("The number of discretization steps must be integer and > 1.")
@@ -927,19 +936,19 @@ def taylor_maccoll(theta, V, gamma=1.4):
 
     Parameters
     ----------
-        theta : float
-            Polar coordinate, angle in radians.
-        V : list
-            Velocity Vector with components:
-            V_r: velocity along the radial direction
-            V_theta: velocity along the polar direction
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    theta : float
+        Polar coordinate, angle in radians.
+    V : list
+        Velocity Vector with components:
+        V_r: velocity along the radial direction
+        V_theta: velocity along the polar direction
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        dV_dtheta : list
-            Taylor-Maccoll differential equation.
+    dV_dtheta : list
+        Taylor-Maccoll differential equation.
     """
     # Reorganizing Anderson's equation 10.15:
     V_r, V_theta = V
@@ -958,16 +967,16 @@ def nondimensional_velocity(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be M >= 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be M >= 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        V : array_like
-            Nondimensional Velocity
+    V : array_like
+        Nondimensional Velocity
     """
     # Anderson's equation 10.16
     return np.sqrt((gamma - 1) * M**2 / (2 + (gamma - 1) * M**2))
@@ -979,16 +988,16 @@ def mach_from_nondimensional_velocity(V, gamma=1.4):
 
     Parameters
     ----------
-        V : array_like
-            Nondimensional Velocity. If float, list, tuple is given as input, 
-            a conversion will be attempted. Must be V > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    V : array_like
+        Nondimensional Velocity. If float, list, tuple is given as input, 
+        a conversion will be attempted. Must be V > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        M : array_like
-            Mach number
+    M : array_like
+        Mach number
     """
     if np.any(V <= 0):
         raise ValueError("Nondimensional velocity must be V > 0.")
@@ -1004,22 +1013,22 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     Parameters
     ----------
-        M : float
-            Upstream Mach number. Must be > 1.
-        beta : float
-            Shock Angle in degrees. Must be mach_angle <= beta <= 90.
-            NOTE: no check is done over beta. If an error is raised during the
-            computation, make sure beta is at least ever so slightly bigger than
-            the mach angle.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : float
+        Upstream Mach number. Must be > 1.
+    beta : float
+        Shock Angle in degrees. Must be mach_angle <= beta <= 90.
+        NOTE: no check is done over beta. If an error is raised during the
+        computation, make sure beta is at least ever so slightly bigger than
+        the mach angle.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Mc : float
-            Mach number at the surface of the cone
-        theta_c : float
-            Half-cone angle in degrees. 
+    Mc : float
+        Mach number at the surface of the cone
+    theta_c : float
+        Half-cone angle in degrees. 
     """
     # NOTE:
     # Here we implement the first 3-ish steps of Anderson's "Modern Compressible
@@ -1096,24 +1105,24 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. Must be > 1.
-        theta_c : float
-            Half cone angle in degrees. Must be 0 < theta_c < 90
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        flag : string
-            Can be either 'weak' or 'strong'. Default to 'weak' (in conical
-            shockwaves, the strong solution is rarely encountered).
+    M1 : array_like
+        Upstream Mach number. Must be > 1.
+    theta_c : float
+        Half cone angle in degrees. Must be 0 < theta_c < 90
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    flag : string, optional
+        Can be either 'weak' or 'strong'. Default to 'weak' (in conical
+        shockwaves, the strong solution is rarely encountered).
     
     Returns
     -------
-        Mc : float
-            Mach number at the surface of the cone, computed.
-        theta_c : float
-            Half cone angle of the cone in degrees (which was provided in input).
-        beta : float
-            Shock wave angle in degrees. 
+    Mc : float
+        Mach number at the surface of the cone, computed.
+    theta_c : float
+        Half cone angle of the cone in degrees (which was provided in input).
+    beta : float
+        Shock wave angle in degrees. 
     """
     if theta_c < 0:
         raise ValueError("The half-cone angle must be > 0.")
@@ -1161,24 +1170,24 @@ def shock_angle_from_machs(M1, Mc, gamma=1.4, flag="weak"):
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. Must be > 1.
-        Mc : float
-            Mach number at the surface of the cone.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        flag : string
-            Can be either 'weak' or 'strong'. Default to 'weak' (in conical
-            shockwaves, the strong solution is rarely encountered).
+    M1 : array_like
+        Upstream Mach number. Must be > 1.
+    Mc : float
+        Mach number at the surface of the cone.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    flag : string, optional
+        Can be either 'weak' or 'strong'. Default to 'weak' (in conical
+        shockwaves, the strong solution is rarely encountered).
 
     Returns
     -------
-        Mc : float
-            Mach number at the surface of the cone, computed.
-        theta_c : float
-            Half cone angle of the cone in degrees.
-        beta : float
-            Shock wave angle in degrees. 
+    Mc : float
+        Mach number at the surface of the cone, computed.
+    theta_c : float
+        Half cone angle of the cone in degrees.
+    beta : float
+        Shock wave angle in degrees. 
     """
 
     def function(M):
@@ -1227,21 +1236,21 @@ def max_theta_c_from_mach(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. If float, list, tuple is given as input,
-            a conversion will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        Mc : ndarray
-            Mach number at the cone surface
-        Theta_c_max : ndarray
-            Maximum cone angle theta_c in degrees
-        beta : ndarray
-            Shockwave angle corresponding to the maximum cone angle and provided
-            Mach number.
+    Mc : ndarray
+        Mach number at the cone surface
+    Theta_c_max : ndarray
+        Maximum cone angle theta_c in degrees
+    beta : ndarray
+        Shockwave angle corresponding to the maximum cone angle and provided
+        Mach number.
     """
     def function(M):
         # initial search interval
@@ -1279,18 +1288,18 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
 
     Parameters
     ----------
-        M1 : array_like
-            Upstream Mach number. If float, list, tuple is given as input,
-            a conversion will be attempted. Must be M1 >= 1.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
 
     Returns
     -------
-        theta_c : ndarray
-            Cone angle theta_c in degrees.
-        beta : ndarray
-            Shockwave angle corresponding in degrees.
+    theta_c : ndarray
+        Cone angle theta_c in degrees.
+    beta : ndarray
+        Shockwave angle corresponding in degrees.
     """
     def function(M1):
         def func(theta_c):
@@ -1324,17 +1333,17 @@ def load_data(gamma=1.4):
 
     Parameters
     ----------
-        gamma : float
-            The specific heat ratio.
+    gamma : float, optional
+        The specific heat ratio.
     
     Returns
     -------
-        M1 : ndarray
-            The precomputed upstream Mach numbers
-        beta : ndarray
-            The shockwave angle associate to M2=1 for the precomputed M1
-        theta_c : ndarray
-            The half-cone angle associate to M2=1 for the precomputed M1
+    M1 : ndarray
+        The precomputed upstream Mach numbers
+    beta : ndarray
+        The shockwave angle associate to M2=1 for the precomputed M1
+    theta_c : ndarray
+        The half-cone angle associate to M2=1 for the precomputed M1
     """
     if gamma <= 1:
         raise ValueError("The specific heat ratio must be gamma > 1")

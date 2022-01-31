@@ -23,16 +23,16 @@ def critical_temperature_ratio(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Temperature Ratio T/T*.
+    out : ndarray
+        Critical Temperature Ratio T/T*.
     """
     return ((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2)
 
@@ -43,16 +43,16 @@ def critical_pressure_ratio(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Pressure Ratio P/P*.
+    out : ndarray
+        Critical Pressure Ratio P/P*.
     """
     # TODO: here, division by M=0 produce the correct results, infinity.
     # Do I need to suppress the warning???
@@ -65,16 +65,16 @@ def critical_density_ratio(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Density Ratio rho/rho*.
+    out : ndarray
+        Critical Density Ratio rho/rho*.
     """
     # TODO: here, division by M=0 produce the correct results, infinity.
     # Do I need to suppress the warning???
@@ -87,16 +87,16 @@ def critical_total_pressure_ratio(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Total Pressure Ratio P0/P0*.
+    out : ndarray
+        Critical Total Pressure Ratio P0/P0*.
     """
     # TODO: here, division by M=0 produce the correct results, infinity.
     # Do I need to suppress the warning???
@@ -109,16 +109,16 @@ def critical_velocity_ratio(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Velocity Ratio U/U*.
+    out : ndarray
+        Critical Velocity Ratio U/U*.
     """
     return M * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2))
 
@@ -130,16 +130,16 @@ def critical_friction_parameter(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Friction Parameter 4fL*/D.
+    out : ndarray
+        Critical Friction Parameter 4fL*/D.
     """
     # need to deal with division by 0
     f = np.zeros_like(M)
@@ -154,16 +154,16 @@ def critical_entropy_parameter(M, gamma=1.4):
 
     Parameters
     ----------
-        M : array_like
-            Mach number. If float, list, tuple is given as input, a conversion
-            will be attempted. Must be M > 0.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M > 0.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Critical Entropy Parameter (s*-s)/R.
+    out : ndarray
+        Critical Entropy Parameter (s*-s)/R.
     """
     # TODO: here, division by M=0 produce the correct results, infinity.
     # Do I need to suppress the warning???
@@ -176,17 +176,17 @@ def m_from_critical_temperature_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Fanno's Critical Temperature Ratio T/T*. If float, list, tuple is given as
-            input, a conversion will be attempted. 
-            Must be 0 < T/T* < Critical_Temperature_Ratio(0, gamma).
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Fanno's Critical Temperature Ratio T/T*. If float, list, tuple is
+        given as input, a conversion will be attempted. 
+        Must be 0 < T/T* < Critical_Temperature_Ratio(0, gamma).
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     upper_lim = critical_temperature_ratio(0, gamma)
     if np.any(ratio <= 0) or np.any(ratio >= upper_lim):
@@ -200,16 +200,16 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Fanno's Critical Pressure Ratio P/P*. If float, list, tuple is given as
-            input, a conversion will be attempted.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Fanno's Critical Pressure Ratio P/P*. If float, list, tuple is given
+        as input, a conversion will be attempted.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     return np.sqrt(-ratio * (gamma - 1) * (ratio - np.sqrt(ratio**2 + gamma**2 - 1))) / (ratio * gamma - ratio)
 
@@ -220,21 +220,22 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Fanno's Critical Density Ratio rho/rho*. If float, list, tuple is given as
-            input, a conversion will be attempted.
-            Must be: rho/rho* > np.sqrt((gamma - 1) / (gamma + 1))
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Fanno's Critical Density Ratio rho/rho*. If float, list, tuple is
+        given as input, a conversion will be attempted.
+        Must be: rho/rho* > np.sqrt((gamma - 1) / (gamma + 1))
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     lower_lim = np.sqrt((gamma - 1) / (gamma + 1))
     if np.any(ratio < lower_lim):
-        raise ValueError("The critical density ratio must be >= {}.".format(lower_lim))
+        raise ValueError(
+            "The critical density ratio must be >= {}.".format(lower_lim))
     return np.sqrt(2 / ((gamma + 1) * ratio**2 - (gamma - 1)))
 
 
@@ -245,18 +246,19 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Fanno's Critical Total Pressure Ratio P0/P0*. If float, list, tuple is given as
-            input, a conversion will be attempted. Must be P0/P0* > 1.
-        flag : string
-            Can be either 'sub' (subsonic) or 'super' (supersonic). Default to 'sub'.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Fanno's Critical Total Pressure Ratio P0/P0*. If float, list, tuple
+        is given as input, a conversion will be attempted. Must be P0/P0* > 1.
+    flag : string, optional
+        Can be either 'sub' (subsonic) or 'super' (supersonic).
+        Default to 'sub'.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     if np.any(ratio < 1):
         raise ValueError("It must be P/P* > 1.")
@@ -273,17 +275,17 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
 
     Parameters
     ----------
-        ratio : array_like
-            Fanno's Critical Velocity Ratio U/U*. If float, list, tuple is given as
-            input, a conversion will be attempted. 
-            Must be 0 <= U/U* < (1 / np.sqrt((gamma - 1) / (gamma + 1))).
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ratio : array_like
+        Fanno's Critical Velocity Ratio U/U*. If float, list, tuple is given
+        as input, a conversion will be attempted. 
+        Must be 0 <= U/U* < (1 / np.sqrt((gamma - 1) / (gamma + 1))).
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     # Critical Velocity Ratio and Critical Density Ratio are reciprocal
     # of each other. Therefore, I can use the lower limit of CDR to
@@ -301,20 +303,21 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
 
     Parameters
     ----------
-        fp : array_like
-            Fanno's Critical Friction Parameter 4fL*/D. If float, list, tuple is given as
-            input, a conversion will be attempted.
-            If flag="sub", it must be fp >= 0.
-            Else, 0 <= fp <= ((gamma + 1) * np.log((gamma + 1) / (gamma - 1)) - 2) / (2 * gamma)
-        flag : string
-            Can be either 'sub' (subsonic) or 'super' (supersonic). Default to 'sub'.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    fp : array_like
+        Fanno's Critical Friction Parameter 4fL*/D. If float, list, tuple
+        is given as input, a conversion will be attempted.
+        If flag="sub", it must be fp >= 0.
+        Else, 0 <= fp <= ((gamma + 1) * np.log((gamma + 1) / (gamma - 1)) - 2) / (2 * gamma)
+    flag : string, optional
+        Can be either 'sub' (subsonic) or 'super' (supersonic).
+        Default to 'sub'.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     
     if flag == "sub":
@@ -341,19 +344,20 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
 
     Parameters
     ----------
-        ep : array_like
-            Fanno's Critical Entropy Parameter (s*-s)/R. If float, list, tuple is given as
-            input, a conversion will be attempted. 
-            Must be (s* - s) / R >= 0.
-        flag : string
-            Can be either 'sub' (subsonic) or 'super' (supersonic). Default to 'sub'.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ep : array_like
+        Fanno's Critical Entropy Parameter (s*-s)/R. If float, list, tuple
+        is given as input, a conversion will be attempted. 
+        Must be (s* - s) / R >= 0.
+    flag : string, optional
+        Can be either 'sub' (subsonic) or 'super' (supersonic).
+        Default to 'sub'.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        out : ndarray
-            Mach Number.
+    out : ndarray
+        Mach Number.
     """
     if np.any(ep < 0):
         raise ValueError("It must be (s* - s) / R >= 0.")
@@ -370,27 +374,27 @@ def get_ratios_from_mach(M, gamma):
 
     Parameters
     ----------
-        M : array_like
-            Mach number
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    M : array_like
+        Mach number
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        prs : array_like
-            Critical Pressure Ratio P/P*
-        drs : array_like
-            Critical Density Ratio rho/rho*
-        trs : array_like
-            Critical Temperature Ratio T/T*
-        tprs : array_like
-            Critical Total Pressure Ratio P0/P0*
-        urs : array_like
-            Critical Velocity Ratio U/U*
-        fps : array_like
-            Critical Friction Parameter 4fL*/D
-        eps : array_like
-            Critical Entropy Ratio (s*-s)/R
+    prs : array_like
+        Critical Pressure Ratio P/P*
+    drs : array_like
+        Critical Density Ratio rho/rho*
+    trs : array_like
+        Critical Temperature Ratio T/T*
+    tprs : array_like
+        Critical Total Pressure Ratio P0/P0*
+    urs : array_like
+        Critical Velocity Ratio U/U*
+    fps : array_like
+        Critical Friction Parameter 4fL*/D
+    eps : array_like
+        Critical Entropy Ratio (s*-s)/R
     """
     prs = critical_pressure_ratio.__no_check(M, gamma)
     drs = critical_density_ratio.__no_check(M, gamma)
