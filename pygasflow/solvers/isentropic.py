@@ -10,46 +10,48 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
 
     Parameters
     ----------
-        param_name : string
-            Name of the parameter given in input. Can be either one of:
-            'm': Mach number
-            'pressure': Pressure Ratio P/P0
-            'density': Density Ratio rho/rho0
-            'temperature': Temperature Ratio T/T0
-            'crit_area_sub': Critical Area Ratio A/A* for subsonic case.
-            'crit_area_super': Critical Area Ratio A/A* for supersonic case.
-            'mach_angle': Mach Angle in degrees.
-            'prandtl_meyer': Prandtl-Meyer Angle in degrees.
-        param_value : float/list/array_like
-            Actual value of the parameter. If float, list, tuple is given as
-            input, a conversion will be attempted.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    param_name : string
+        Name of the parameter given in input. Can be either one of:
+
+        * ``'m'``: Mach number
+        * ``'pressure'``: Pressure Ratio P/P0
+        * ``'density'``: Density Ratio rho/rho0
+        * ``'temperature'``: Temperature Ratio T/T0
+        * ``'crit_area_sub'``: Critical Area Ratio A/A* for subsonic case.
+        * ``'crit_area_super'``: Critical Area Ratio A/A* for supersonic case.
+        * ``'mach_angle'``: Mach Angle in degrees.
+        * ``'prandtl_meyer'``: Prandtl-Meyer Angle in degrees.
+
+    param_value : float/list/array_like
+        Actual value of the parameter. If float, list, tuple is given as
+        input, a conversion will be attempted.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        M : array_like
-            Mach number
-        pr : array_like
-            Pressure Ratio P/P0
-        dr : array_like
-            Density Ratio rho/rho0
-        tr : array_like
-            Temperature Ratio T/T0
-        prs : array_like
-            Critical Pressure Ratio P/P*
-        drs : array_like
-            Critical Density Ratio rho/rho*
-        trs : array_like
-            Critical Temperature Ratio T/T*
-        urs : array_like
-            Critical Velocity Ratio U/U*
-        ar : array_like
-            Critical Area Ratio A/A*
-        ma : array_like
-            Mach Angle
-        pm : array_like
-            Prandtl-Meyer Angle
+    M : array_like
+        Mach number
+    pr : array_like
+        Pressure Ratio P/P0
+    dr : array_like
+        Density Ratio rho/rho0
+    tr : array_like
+        Temperature Ratio T/T0
+    prs : array_like
+        Critical Pressure Ratio P/P*
+    drs : array_like
+        Critical Density Ratio rho/rho*
+    trs : array_like
+        Critical Temperature Ratio T/T*
+    urs : array_like
+        Critical Velocity Ratio U/U*
+    ar : array_like
+        Critical Area Ratio A/A*
+    ma : array_like
+        Mach Angle
+    pm : array_like
+        Prandtl-Meyer Angle
     """
 
     if not isinstance(param_name, str):

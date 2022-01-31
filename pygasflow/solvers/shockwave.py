@@ -37,59 +37,65 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
     Parameters
     ----------
-        p1_name : string
-            Name of the first parameter given in input. Can be either one of:
-                ['pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2', 'beta', 'theta']
-            If the parameter is a ratio, it is in the form downstream/upstream:
-                'pressure': p2/p1
-                'temperature': t2/t1
-                'density': rho2/rho1
-                'total_pressure': p02/p01
-                'm1': Mach upstream of the shock wave
-                'mn1': Normal Mach upstream of the shock wave
-                'mn2': Normal Mach downstream of the shock wave
-                'beta': The shock wave angle [in degrees]. It can only be used if p2_name='theta'.
-                'theta': The deflection angle [in degrees]. It can only be used if p2_name='beta'.
-        p1_value : float
-            Actual value of the parameter.
-        p2_name : string
-            Name of the second parameter. It could either be:
-                'beta': Shock wave angle.
-                'theta: Flow deflection angle.
-                'mn1': Input Normal Mach number
-            Default to 'beta'.
-        p2_value : float
-            Value of the angle in degrees.
-            Default to 90 degrees (normal shock wave)
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        flag : string
-            Chose what solution to compute if the angle 'theta' is provided.
-            Can be either 'weak' or 'strong'. 
-            Default to 'weak'. 
+    p1_name : string
+        Name of the first parameter given in input. Can be either one of:
+        ['pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2', 'beta', 'theta']
+
+        If the parameter is a ratio, it is in the form downstream/upstream:
+
+        * ``'pressure'``: p2/p1
+        * ``'temperature'``: t2/t1
+        * ``'density'``: rho2/rho1
+        * ``'total_pressure'``: p02/p01
+        * ``'m1'``: Mach upstream of the shock wave
+        * ``'mn1'``: Normal Mach upstream of the shock wave
+        * ``'mn2'``: Normal Mach downstream of the shock wave
+        * ``'beta'``: The shock wave angle [in degrees]. It can only be used
+          if p2_name='theta'.
+        * ``'theta'``: The deflection angle [in degrees]. It can only be
+          used if p2_name='beta'.
+
+    p1_value : float
+        Actual value of the parameter.
+    p2_name : string, optional
+        Name of the second parameter. It could either be:
+
+        * ``'beta'``: Shock wave angle.
+        * ``'theta'``: Flow deflection angle.
+        * ``'mn1'``: Input Normal Mach number.
+
+        Default to 'beta'.
+    p2_value : float, optional
+        Value of the angle in degrees.
+        Default to 90 degrees (normal shock wave).
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    flag : string, optional
+        Chose what solution to compute if the angle 'theta' is provided.
+        Can be either 'weak' or 'strong'. Default to 'weak'. 
     
     Returns
     -------
-        M1 : float
-            Mach number upstream of the shock wave.
-        Mn1 : float
-            Normal Mach number upstream of the shock wave.
-        M2 : float
-            Mach number downstream of the shock wave.
-        Mn2 : float
-            Normal Mach number downstream of the shock wave.
-        beta : float
-            Shock wave angle in degrees.
-        theta : float
-            Flow deflection angle in degrees.
-        pr : float
-            Pressure ratio across the shock wave.
-        dr : float
-            Density ratio across the shock wave.
-        tr : float
-            Temperature ratio across the shock wave.
-        tpr : float
-            Total Pressure ratio across the shock wave.
+    M1 : float
+        Mach number upstream of the shock wave.
+    Mn1 : float
+        Normal Mach number upstream of the shock wave.
+    M2 : float
+        Mach number downstream of the shock wave.
+    Mn2 : float
+        Normal Mach number downstream of the shock wave.
+    beta : float
+        Shock wave angle in degrees.
+    theta : float
+        Flow deflection angle in degrees.
+    pr : float
+        Pressure ratio across the shock wave.
+    dr : float
+        Density ratio across the shock wave.
+    tr : float
+        Temperature ratio across the shock wave.
+    tpr : float
+        Total Pressure ratio across the shock wave.
     """
 
     beta, theta = None, None
@@ -201,24 +207,27 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
 
     Parameters
     ----------
-        M1 : float
-            Upstream Mach number. Must be M1 > 1.
-        param_name : string
-            Name of the parameter given in input. Can be either one of:
-                ['mc', 'theta_c', 'beta']
-                'mc': Mach number at the cone's surface.
-                'theta_c': Half cone angle.
-                'beta': shock wave angle.
-        param_value : float
-            Actual value of the parameter. Requirements:
-                Mc >= 0
-                0 < beta <= 90
-                0 < theta_c < 90
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        flag : string
-            Can be either 'weak' or 'strong'. Default to 'weak' (in conical
-            shockwaves, the strong solution is rarely encountered).
+    M1 : float
+        Upstream Mach number. Must be M1 > 1.
+    param_name : string
+        Name of the parameter given in input. Can be either one of:
+        
+        * ``'mc'``: Mach number at the cone's surface.
+        * ``'theta_c'``: Half cone angle.
+        * ``'beta'``: shock wave angle.
+
+    param_value : float
+        Actual value of the parameter. Requirements:
+
+        * Mc >= 0
+        * 0 < beta <= 90
+        * 0 < theta_c < 90
+
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    flag : string, optional
+        Can be either 'weak' or 'strong'. Default to 'weak' (in conical
+        shockwaves, the strong solution is rarely encountered).
     
     Returns
     -------
@@ -249,7 +258,8 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     """
     param_name = param_name.lower()
     if param_name not in ["mc", "beta", "theta_c"]:
-        raise ValueError("param_name can be either 'beta' or 'mc' or 'theta_c'.")
+        raise ValueError(
+            "param_name can be either 'beta' or 'mc' or 'theta_c'.")
 
     Mc, beta, theta_c = None, None, None
     if param_name == 'mc':
@@ -257,7 +267,8 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
         if np.any(M1 <= Mc):
             raise ValueError("It must be M1 > Mc.")
         if (not isinstance(Mc, (int, float))) or (Mc < 0):
-            raise ValueError("The Mach number at the cone's surface must be Mc >= 0.")
+            raise ValueError(
+                "The Mach number at the cone's surface must be Mc >= 0.")
     elif param_name == 'beta':
         beta = param_value
         if (not isinstance(beta, (int, float))) or (beta <= 0) or (beta > 90):

@@ -29,14 +29,14 @@ class De_Laval_Solver(object):
         """
         Parameters
         ----------
-            gas : Ideal_Gas
-                Gas used in the nozzle.
-            geometry : Nozzle_Geometry
-                Nozzle geometry (lengths, areas, ...)
-            input_state : Flow_State
-                Represents the stagnation flow state.
-            Pb_P0_ratio : float
-                Back to Stagnation pressure ratio. Default to None.
+        gas : Ideal_Gas
+            Gas used in the nozzle.
+        geometry : Nozzle_Geometry
+            Nozzle geometry (lengths, areas, ...)
+        input_state : Flow_State
+            Represents the stagnation flow state.
+        Pb_P0_ratio : float, optional
+            Back to Stagnation pressure ratio. Default to None.
         """
         self._gas = gas
         self._geometry = geometry
@@ -98,12 +98,12 @@ class De_Laval_Solver(object):
 
         Parameters
         ----------
-            Pb_P0_ratio : float
-                Back to Stagnation pressure ratio.
+        Pb_P0_ratio : float
+            Back to Stagnation pressure ratio.
         
         Returns
         -------
-            Flow Condition [string]
+        Flow_Condition : str
         """
         if Pb_P0_ratio == None:
             return "Undefined"
@@ -126,29 +126,29 @@ class De_Laval_Solver(object):
 
         Parameters
         ----------
-            Pe_P0_ratio : float
-                Back to Stagnation pressure ratio. The pressure at the
-                exit plane coincide with the back pressure.
+        Pe_P0_ratio : float
+            Back to Stagnation pressure ratio. The pressure at the
+            exit plane coincide with the back pressure.
         
         Returns
         -------
-            L : np.ndarray
-                Lengths along the stream flow.
-            area_ratios : np.ndarray
-                Area ratios along the stream flow.
-            M : np.ndarray
-                Mach numbers.
-            P_ratios : np.ndarray
-                Pressure ratios.
-            rho_ratios : np.ndarray
-                Density ratios.
-            T_ratios : np.ndarray
-                Temperature ratios.
-            flow_condition : string
-                The flow condition given the input pressure ratio.
-            Asw_At_ratio : float
-                Area ratio of the shock wave location if present, otherwise
-                return None.
+        L : np.ndarray
+            Lengths along the stream flow.
+        area_ratios : np.ndarray
+            Area ratios along the stream flow.
+        M : np.ndarray
+            Mach numbers.
+        P_ratios : np.ndarray
+            Pressure ratios.
+        rho_ratios : np.ndarray
+            Density ratios.
+        T_ratios : np.ndarray
+            Temperature ratios.
+        flow_condition : string
+            The flow condition given the input pressure ratio.
+        Asw_At_ratio : float
+            Area ratio of the shock wave location if present, otherwise
+            return None.
         """
         self._flow_condition = self.flow_condition(Pe_P0_ratio)
 
@@ -324,13 +324,22 @@ class De_Laval_Solver(object):
 def find_shockwave_area_ratio(Ae_At_ratio, Pe_P0_ratio, R, gamma):
     """ Iterative procedure to find the critical area ratio where the shock wave happens.
 
-    Args:
-        Ae_At_ratio:    Area ratio between the exit section of the divergent and the throat section.
-        Pe_P0_ratio:    Pressure ratio between the back (= exit) pressure to the reservoir pressure.
-        R:              Specific Gas Constant.
-        gamma:          Specific Heats ratio.
+    Parameters
+    ----------
+    Ae_At_ratio : float
+        Area ratio between the exit section of the divergent and the
+        throat section.
+    Pe_P0_ratio : float
+        Pressure ratio between the back (= exit) pressure to the
+        reservoir pressure.
+    R : float
+        Specific Gas Constant.
+    gamma : float
+        Specific Heats ratio.
     
-    Return:
+    Returns
+    -------
+    Asw/At : float
         The critical area ratio Asw/At
     """
     # Pe: pressure at the exit section = back pressure
@@ -345,7 +354,9 @@ def find_shockwave_area_ratio(Ae_At_ratio, Pe_P0_ratio, R, gamma):
     def func(Asw_At_ratio):
         """
         Args:
-            Asw_At_ratio:   Estimate of the critical area ratio between the Shock Wave area and the throat area.
+        Asw_At_ratio : float
+            Estimate of the critical area ratio between the Shock Wave area
+            and the throat area.
         
         Return:
             The zero function "estimated ratio Pe/P0" - "Pe/P0".
