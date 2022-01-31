@@ -14,3 +14,4 @@ This document is automatically generated using pygasflow's docstrings.
    isentropic.rst
    rayleigh.rst
    shockwave.rst
+   solvers/index.rst
