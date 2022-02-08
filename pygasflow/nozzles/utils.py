@@ -9,22 +9,22 @@ def nozzle_length(Rt, Re, R, K=1, alpha=15):
 
     Parameters
     ----------
-        Rt : float
-            Throat radius.
-        Re : float
-            Radius of the exit section.
-        R : float
-            Radius of the circular segment connecting the throat to the
-            divergent.
-        K : float
-            Fractional length with respect to a 15 deg half-cone angle
-            conical nozzle. Default to 1.
-        alpha : float
-            Half-cone angle of the divergent in degrees. Default to 15.
+    Rt : float
+        Throat radius.
+    Re : float
+        Radius of the exit section.
+    R : float
+        Radius of the circular segment connecting the throat to the
+        divergent.
+    K : float
+        Fractional length with respect to a 15 deg half-cone angle
+        conical nozzle. Default to 1.
+    alpha : float
+        Half-cone angle of the divergent in degrees. Default to 15.
     
     Returns
     -------
-        Ln : float
+    Ln : float
     """
     alpha = np.deg2rad(alpha)
     # area ratio
@@ -42,22 +42,22 @@ def quadratic_bezier_parabola(P0, P2, theta_N, theta_e, t):
 
     Parameters
     ----------
-        P0 : array [1x2]
-            Point representing the start of the parabolic section. (xN, RN)
-        P2 : array [1x2]
-            Point representing the end of the parabolic section. (Ln, Re)
-        theta_N : float
-            Slope in radians at point P0.
-        theta_e : float
-            Slope in radians at point P2.
-        t : array [nx1]
-            Parameter of the parabola. Must be 0 <= t <= 1.
+    P0 : array [1x2]
+        Point representing the start of the parabolic section. (xN, RN)
+    P2 : array [1x2]
+        Point representing the end of the parabolic section. (Ln, Re)
+    theta_N : float
+        Slope in radians at point P0.
+    theta_e : float
+        Slope in radians at point P2.
+    t : array [nx1]
+        Parameter of the parabola. Must be 0 <= t <= 1.
     
     Returns
     -------
-        xy : array [nx2]
-            Coordinate matrix. First column represents x-coords,
-            second column represents y-coords.
+    xy : array [nx2]
+        Coordinate matrix. First column represents x-coords,
+        second column represents y-coords.
     """
 
     xN, RN = P0
@@ -97,21 +97,21 @@ def rotated_parabola(P0, P1, theta_N, theta_e, x):
 
     Parameters
     ----------
-        P0 : array [1x2]
-            Point representing the start of the parabolic segment. (xN, RN)
-        P1 : array [1x2]
-            Point representing the end of the parabolic segment. (Ln, Re)
-        theta_N : float
-            Slope in radians at point P0.
-        theta_e : float
-            Slope in radians at point P1.
-        x : array_like
-            x-coordinates of the parabola
+    P0 : array [1x2]
+        Point representing the start of the parabolic segment. (xN, RN)
+    P1 : array [1x2]
+        Point representing the end of the parabolic segment. (Ln, Re)
+    theta_N : float
+        Slope in radians at point P0.
+    theta_e : float
+        Slope in radians at point P1.
+    x : array_like
+        x-coordinates of the parabola
 
     Returns
     -------
-        y : array_like
-            y-coordinates of the parabola
+    y : array_like
+        y-coordinates of the parabola
     """
     xN, RN = P0
     Ln, Re = P1
@@ -150,36 +150,36 @@ def convergent(theta, Ri, R0, Rt, factor):
 
     Parameters
     ----------
-        theta : float
-            # TODO: is this theta the half-cone angle? If so, should it be 0 < theta < 45???
-            Convergent half-cone angle in degrees. Must be 0 < theta < 90.
-        Ri : float
-            Inlet section radius. Must be >= 0.
-        R0 : float
-            Radius of the junction between combustion chamber and convergent.
-            Must be >= 0.
-        Rt : float
-            Throat radius.
-            Must be >= 0.
-        factor : float
-            Ratio between the radius of the circle on the outlet of the convergent with
-            the throat radius. Must be >= 0.
+    theta : float
+        # TODO: is this theta the half-cone angle? If so, should it be 0 < theta < 45???
+        Convergent half-cone angle in degrees. Must be 0 < theta < 90.
+    Ri : float
+        Inlet section radius. Must be >= 0.
+    R0 : float
+        Radius of the junction between combustion chamber and convergent.
+        Must be >= 0.
+    Rt : float
+        Throat radius.
+        Must be >= 0.
+    factor : float
+        Ratio between the radius of the circle on the outlet of the convergent with
+        the throat radius. Must be >= 0.
     
     Returns
     -------
-        x0 : float
-            x-coordinate of the end of the circular junction of radius R0.
-        y0 : float
-            y-coordinate of the end of the circular junction of radius R0.
-        x1 : float 
-            x-coordinate of the start of the circular junction of radius (factor * Rt).
-        y1 : float
-            y-coordinate of the start of the circular junction of radius (factor * Rt).
-        xc : float
-            x-coordinate of the end of the circular junction to the throat.
-            This represents the length of the convergent section.
-        yc : float
-            y-coordinate of the end of the circular junction to the throat.
+    x0 : float
+        x-coordinate of the end of the circular junction of radius R0.
+    y0 : float
+        y-coordinate of the end of the circular junction of radius R0.
+    x1 : float 
+        x-coordinate of the start of the circular junction of radius (factor * Rt).
+    y1 : float
+        y-coordinate of the start of the circular junction of radius (factor * Rt).
+    xc : float
+        x-coordinate of the end of the circular junction to the throat.
+        This represents the length of the convergent section.
+    yc : float
+        y-coordinate of the end of the circular junction to the throat.
     """
 
     if (theta <= 0) and (theta >= 90):

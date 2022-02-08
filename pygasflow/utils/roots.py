@@ -5,12 +5,18 @@ def apply_bisection(ratio, func, flag="sub"):
     """ Helper function used for applying the bisection method to find the 
     roots of a given function.
 
-    Args:
-        ratio:  Ratio (or parameter) passed to the function.
-        func:   Function returning a number.
-        flag:   Can be either "sub" or "super".
+    Parameters
+    ----------
+    ratio : np.array_like
+        Ratio (or parameter) passed to the function.
+    func : callable
+        Function returning a number.
+    flag : str
+        Can be either ``"sub"`` or ``"super"``.
     
-    Return:
+    Returns
+    -------
+    roots : np.array_like
         The zero of the given function.
     """
     if flag == "sub":

@@ -14,8 +14,8 @@ def rayleigh_solver(param_name, param_value, gamma=1.4):
         Name of the parameter given in input. Can be either one of:
 
         * ``'m'``: Mach number
-        * ``'pressure'``: CriticalPressure Ratio P/P*
-        * ``'density'``: CriticalDensity Ratio rho/rho*
+        * ``'pressure'``: Critical Pressure Ratio P/P*
+        * ``'density'``: Critical Density Ratio rho/rho*
         * ``'velocity'``: Critical Velocity Ratio U/U*.
         * ``'temperature_sub'``: Critical Temperature Ratio T/T for
           subsonic case.

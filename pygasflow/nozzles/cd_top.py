@@ -10,26 +10,35 @@ from pygasflow.nozzles.rao_parabola_angles import Rao_Parabola_Angles
 
 class CD_TOP_Nozzle(Nozzle_Geometry):
     """
-    Convergent-Divergent nozzle based on Rao's Thrust Optimized Parabolic contours.
-    This is an approximation to the more complex Rao's method of characteristic.
+    Convergent-Divergent nozzle based on Rao's Thrust Optimized Parabolic
+    contours. This is an approximation to the more complex Rao's method of
+    characteristic.
 
-    NOTE: Online you can find thesis and papers (the latter literally 
-    "copied" the procedure written in the thesis) that build the TOP profile
-    based on the parabolic equation: x = a * y^2 + b * y + c
+    Notes
+    -----
+    Online you can find thesis and papers (the latter literally "copied" the
+    procedure written in the thesis) that build the TOP profile based on the
+    parabolic equation: x = a * y^2 + b * y + c
+
     Then they set the slope constraint on the start and end points
     of the parabolic section, ending up with a system of 3 equations in the
     unkowns a,b,c. THIS IS WRONG, because the aformentioned parabolic equation 
-    does not consider a rotated parabola!!!! 
+    does not consider a rotated parabola!!!!
+
     For example:
+
         (1) xN = a * yN^2 + b * yN + c
         (2) xE = a * yE^2 + b * yE + c
         (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
+
     Here, you are not giving the constraint on the slope of the end point 
     (xE, yE). Therefore, the computed theta_e will be wrong.
     Another example:
+
         (1) xN = a * yN^2 + b * yN + c
         (3) xE / dyE = 2 * a * yE + b = 1 / tan(theta_E)
         (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
+
     Here, you end up with the correct computed slopes, but xE - xN will
     be wrong. 
 
@@ -39,36 +48,37 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
     (A * x + C * y)^2 + D * x + E * y + F = 0
     """
 
-    def __init__(self, Ri, Re, Rt, R0, theta_c, K=0.8, geometry_type="axisymmetric", N=100):
+    def __init__(self, Ri, Re, Rt, R0, theta_c, K=0.8, 
+                    geometry_type="axisymmetric", N=100):
         """
         Parameters
         ----------
-            Ri : float
-                Inlet radius.
-            Re : float
-                Exit (outlet) radius.
-            Rt : float
-                Throat radius.
-            R0 : float
-                Radius of the junction between combustion chamber and convergent.
-            theta_c : float
-                Half angle in degrees of the convergent.
-            K : float
-                Fractional Length of the nozzle with respect to a same exit
-                area ratio conical nozzle with 15 deg half-cone angle.
-                Default to 0.8.
-            geometry_type : string
-                Specify the geometry type of the nozzle. Can be either
-                'axisymmetric' or 'planar'. 
-                If 'planar' is specified, Ri, Re, Rt will be considered as
-                half of the height of the respective sections (therefore, R is the
-                distance from the line of symmetry and the nozzle wall).
-                To compute the cross section area, "axisymmetric" uses the formula 
-                A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note the
-                lack of width in the planar formula, this is because in the area ratios
-                it simplifies, hence it is not considered here.
-            N : int
-                Number of discretization elements along the length of the nozzle. Default to 100.
+        Ri : float
+            Inlet radius.
+        Re : float
+            Exit (outlet) radius.
+        Rt : float
+            Throat radius.
+        R0 : float
+            Radius of the junction between combustion chamber and convergent.
+        theta_c : float
+            Half angle in degrees of the convergent.
+        K : float
+            Fractional Length of the nozzle with respect to a same exit
+            area ratio conical nozzle with 15 deg half-cone angle.
+            Default to 0.8.
+        geometry_type : string
+            Specify the geometry type of the nozzle. Can be either
+            ``'axisymmetric'`` or ``'planar'``. 
+            If ``'planar'`` is specified, Ri, Re, Rt will be considered as
+            half of the height of the respective sections (therefore, R is the
+            distance from the line of symmetry and the nozzle wall).
+            To compute the cross section area, "axisymmetric" uses the formula 
+            A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note
+            the lack of width in the planar formula, this is because in the
+            area ratios it simplifies, hence it is not considered here.
+        N : int
+            Number of discretization elements along the length of the nozzle. Default to 100.
         """
         if (Ri <= 0) or (Re <= 0) or (Rt <= 0):
             raise ValueError("All input areas must be > 0.")
@@ -159,8 +169,8 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         """
         Parameters
         ----------
-            N : int
-                Number of discretization elements along the length of the nozzle. Default to 100.
+        N : int
+            Number of discretization elements along the length of the nozzle. Default to 100.
         """
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0

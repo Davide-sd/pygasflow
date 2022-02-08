@@ -11,37 +11,38 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
     Convergent-Divergent nozzle with conical divergent.
     """
 
-    def __init__(self, Ri, Re, Rt, Rj, R0, theta_c, theta_N=15, geometry_type="axisymmetric", N=100):
+    def __init__(self, Ri, Re, Rt, Rj, R0, theta_c, theta_N=15,
+                    geometry_type="axisymmetric", N=100):
         """
         Parameters
         ----------
-            Ri : float
-                Inlet radius.
-            Re : float
-                Exit (outlet) radius.
-            Rt : float
-                Throat radius.
-            Rj : float
-                Radius of the junction between convergent and divergent.
-            R0 : float
-                Radius of the junction between combustion chamber and convergent.
-            theta_c : float
-                Half angle [degrees] of the convergent.
-            theta_N : float
-                Half angle [degrees] of the conical divergent. Default to 15 deg.
-            geometry_type : string
-                Specify the geometry type of the nozzle. Can be either
-                'axisymmetric' or 'planar'. 
-                If 'planar' is specified, Ri, Re, Rt will be considered as
-                half of the height of the respective sections (therefore, R is the
-                distance from the line of symmetry and the nozzle wall).
-                To compute the cross section area, "axisymmetric" uses the formula 
-                A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note the
-                lack of width in the planar formula, this is because in the area ratios
-                it simplifies, hence it is not considered here.                
-            N : int
-                Number of discretization elements along the length of the nozzle. 
-                Default to 100.
+        Ri : float
+            Inlet radius.
+        Re : float
+            Exit (outlet) radius.
+        Rt : float
+            Throat radius.
+        Rj : float
+            Radius of the junction between convergent and divergent.
+        R0 : float
+            Radius of the junction between combustion chamber and convergent.
+        theta_c : float
+            Half angle [degrees] of the convergent.
+        theta_N : float
+            Half angle [degrees] of the conical divergent. Default to 15 deg.
+        geometry_type : string
+            Specify the geometry type of the nozzle. Can be either
+            ``'axisymmetric'`` or ``'planar'``. 
+            If ``'planar'`` is specified, Ri, Re, Rt will be considered as
+            half of the height of the respective sections (therefore, R is the
+            distance from the line of symmetry and the nozzle wall).
+            To compute the cross section area, "axisymmetric" uses the formula 
+            A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note
+            the lack of width in the planar formula, this is because in the
+            area ratios it simplifies, hence it is not considere here.         
+        N : int
+            Number of discretization elements along the length of the nozzle. 
+            Default to 100.
         """
         if (Ri <= Rt) or (Re <= Rt):
             raise ValueError("Must be Ai > At and Ae > At.")
@@ -119,15 +120,15 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
 
         Parameters
         ----------
-            N : int
-                Number of discretization elements along the length of the nozzle. Default to 100.
+        N : int
+            Number of discretization elements along the length of the nozzle. Default to 100.
         
         Returns
         -------
-            x : array_like
-                x-coordinate along the nozzle length.
-            y : array_like
-                y_coordinate of the nozzle wall.
+        x : array_like
+            x-coordinate along the nozzle length.
+        y : array_like
+            y_coordinate of the nozzle wall.
         """
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0

@@ -98,11 +98,7 @@ class Ideal_Gas(object):
             return rho * self.R * T
 
 class Flow_State(object):
-    # def __init__(self, gas, M=1, P=101325, T=298.15, rho=1, T0=0, P0=0, name=""):
-    # def __init__(self, gas, **args):
     def __init__(self, **args):
-        # self.gas = gas
-
         if args is None:
             raise ValueError("Must be arguments to create a flow!!!")
 
@@ -114,15 +110,6 @@ class Flow_State(object):
         self._density = 0
         self._total_pressure = 0
         self._total_temperature = 0
-
-        # self.name = ""
-        # self.Mach = None
-        # self.Normal_Mach = None
-        # self.pressure = None
-        # self.static_temperature = None
-        # self.density = None
-        # self.total_pressure = None
-        # self.total_temperature = None
 
         # convert all keywords to lower case
         args = {k.lower(): v for k,v in args.items()}
@@ -136,9 +123,7 @@ class Flow_State(object):
         if "rho" in args.keys(): self.density = args["rho"]
         if "p0" in args.keys(): self.total_pressure = args["p0"]
         if "t0" in args.keys(): self.total_temperature = args["t0"]
-        
-        # if self.total_pressure and self.total_temperature and not self.density
-    
+
     @property
     def name(self):
         return self._name
@@ -216,10 +201,7 @@ class Flow_State(object):
     def __mul__(self, a):
         # new values
         m, pn, rn, tn, p0n, t0n = None, None, None, None, None, None
-        # print(a)
-        # print("self.pressure", self.pressure, type(self.pressure))
-        # print("a['pressure_ratio']", a["pressure_ratio"], type(a["pressure_ratio"]))
-        # print("pn", pn, type(pn))
+
         if "m" in a.keys():
             m = a["m"]
         if "pressure_ratio" in a.keys():
@@ -232,8 +214,6 @@ class Flow_State(object):
             p0n = self.total_pressure * a["total_pressure_ratio"]
         if "total_temperature_ratio" in a.keys():
             t0n = self.total_temperature * a["total_temperature_ratio"]
-        # print("pn", pn, type(pn))
-        # print(self.pressure * a["pressure_ratio"])
         
         b = Flow_State(
             name = "",

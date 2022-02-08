@@ -820,7 +820,7 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
     num[idx] = 2 * (1 / np.tan(theta[idx]) + np.tan(beta[idx]))
     den[idx] = np.sin(beta[idx])**2 * num[idx] - np.tan(beta[idx]) * (gamma + 1)
 
-    mach = np.zeros_like(beta, dtype=np.float)
+    mach = np.zeros_like(beta, float)
     mach[den > 0] = np.sqrt(num[den > 0] / den[den > 0])
     mach[den <= 0] = np.nan
 

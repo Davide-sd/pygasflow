@@ -16,8 +16,10 @@ class Rao_Parabola_Angles(object):
     length and the area ratio, or vice-versa.
 
     The plot relate the Rao's TOP nozzle:
-        theta_n, initial parabola angle
-        theta_e, final parabola angle
+
+    * theta_n, initial parabola angle
+    * theta_e, final parabola angle
+    
     with the expansion ratio, epsilon, varying the fractional nozzle 
     length Lf. 
 
@@ -74,15 +76,13 @@ class Rao_Parabola_Angles(object):
         
         Parameters
         ----------
-            Lf : float
-                Fractional length in percent. Must be 60 <= Lf <= 100.
+        Lf : float
+            Fractional length in percent. Must be 60 <= Lf <= 100.
             
         Returns
         -------
-            Lf_inf : float
-            Lf_sup : float
-
-        Example: given Lf=68, this function returns Lf_inf=60, Lf_sup=70.
+        Lf_inf : float
+        Lf_sup : float
         """
         Lf /= 10
         Lf_inf = int(np.floor(Lf)) * 10
@@ -97,17 +97,17 @@ class Rao_Parabola_Angles(object):
 
         Parameters
         ----------
-            Lf : float
-                Fractional length in percent. Must be 60 <= Lf <= 100.
-            Ar : float
-                Area ratio. Must be 5 <= Ar <= 50.
+        Lf : float
+            Fractional length in percent. Must be 60 <= Lf <= 100.
+        Ar : float
+            Area ratio. Must be 5 <= Ar <= 50.
         
         Returns
         -------
-            theta_n : float
-                Angle in degrees at the start of the parabola.
-            theta_e : float
-                Angle in degrees at the end of the parabola (at the exit section).
+        theta_n : float
+            Angle in degrees at the start of the parabola.
+        theta_e : float
+            Angle in degrees at the end of the parabola (at the exit section).
         """
         if (Lf < 60) or (Lf > 100):
             raise ValueError("Fractional length must be 60 <= Lf <= 100.")
@@ -139,18 +139,20 @@ class Rao_Parabola_Angles(object):
 
         Parameters
         ----------
-            Lf : float
-                Fractional length in percent. Must be 60 <= Lf <= 100.
-            **args : float. It can either be:
-                theta_n: the angle in degrees at the start of the parabola.
-                theta_e: the angle in degrees at the end of the parabola.
+        Lf : float
+            Fractional length in percent. Must be 60 <= Lf <= 100.
+        **args : float.
+            It can either be:
+
+            * theta_n: the angle in degrees at the start of the parabola.
+            * theta_e: the angle in degrees at the end of the parabola.
         
         Returns
         -------
-            Ar : float
-                The area ratio corresponding to the given angle and Lf.
-                Note that linear interpolation is used if Lf is different
-                than 60, 70, 80, 90, 100.
+        Ar : float
+            The area ratio corresponding to the given angle and Lf.
+            Note that linear interpolation is used if Lf is different
+            than 60, 70, 80, 90, 100.
         """
         if (Lf < 60) or (Lf > 100):
             raise ValueError("Fractional length must be 60 <= Lf <= 100.")
@@ -213,8 +215,8 @@ class Rao_Parabola_Angles(object):
 
         Parameters
         ----------
-            N : int
-                Number of interpolated point for each curve. Default to 30. 
+        N : int
+            Number of interpolated point for each curve. Default to 30. 
         """
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()

@@ -352,8 +352,8 @@ def mach_angle(M):
     out : ndarray
         Critical area Mach_Angle [degrees].
     """
-    # here I use dtype=np.float to be able to assign np.nan where necessary (np.nan is an IEEE 754 floating point representation of Not a Number)
-    angle = np.zeros_like(M, dtype=np.float)
+    # here I use dtype=float to be able to assign np.nan where necessary (np.nan is an IEEE 754 floating point representation of Not a Number)
+    angle = np.zeros_like(M, dtype=float)
     angle[M > 1] = np.rad2deg(np.arcsin(1 / M[M > 1]))
     angle[M == 1] = 90
     angle[M < 1] = np.nan
@@ -403,8 +403,8 @@ def prandtl_meyer_angle(M, gamma=1.4):
     nu : array_like
         Prandtl Meyer angle [degrees].
     """
-    # here I use dtype=np.float to be able to assign np.nan where necessary (np.nan is an IEEE 754 floating point representation of Not a Number)
-    nu = np.zeros_like(M, dtype=np.float)
+    # here I use dtype=float to be able to assign np.nan where necessary (np.nan is an IEEE 754 floating point representation of Not a Number)
+    nu = np.zeros_like(M, dtype=float)
     # Equation (4.44), Anderson
     nu[M > 1] = np.sqrt((gamma + 1) / (gamma - 1)) * np.arctan(np.sqrt((gamma - 1) / (gamma + 1) * (M[M > 1]**2 - 1)))
     nu[M > 1] = nu[M > 1] - np.arctan(np.sqrt(M[M > 1]**2 - 1))

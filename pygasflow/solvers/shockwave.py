@@ -39,21 +39,20 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     ----------
     p1_name : string
         Name of the first parameter given in input. Can be either one of:
-        ['pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2', 'beta', 'theta']
 
-        If the parameter is a ratio, it is in the form downstream/upstream:
-
-        * ``'pressure'``: p2/p1
-        * ``'temperature'``: t2/t1
-        * ``'density'``: rho2/rho1
-        * ``'total_pressure'``: p02/p01
+        * ``'pressure'``: Pressure Ratio P2/P1
+        * ``'temperature'``: Temperature Ratio T2/T1
+        * ``'density'``: Density Ratio rho2/rho1
+        * ``'total_pressure'``: Total Pressure Ratio P02/P01
         * ``'m1'``: Mach upstream of the shock wave
         * ``'mn1'``: Normal Mach upstream of the shock wave
         * ``'mn2'``: Normal Mach downstream of the shock wave
         * ``'beta'``: The shock wave angle [in degrees]. It can only be used
-          if p2_name='theta'.
+          if ``p2_name='theta'``.
         * ``'theta'``: The deflection angle [in degrees]. It can only be
-          used if p2_name='beta'.
+          used if ``p2_name='beta'``.
+
+        If the parameter is a ratio, it is in the form downstream/upstream:
 
     p1_value : float
         Actual value of the parameter.
@@ -64,7 +63,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         * ``'theta'``: Flow deflection angle.
         * ``'mn1'``: Input Normal Mach number.
 
-        Default to 'beta'.
+        Default to ``'beta'``.
     p2_value : float, optional
         Value of the angle in degrees.
         Default to 90 degrees (normal shock wave).
@@ -72,7 +71,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         Specific heats ratio. Default to 1.4. Must be > 1.
     flag : string, optional
         Chose what solution to compute if the angle 'theta' is provided.
-        Can be either 'weak' or 'strong'. Default to 'weak'. 
+        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``. 
     
     Returns
     -------
@@ -226,8 +225,8 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
     flag : string, optional
-        Can be either 'weak' or 'strong'. Default to 'weak' (in conical
-        shockwaves, the strong solution is rarely encountered).
+        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``
+        (in conical shockwaves, the strong solution is rarely encountered).
     
     Returns
     -------

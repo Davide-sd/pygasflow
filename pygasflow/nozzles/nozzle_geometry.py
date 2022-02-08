@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import interpolate
 
-class Nozzle_Geometry(object):
+class Nozzle_Geometry:
     """
     Represents a nozzle geometry.
     This is meant as a base class.
@@ -13,23 +13,24 @@ class Nozzle_Geometry(object):
         """
         Parameters
         ----------
-            Ri : float
-                Inlet radius.
-            Re : float
-                Exit (outlet) radius.
-            Rt : float
-                Throat radius.
-            Rj : float
-                Radius of the junction between convergent and divergent.
-            R0 : float
-                Radius of the junction between combustion chamber and convergent.
-            Lc : float
-                Length of the convergent.
-            Ld : float
-                Length of the divergent. Default to None. If None, theta_N will be used to compute the divergent's length.
-            geometry_type : string
-                Specify the geometry type of the nozzle. Can be either
-                'axisymmetric' or 'planar'
+        Ri : float
+            Inlet radius.
+        Re : float
+            Exit (outlet) radius.
+        Rt : float
+            Throat radius.
+        Rj : float
+            Radius of the junction between convergent and divergent.
+        R0 : float
+            Radius of the junction between combustion chamber and convergent.
+        Lc : float
+            Length of the convergent.
+        Ld : float
+            Length of the divergent. Default to None. If None, theta_N will
+            be used to compute the divergent's length.
+        geometry_type : string
+            Specify the geometry type of the nozzle. Can be either
+            ``'axisymmetric'`` or ``'planar'``
         """
         geometry_type = geometry_type.lower()
         if geometry_type not in ['axisymmetric', 'planar']:
@@ -127,25 +128,25 @@ class Nozzle_Geometry(object):
     
     def get_points(self, area_ratio=False, offset=1.2):
         """ 
-        Helper function used to construct a matrix of points representing the nozzle
-        for visualization purposes.
+        Helper function used to construct a matrix of points representing
+        the nozzle for visualization purposes.
 
         Parameters
         ----------
-            area_ratio : Boolean
-                If True, represents the area ratio A/A*. Otherwise, represents the radius.
-                Default to False.
-            offset : float
-                Used to construct the container (or the walls) of the nozzle. 
-                The container radius is equal to offset * max_nozzle_radius.
+        area_ratio : Boolean
+            If True, represents the area ratio A/A*. Otherwise, represents
+            the radius. Default to False.
+        offset : float
+            Used to construct the container (or the walls) of the nozzle. 
+            The container radius is equal to offset * max_nozzle_radius.
         
         Returns
         -------
-            points_top : [Nx2]
+            points_top : np.ndarray [Nx2]
                 Matrix representing the wall at the top of the nozzle.
-            points_mid : [Nx2]
+            points_mid : np.ndarray [Nx2]
                 Matrix representing the flow area.
-            points_bottom : [Nx2]
+            points_bottom : np.ndarray [Nx2]
                 Matrix representing the wall at the bottom of the nozzle.
         """
         L = np.copy(self._length_array)
@@ -170,13 +171,13 @@ class Nozzle_Geometry(object):
 
         Parameters
         ----------
-            A_ratio : float
-                A / At
+        A_ratio : float
+            A / At
         
         Returns
         -------
-            x : float
-                x-coordinate along the divergent length.
+        x : float
+            x-coordinate along the divergent length.
         """
         A = A_ratio * self._At
         if A <= 0:

@@ -14,9 +14,9 @@ def fanno_solver(param_name, param_value, gamma=1.4):
         Name of the parameter given in input. Can be either one of:
 
         * ``'m'``: Mach number
-        * ``'pressure'``: CriticalPressure Ratio P/P*
-        * ``'density'``: CriticalDensity Ratio rho/rho*
-        * ``'temperature'``: CriticalTemperature Ratio T/T*
+        * ``'pressure'``: Critical Pressure Ratio P/P*
+        * ``'density'``: Critical Density Ratio rho/rho*
+        * ``'temperature'``: Critical Temperature Ratio T/T*
         * ``'total_pressure_sub'``: Critical Total Pressure Ratio P0/P0*
           for subsonic case.
         * ``'total_pressure_super'``: Critical Total Pressure Ratio P0/P0*

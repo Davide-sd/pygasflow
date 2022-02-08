@@ -192,8 +192,8 @@ def as_array(index_list=[0]):
 
     Parameters
     ----------
-        original_function : callable
-        index_list : list
+    original_function : callable
+    index_list : list
     """
     def decorator(original_function):
         @wraps(original_function)

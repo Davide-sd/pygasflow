@@ -16,48 +16,49 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
     Compute the contour of the minimum length supersonic nozzle in a planar
     case with the Method of characteristics.
 
-    The method of characteristics provides a technique for properly designing the
-    contour of a supersonic nozzle for shockfree, isentropic flow, taking into account the
-    multidimensional flow inside the duct.
+    The method of characteristics provides a technique for properly designing
+    the contour of a supersonic nozzle for shockfree, isentropic flow, taking
+    into account the multidimensional flow inside the duct.
 
     Assumptions:
-    - Planar case
-    - Sharp corner at the throat,
-    - M = 1 and theta = 0 at the throat.
+
+    * Planar case
+    * Sharp corner at the throat,
+    * M = 1 and theta = 0 at the throat.
 
     Parameters
     ----------
-        ht : float
-            Throat height. Must be > 0.
-        n : int
-            Number of characteristic lines.
-        Me : float
-            Mach number at the exit section. Default to None. Must be > 1.
-            If set to None, A_ratio must be provided. If both are set, 
-            Me will be used.
-        A_ratio : float
-            Ratio between the exit area and the throat area. Since this 
-            nozzle is planar, it is equivalent to Re/Rt. It must be > 1.
-            Default to None. If set to None, Me must be provided. 
-            If both are set, Me will be used.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
+    ht : float
+        Throat height. Must be > 0.
+    n : int
+        Number of characteristic lines.
+    Me : float
+        Mach number at the exit section. Default to None. Must be > 1.
+        If set to None, A_ratio must be provided. If both are set, 
+        Me will be used.
+    A_ratio : float
+        Ratio between the exit area and the throat area. Since this 
+        nozzle is planar, it is equivalent to Re/Rt. It must be > 1.
+        Default to None. If set to None, Me must be provided. 
+        If both are set, Me will be used.
+    gamma : float
+        Specific heats ratio. Default to 1.4. Must be > 1.
     
     Returns
     -------
-        wall : array_like [2 x n+1]
-            Coordinates of points on the nozzle's wall
-        characteristics : list
-            List of dictionaries. Each dictionary contains the keys "x", "y"
-            for the coordinates of the points of each characteristic. Here, with
-            characteristic, I mean the points of the right and left running
-            characteristic.
-        left_runn_chars : list
-            List of dictionaries. Each dictionary contains the keys "Km", "Kp",
-            "theta", "nu", "M", "mu", "x", "y". Each dictionary represents the
-            points lying on the same left-running characteristic.
-        theta_w_max : float
-            Maximum wall inclination at the sharp corner.
+    wall : np.ndarray  [2 x n+1]
+        Coordinates of points on the nozzle's wall
+    characteristics : list
+        List of dictionaries. Each dictionary contains the keys "x", "y"
+        for the coordinates of the points of each characteristic. Here, with
+        characteristic, I mean the points of the right and left running
+        characteristic.
+    left_runn_chars : list
+        List of dictionaries. Each dictionary contains the keys "Km", "Kp",
+        "theta", "nu", "M", "mu", "x", "y". Each dictionary represents the
+        points lying on the same left-running characteristic.
+    theta_w_max : float
+        Maximum wall inclination at the sharp corner.
     """
     if ht <= 0:
         raise ValueError("The throat height must be a number > 0.")
@@ -267,25 +268,25 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         """
         Parameters
         ----------
-            Ri : float
-                Inlet radius.
-            Re : float
-                Exit (outlet) radius.
-            Rt : float
-                Throat radius.
-            Rj : float
-                Radius of the junction between convergent and divergent.
-            R0 : float
-                Radius of the junction between combustion chamber and convergent.
-            theta_c : float
-                Half angle [degrees] of the convergent.
-            n : int
-                Number of characteristic lines. Must be > 2.
-            gamma : float
-                Specific heats ratio. Default to 1.4. Must be > 1.
-            N : int
-                Number of discretization elements along the length of the nozzle. 
-                Default to 100.
+        Ri : float
+            Inlet radius.
+        Re : float
+            Exit (outlet) radius.
+        Rt : float
+            Throat radius.
+        Rj : float
+            Radius of the junction between convergent and divergent.
+        R0 : float
+            Radius of the junction between combustion chamber and convergent.
+        theta_c : float
+            Half angle [degrees] of the convergent.
+        n : int
+            Number of characteristic lines. Must be > 2.
+        gamma : float
+            Specific heats ratio. Default to 1.4. Must be > 1.
+        N : int
+            Number of discretization elements along the length of the nozzle. 
+            Default to 100.
         """
         if (Ri <= Rt) or (Re <= Rt):
             raise ValueError("Must be Ai > At and Ae > At.")
