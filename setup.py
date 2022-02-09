@@ -3,7 +3,7 @@ import os
 
 here = os.path.dirname(os.path.abspath(__file__))
 version_ns = {}
-with open(os.path.join(here, 'spb', '_version.py')) as f:
+with open(os.path.join(here, 'pygasflow', '_version.py')) as f:
     exec (f.read(), {}, version_ns)
 
 def readme():
