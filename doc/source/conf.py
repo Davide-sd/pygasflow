@@ -48,7 +48,7 @@ release = v
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    # 'sphinx.ext.linkcode',
+    'sphinx.ext.linkcode',
     'sphinx.ext.doctest',
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
