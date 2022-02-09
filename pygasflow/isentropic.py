@@ -20,7 +20,7 @@ from pygasflow.utils.decorators import check
 @check
 def critical_velocity_ratio(M, gamma=1.4):
     """
-    Compute the critical velocity ratio U/U*. 
+    Compute the critical velocity ratio U/U*.
 
     Parameters
     ----------
@@ -29,11 +29,11 @@ def critical_velocity_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Critical velocity ratio U/U*. 
+        Critical velocity ratio U/U*.
     """
     # need to deal with division by 0
     ratio = np.zeros_like(M)
@@ -44,7 +44,7 @@ def critical_velocity_ratio(M, gamma=1.4):
 @check
 def critical_temperature_ratio(M, gamma=1.4):
     """
-    Compute the critical temperature ratio T/T*. 
+    Compute the critical temperature ratio T/T*.
 
     Parameters
     ----------
@@ -53,11 +53,11 @@ def critical_temperature_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Critical Temperature ratio T/T*. 
+        Critical Temperature ratio T/T*.
     """
     # return Temperature_Ratio.__no_check(M, gamma) * 0.5 * (gamma + 1)
     return ((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2)
@@ -65,7 +65,7 @@ def critical_temperature_ratio(M, gamma=1.4):
 @check
 def critical_pressure_ratio(M, gamma=1.4):
     """
-    Compute the critical pressure ratio P/P*. 
+    Compute the critical pressure ratio P/P*.
 
     Parameters
     ----------
@@ -74,11 +74,11 @@ def critical_pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Critical Pressure ratio P/P*. 
+        Critical Pressure ratio P/P*.
     """
     # return Pressure_Ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
     return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(gamma / (gamma - 1))
@@ -86,7 +86,7 @@ def critical_pressure_ratio(M, gamma=1.4):
 @check
 def critical_density_ratio(M, gamma=1.4):
     """
-    Compute the critical density ratio rho*/rho. 
+    Compute the critical density ratio rho*/rho.
 
     Parameters
     ----------
@@ -95,11 +95,11 @@ def critical_density_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Critical density ratio rho*/rho. 
+        Critical density ratio rho*/rho.
     """
     # TODO: this first version appears to be faster!
     return density_ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
@@ -108,7 +108,7 @@ def critical_density_ratio(M, gamma=1.4):
 @check
 def critical_area_ratio(M, gamma=1.4):
     """
-    Compute the critical area ratio A/A*. 
+    Compute the critical area ratio A/A*.
 
     Parameters
     ----------
@@ -117,11 +117,11 @@ def critical_area_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Critical area ratio A/A*. 
+        Critical area ratio A/A*.
     """
     # return 1  / Critical_Density_Ratio.__no_check(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__no_check(M, gamma)) / M
     # TODO: here, division by M=0 produce the correct results, infinity.
@@ -132,7 +132,7 @@ def critical_area_ratio(M, gamma=1.4):
 @check
 def pressure_ratio(M, gamma=1.4):
     """
-    Compute the pressure ratio P/P0. 
+    Compute the pressure ratio P/P0.
 
     Parameters
     ----------
@@ -141,18 +141,18 @@ def pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Pressure ratio P/P0. 
+        Pressure ratio P/P0.
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-gamma / (gamma - 1))
 
 @check
 def temperature_ratio(M, gamma=1.4):
     """
-    Compute the temperature ratio T/T0. 
+    Compute the temperature ratio T/T0.
 
     Parameters
     ----------
@@ -161,11 +161,11 @@ def temperature_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Temperature ratio T/T0. 
+        Temperature ratio T/T0.
     """
     return 1 / (1 + (gamma - 1) / 2 * M**2)
 
@@ -179,11 +179,11 @@ def density_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
-        Density ratio rho/rho0. 
+        Density ratio rho/rho0.
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-1 / (gamma - 1))
 
@@ -199,7 +199,7 @@ def m_from_temperature_ratio(ratio, gamma=1.4):
         as input, a conversion will be attempted. Must be 0 <= T/T0 <= 1.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -221,7 +221,7 @@ def m_from_pressure_ratio(ratio, gamma=1.4):
         as input, a conversion will be attempted. Must be 0 <= P/P0 <= 1.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -243,7 +243,7 @@ def m_from_density_ratio(ratio, gamma=1.4):
         as input, a conversion will be attempted. Must be 0 <= rho/rho0 <= 1.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -268,7 +268,7 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -299,7 +299,7 @@ def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
         If array_like, must be a_ratio.shape == p_ratio.shape.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -322,11 +322,11 @@ def m_from_mach_angle(angle, gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Mach Angle [degrees]. If float, list, tuple is given as input, 
+        Mach Angle [degrees]. If float, list, tuple is given as input,
         a conversion will be attempted. Must be 0 <= Mach Angle <= 90.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -346,7 +346,7 @@ def mach_angle(M):
     M : array_like
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
-    
+
     Returns
     -------
     out : ndarray
@@ -370,7 +370,7 @@ def m_from_prandtl_meyer_angle(angle, gamma=1.4):
         Prandtl Meyer angle [degrees].
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     M : array_like
@@ -397,7 +397,7 @@ def prandtl_meyer_angle(M, gamma=1.4):
         will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     nu : array_like
@@ -424,7 +424,7 @@ def get_ratios_from_mach(M, gamma):
         Mach number
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     pr : array_like

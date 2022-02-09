@@ -21,7 +21,7 @@ def nozzle_length(Rt, Re, R, K=1, alpha=15):
         conical nozzle. Default to 1.
     alpha : float
         Half-cone angle of the divergent in degrees. Default to 15.
-    
+
     Returns
     -------
     Ln : float
@@ -52,7 +52,7 @@ def quadratic_bezier_parabola(P0, P2, theta_N, theta_e, t):
         Slope in radians at point P2.
     t : array [nx1]
         Parameter of the parabola. Must be 0 <= t <= 1.
-    
+
     Returns
     -------
     xy : array [nx2]
@@ -75,12 +75,12 @@ def quadratic_bezier_parabola(P0, P2, theta_N, theta_e, t):
     P2 = P2.reshape(1, 2)
     # t: array (list) of parameters. Make it Nx1
     t = t.reshape(len(t), 1)
-    
+
     # Bernstein polynomials of second degree
     a = (1 - t)**2
     b = 2 * t * (1 - t)
     c = t**2
-    
+
     # [Nx1] [1x2] = [Nx2]
     xy =  np.matmul(a, P0) + np.matmul(b, P1) + np.matmul(c, P2)
     return xy
@@ -140,7 +140,7 @@ def rotated_parabola(P0, P1, theta_N, theta_e, x):
 def convergent(theta, Ri, R0, Rt, factor):
     """
     Helper function to compute the important points of the convergent.
-    It's possible to create both conical or curved convergents. 
+    It's possible to create both conical or curved convergents.
     The curved configuration is composed of:
     * Circular segment at the junction with the combustion chamber (from -Lc <= x <= x0).
     * Straight segment tangent to both circles (from x0 <= x <= x1).
@@ -164,14 +164,14 @@ def convergent(theta, Ri, R0, Rt, factor):
     factor : float
         Ratio between the radius of the circle on the outlet of the convergent with
         the throat radius. Must be >= 0.
-    
+
     Returns
     -------
     x0 : float
         x-coordinate of the end of the circular junction of radius R0.
     y0 : float
         y-coordinate of the end of the circular junction of radius R0.
-    x1 : float 
+    x1 : float
         x-coordinate of the start of the circular junction of radius (factor * Rt).
     y1 : float
         y-coordinate of the start of the circular junction of radius (factor * Rt).
@@ -216,7 +216,7 @@ def convergent(theta, Ri, R0, Rt, factor):
     if theta_deg != 90:
         y1 = yc - R * np.cos(theta)
         x1 = (q - y1) / np.tan(theta)
-    
+
     xc = x1 + R * np.sin(theta)
 
     # must obey this condition
@@ -225,7 +225,7 @@ def convergent(theta, Ri, R0, Rt, factor):
         "is not allowed because the x-coordinate of the tangent point on the " +
         "circle at throat section is less than the x-coordinate of the tangent " +
         "point on the circle at the combustion chamber section.")
-    
+
     return x0, y0, x1, y1, xc, yc
 
 def main():

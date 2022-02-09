@@ -27,7 +27,7 @@ def critical_total_temperature_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -47,7 +47,7 @@ def critical_temperature_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -67,7 +67,7 @@ def critical_pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -87,7 +87,7 @@ def critical_density_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -107,7 +107,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -127,7 +127,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -147,7 +147,7 @@ def critical_entropy_parameter(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -166,14 +166,14 @@ def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
     ----------
     ratio : array_like
         Rayleigh's Critical Total Temperature Ratio T0/T0*. If float, list,
-        tuple is given as input, a conversion will be attempted. 
+        tuple is given as input, a conversion will be attempted.
         Must be 0 <= T0/T0* < 1.
     flag : string, optional
         Can be either 'sub' (subsonic) or 'super' (supersonic).
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
         out : ndarray
@@ -181,9 +181,9 @@ def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
     """
     if np.any(ratio < 0) or np.any(ratio > 1):
         raise ValueError("It must be 0 <= T0/T0* <= 1.")
-    
-    # When ratio = 1 the values into the sqrt() should be zero, 
-    # instead it's some very small negative number (rounding/truncation 
+
+    # When ratio = 1 the values into the sqrt() should be zero,
+    # instead it's some very small negative number (rounding/truncation
     # errors), returning NaN instead of 1.
     r = np.ones_like(ratio)
     idx = ratio != 1
@@ -205,18 +205,18 @@ def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
     ----------
     ratio : array_like
         Rayleigh's Critical Temperature Ratio T/T*. If float, list, tuple is
-        given as input, a conversion will be attempted. 
+        given as input, a conversion will be attempted.
         Must be 0 < T/T* < T/T*(M(d(CTR)/dM = 0))
     flag : string, optional
         Can be either:
 
         * 'sub' for subsonic case.
         * 'super' for supersonic case.
- 
+
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -228,7 +228,7 @@ def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
     upper_lim = critical_temperature_ratio(1 / np.sqrt(gamma))
     if np.any(ratio < 0) or np.any(ratio > upper_lim):
         raise ValueError("It must be 0 < T/T* < {}.".format(upper_lim))
-    
+
     M = np.zeros_like(ratio)
     if flag == "sub":
         M[ratio == 0] = 0
@@ -246,12 +246,12 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Rayleigh's Critical Pressure Ratio P/P*. If float, list, tuple 
-        is given as input, a conversion will be attempted. 
+        Rayleigh's Critical Pressure Ratio P/P*. If float, list, tuple
+        is given as input, a conversion will be attempted.
         Must be 0 < P/P* < P/P*(M=0).
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -273,8 +273,8 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Rayleigh's Critical Total Pressure Ratio P0/P0*. If float, list, tuple 
-        is given as input, a conversion will be attempted. 
+        Rayleigh's Critical Total Pressure Ratio P0/P0*. If float, list, tuple
+        is given as input, a conversion will be attempted.
         If flag='sub', it must be 1 <= P0/P0* < P0/P0*(M=0).
         Else, P0/P0* >= 1.
     flag : string, optional
@@ -282,7 +282,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -310,12 +310,12 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Rayleigh's Critical Density Ratio rho/rho*. If float, list, tuple 
-        is given as input, a conversion will be attempted. 
+        Rayleigh's Critical Density Ratio rho/rho*. If float, list, tuple
+        is given as input, a conversion will be attempted.
         Must be rho/rho* > gamma / (gamma + 1).
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -334,12 +334,12 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Rayleigh's Critical Velocity Ratio U/U*. If float, list, tuple 
-        is given as input, a conversion will be attempted. 
+        Rayleigh's Critical Velocity Ratio U/U*. If float, list, tuple
+        is given as input, a conversion will be attempted.
         Must be 0 < U/U* < (1 + gamma) / gamma.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -358,14 +358,14 @@ def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Rayleigh's Critical Critical Entropy (s*-s)/R. If float, list, tuple 
-        is given as input, a conversion will be attempted. 
+        Rayleigh's Critical Critical Entropy (s*-s)/R. If float, list, tuple
+        is given as input, a conversion will be attempted.
         Must be (s*-s)/R >= 0.
     flag : string, optional
         Can be either 'sub' (subsonic) or 'super' (supersonic). Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -373,7 +373,7 @@ def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
     """
     if np.any(ratio < 0):
         raise ValueError("It must be (s*-s)/R >= 0.")
-    
+
     # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - (-gamma /(gamma - 1) * np.log(M**2 * ((gamma + 1) / (1 + gamma * M**2))**((gamma + 1) / gamma)))
 
@@ -393,7 +393,7 @@ def get_ratios_from_mach(M, gamma):
         Mach number
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     prs : array_like

@@ -5,4 +5,3 @@ from pygasflow.nozzles.moc import (
     min_length_supersonic_nozzle_moc,
     CD_Min_Length_Nozzle
 )
-

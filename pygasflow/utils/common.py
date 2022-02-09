@@ -3,7 +3,7 @@ import numpy as np
 def convert_to_ndarray(x):
     """
     Check if the input parameter is of type np.ndarray.
-    If not, convert it to np.ndarray and make sure it is at least 
+    If not, convert it to np.ndarray and make sure it is at least
     1 dimensional.
     """
     if not isinstance(x, np.ndarray):
@@ -13,7 +13,7 @@ def convert_to_ndarray(x):
     return x
 
 def ret_correct_vals(x):
-    """ Many functions implemented in this package requires their input 
+    """ Many functions implemented in this package requires their input
     arguments to be Numpy arrays, hence a few decorators take care of the
     conversion before applying the function.
     However, If I pass a scalar value to a function, I would like it to return
@@ -22,7 +22,7 @@ def ret_correct_vals(x):
     """
     if isinstance(x, tuple):
         # Many functions return a tuple of elements. If I give in input a single
-        # mach number, it may happens that the function return a tuple of 1-D 
+        # mach number, it may happens that the function return a tuple of 1-D
         # Numpy arrays. But I want a tuple of numbers. Hence, the following lines
         # of code extract the values from the 1-D array and return a modified
         # tuple of elements.
@@ -42,23 +42,23 @@ class Ideal_Gas(object):
         self._gamma = gamma
         self._cp = self._gamma * self._R / (self._gamma - 1)
         self._cv = self._cp - R
-    
+
     @property
     def R(self):
         return self._R
-    
+
     @property
     def gamma(self):
         return self._gamma
-    
+
     @property
     def cp(self):
         return self._cp
-    
+
     @property
     def cv(self):
-        return self._cv    
-    
+        return self._cv
+
     def solve(self, **args):
         if not args:
             raise ValueError("Need some input arguments.")
@@ -74,24 +74,24 @@ class Ideal_Gas(object):
         if "rho" in args.keys():
             rho = np.asarray(args["rho"])
 
-        
+
         if P != None and T != None and rho != None:
             if (P.size != T.size) or (P.size != rho.size):
                 raise ValueError("P, T, rho must have the same number of elements")
             if np.any(np.abs(P - rho * self.R * T) <= 1e-08):
                 raise ValueError("The input arguments appear not to follow ideal gas low")
             return None
-        
+
         if P != None and T != None:
             if P.size != T.size:
                 raise ValueError("P, T must have the same number of elements")
             return P / self.R / T
-        
+
         if P != None and rho != None:
             if P.size != rho.size:
                 raise ValueError("P, rho must have the same number of elements")
             return P / self.R / rho
-        
+
         if T != None and rho != None:
             if T.size != rho.size:
                 raise ValueError("T, rho must have the same number of elements")
@@ -113,7 +113,7 @@ class Flow_State(object):
 
         # convert all keywords to lower case
         args = {k.lower(): v for k,v in args.items()}
-        
+
 
         if "name" in args.keys(): self.name = args["name"]
         if "m" in args.keys(): self.mach = args["m"]
@@ -127,67 +127,67 @@ class Flow_State(object):
     @property
     def name(self):
         return self._name
-    
+
     @name.setter
     def name(self, name):
         self._name = name
-    
+
     @property
     def mach(self):
         return self._mach
-    
+
     @mach.setter
     def mach(self, mach):
         self._mach = mach
-    
+
     @property
     def normal_mach(self):
         return self._normal_mach
-    
+
     @normal_mach.setter
     def normal_mach(self, normal_mach):
         self._normal_mach = normal_mach
-    
+
     @property
     def pressure(self):
         return self._pressure
-    
+
     @pressure.setter
     def pressure(self, pressure):
         self._pressure = pressure
-    
+
     @property
     def density(self):
         return self._density
-    
+
     @density.setter
     def density(self, density):
         self._density = density
-    
+
     @property
     def static_temperature(self):
         return self._static_temperature
-    
+
     @static_temperature.setter
     def static_temperature(self, static_temperature):
         self._static_temperature = static_temperature
-    
+
     @property
     def total_temperature(self):
         return self._total_temperature
-    
+
     @total_temperature.setter
     def total_temperature(self, total_temperature):
         self._total_temperature = total_temperature
-    
+
     @property
     def total_pressure(self):
         return self._total_pressure
-    
+
     @total_pressure.setter
     def total_pressure(self, total_pressure):
         self._total_pressure = total_pressure
-    
+
     def __str__(self):
         s = "State {}\n".format(self.name)
         s += "\tM\t{}\n".format(self.mach)
@@ -197,7 +197,7 @@ class Flow_State(object):
         s += "\tP0\t{}\n".format(self.total_pressure)
         s += "\tT0\t{}\n".format(self.total_temperature)
         return s
-    
+
     def __mul__(self, a):
         # new values
         m, pn, rn, tn, p0n, t0n = None, None, None, None, None, None
@@ -214,7 +214,7 @@ class Flow_State(object):
             p0n = self.total_pressure * a["total_pressure_ratio"]
         if "total_temperature_ratio" in a.keys():
             t0n = self.total_temperature * a["total_temperature_ratio"]
-        
+
         b = Flow_State(
             name = "",
             m = m,
@@ -224,16 +224,16 @@ class Flow_State(object):
             p0 = p0n,
             t0 = t0n,
         )
-        
+
         return b
 
 if __name__ == "__main__":
     gas = Ideal_Gas(287, 1.4)
 
     a = Flow_State(
-        M=6.8, 
-        P=1000, 
-        T=220, 
+        M=6.8,
+        P=1000,
+        T=220,
         rho=gas.solve(p=1000, t=220),
         name=1
     )

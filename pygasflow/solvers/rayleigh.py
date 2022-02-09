@@ -37,7 +37,7 @@ def rayleigh_solver(param_name, param_value, gamma=1.4):
         input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     M : array_like
@@ -56,19 +56,42 @@ def rayleigh_solver(param_name, param_value, gamma=1.4):
         Critical Velocity Ratio U/U*
     eps : array_like
         Critical Entropy Ratio (s*-s)/R
+
+    Examples
+    --------
+
+    Compute all ratios starting from a single Mach number:
+
+    >>> from pygasflow import rayleigh_solver
+    >>> rayleigh_solver("m", 2)
+    [2.0, 0.36363636363636365, 0.6875, 0.5289256198347108, 1.5030959785260414, 0.793388429752066, 1.4545454545454546, 1.2175752061512626]
+
+    Compute the subsonic Mach number starting from the critical entropy ratio:
+
+    >>> results = rayleigh_solver("entropy_sub", 0.5)
+    >>> print(results[0])
+    0.6634188478510624
+
+    Compute the critical temperature ratio starting from multiple Mach numbers
+    for a gas having specific heat ratio gamma=1.2:
+
+    >>> results = rayleigh_solver("m", [0.5, 1.5], 1.2)
+    >>> print(results[3])
+    [0.71597633 0.79547115]
+
     """
 
     if not isinstance(param_name, str):
         raise ValueError("param_name must be a string")
     param_name = param_name.lower()
-    available_pnames = ['m', 'pressure', 'density', 'velocity', 
-                        'temperature_sub', 'temperature_super', 
-                        'total_pressure_sub', 'total_pressure_super', 
-                        'total_temperature_sub', 'total_temperature_super', 
+    available_pnames = ['m', 'pressure', 'density', 'velocity',
+                        'temperature_sub', 'temperature_super',
+                        'total_pressure_sub', 'total_pressure_super',
+                        'total_temperature_sub', 'total_temperature_super',
                         'entropy_sub', 'entropy_super']
     if param_name not in available_pnames:
         raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
-    
+
     M = None
     if param_name == "m":
         M = param_value
@@ -104,5 +127,5 @@ def rayleigh_solver(param_name, param_value, gamma=1.4):
 
     # compute the different ratios
     prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach.__no_check(M, gamma)
-    
+
     return M, prs, drs, trs, tprs, ttrs, urs, eps

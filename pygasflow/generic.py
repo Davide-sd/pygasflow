@@ -23,11 +23,11 @@ def sound_speed(T, R=287.058, gamma=1.4):
             Specific Gas Constant. Default is air, R=287.058
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
         out : ndarray
-            Sound Speed. 
+            Sound Speed.
     """
     if np.any(T < 0):
         raise ValueError("Temperature must be >= 0.")
@@ -48,11 +48,11 @@ def mach_number(U, a):
         a : array_like
             Sound Speed. If float, list, tuple is given as input, a conversion
             will be attempted. If array_like, must be U.shape == a.shape.
-    
+
     Returns
     -------
         out : ndarray
-            Mach Number. 
+            Mach Number.
     """
     if U.shape != a.shape:
         raise ValueError("U and a must have the same shape.")
@@ -74,7 +74,7 @@ def characteristic_mach_number(M, gamma=1.4):
             will be attempted.
         gamma : float
             Specific heats ratio. Default to 1.4
-    
+
     Returns
     -------
         M* : array_like
@@ -94,7 +94,7 @@ def mach_from_characteristic_mach_number(Ms, gamma):
             will be attempted. Must be 0 <= Ms <= sqrt((gamma + 1) / (gamma - 1))
         gamma : float
             Specific heats ratio. Default to 1.4
-    
+
     Returns
     -------
         M : array_like
@@ -125,7 +125,7 @@ def stagnation_temperature(T, u, cp):
             will be attempted.
         cp : float
             Specific heat at constant pressure. Must be cp > 0.
-    
+
     Returns
     -------
         T0 : array_like
@@ -144,7 +144,7 @@ def stagnation_temperature(T, u, cp):
 #     # Cp = (p - p_inf) / q_inf
 #     # q_inf = 0.5 * rho_inf * V_inf**2 = 0.5 * (gamma * p_inf) / (gamma * p_inf) * rho_inf * V_inf**2
 #     #         = 0.5 * gamma * p_inf * V_inf**2 / a_inf**2 = 0.5 * gamma * p_inf * M_inf**2
-#     # Cp = (p - p_inf) / (0.5 * gamma * p_inf * M_inf**2) = 
+#     # Cp = (p - p_inf) / (0.5 * gamma * p_inf * M_inf**2) =
 #     #     = 2 / (gamma * M_inf**2) * (p / p_inf - 1)
 #     # pass
 

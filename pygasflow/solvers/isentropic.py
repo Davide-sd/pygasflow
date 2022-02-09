@@ -27,7 +27,7 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     M : array_like
@@ -52,6 +52,34 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         Mach Angle
     pm : array_like
         Prandtl-Meyer Angle
+
+
+    Examples
+    --------
+
+    Compute all ratios starting from a single Mach number:
+
+    >>> from pygasflow import isentropic_solver
+    >>> isentropic_solver("m", 2)
+    [2.0, 0.12780452546295096, 0.2300481458333117, 0.5555555555555556, 0.24192491286747442, 0.36288736930121157, 0.6666666666666667, 2.3515101530718505, 1.6875000000000002, 30.000000000000004, 26.379760813416457]
+
+    Compute all parameters starting from the pressure ratio:
+
+    >>> isentropic_solver("pressure", 0.12780452546295096)
+    [1.9999999999999996, 0.12780452546295107, 0.23004814583331185, 0.5555555555555558, 0.24192491286747458, 0.3628873693012118, 0.6666666666666669, 2.3515101530718505, 1.6874999999999993, 30.00000000000001, 26.379760813416446]
+
+    Compute the Mach number starting from the Mach Angle:
+
+    >>> results = isentropic_solver("mach_angle", 25)
+    >>> print(results[0])
+    2.3662015831524985
+
+    Compute the pressure ratios starting from two Mach numbers:
+
+    >>> results = isentropic_solver("m", [2, 3])
+    >>> print(results[1])
+    [0.12780453 0.02722368]
+
     """
 
     if not isinstance(param_name, str):
@@ -85,5 +113,5 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         M = func_dict[param_name].__no_check(param_value, gamma)
     # compute the different ratios
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
-    
+
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

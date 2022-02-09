@@ -30,7 +30,7 @@ from pygasflow.utils.decorators import check_shockwave
 
 @check_shockwave([1, 3])
 def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak"):
-    """ 
+    """
     Try to compute all the ratios, angles and mach numbers across the shock wave.
 
     Remember: a normal shock wave has a wave angle beta=90 deg.
@@ -71,8 +71,8 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         Specific heats ratio. Default to 1.4. Must be > 1.
     flag : string, optional
         Chose what solution to compute if the angle 'theta' is provided.
-        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``. 
-    
+        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``.
+
     Returns
     -------
     M1 : float
@@ -95,6 +95,30 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         Temperature ratio across the shock wave.
     tpr : float
         Total Pressure ratio across the shock wave.
+
+    Examples
+    --------
+
+    Compute all ratios across a normal shockwave starting with the upstream
+    Mach number:
+
+    >>> from pygasflow import shockwave_solver
+    >>> shockwave_solver("m1", 2)
+    [2.0, 2.0, 0.5773502691896257, 0.5773502691896257, 90.0, 5.847257748779064e-15, 4.5, 2.666666666666667, 1.6874999999999998, 0.7208738614847455]
+
+    Compute all ratios and parameters across an oblique shockwave starting
+    from the shockwave angle and the deflection angle:
+
+    >>> shockwave_solver("theta", 8, "beta", 80)
+    [1.511670289641015, 1.4887046212366817, 0.7414131402857721, 0.7051257983356364, 80.0, 7.999999999999998, 2.418948357506694, 1.84271116608139, 1.312711618636739, 0.9333272472012358]
+
+    Compute the Mach number downstream of an oblique shockwave starting with
+    multiple upstream Mach numbers:
+
+    >>> results = shockwave_solver("m1", [1.5, 3], "beta", [60, 60])
+    >>> print(results[2])
+    [1.04454822 1.12256381]
+
     """
 
     beta, theta = None, None
@@ -116,7 +140,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
     else:
         MN1 = p2_value
-    
+
 
     p1_name = p1_name.lower()
     available_p1names = ['beta', 'theta', 'pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2']
@@ -168,11 +192,11 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
         else:
             beta = beta_from_mach_theta.__no_check(M1, theta, gamma)[flag]
-        
+
         if isinstance(M1, (list, tuple, np.ndarray)):
             beta *= np.ones_like(M1)
             theta *= np.ones_like(M1)
-        
+
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
     else:
         # compute the different ratios
@@ -193,15 +217,15 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             beta = np.nan * np.ones_like(MN2)
             warnings.warn("Undetermined case. Setting M1 = beta = M2 = NaN")
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
-    
+
     # TODO
     # 1. What if p1_name is M2????
-    #     
+    #
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 @check_shockwave
 def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"):
-    """ 
+    """
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
     Parameters
@@ -210,7 +234,7 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
         Upstream Mach number. Must be M1 > 1.
     param_name : string
         Name of the parameter given in input. Can be either one of:
-        
+
         * ``'mc'``: Mach number at the cone's surface.
         * ``'theta_c'``: Half cone angle.
         * ``'beta'``: shock wave angle.
@@ -227,33 +251,52 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     flag : string, optional
         Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``
         (in conical shockwaves, the strong solution is rarely encountered).
-    
+
     Returns
     -------
-        M : float
-            Upstream Mach number.
-        Mc : float
-            Mach number at the surface of the cone.
-        theta_c : float
-            Half cone angle.
-        beta : float
-            Shock wave angle.
-        delta : float
-            Flow deflection angle.
-        pr : float
-            Pressure ratio across the shock wave.
-        dr : float
-            Density ratio across the shock wave.
-        tr : float
-            Temperature ratio across the shock wave.
-        tpr : float
-            Total Pressure ratio across the shock wave.
-        pc_p1 : float
-            Pressure ratio between the cone's surface and the upstream condition.
-        rhoc_rho1 : float
-            Density ratio between the cone's surface and the upstream condition.
-        Tc_T1 : float
-            Temperature ratio between the cone's surface and the upstream condition.
+    M : float
+        Upstream Mach number.
+    Mc : float
+        Mach number at the surface of the cone.
+    theta_c : float
+        Half cone angle.
+    beta : float
+        Shock wave angle.
+    delta : float
+        Flow deflection angle.
+    pr : float
+        Pressure ratio across the shock wave.
+    dr : float
+        Density ratio across the shock wave.
+    tr : float
+        Temperature ratio across the shock wave.
+    tpr : float
+        Total Pressure ratio across the shock wave.
+    pc_p1 : float
+        Pressure ratio between the cone's surface and the upstream condition.
+    rhoc_rho1 : float
+        Density ratio between the cone's surface and the upstream condition.
+    Tc_T1 : float
+        Temperature ratio between the cone's surface and the upstream
+        condition.
+
+    Examples
+    --------
+
+    Compute all quantities across a conical shockwave starting from the
+    upstream Mach number and the half cone angle:
+
+    >>> from pygasflow import conical_shockwave_solver
+    >>> conical_shockwave_solver(2.5, "theta_c", 15)
+    [2.5, 2.1179295900668067, 15.0, 28.45459370447941, 6.229019180107892, 1.488659699248579, 1.3262664608044694, 1.122443900410184, 0.9936173734022627, 1.8051864085591218, 1.5220731269187135, 1.186005045771711]
+
+    Compute the pressure ratio across a conical shockwave starting with
+    multiple upstream Mach numbers and Mach numbers at the cone surface:
+
+    >>> results = conical_shockwave_solver([2.5, 5], "mc", 1.5)
+    >>> print(results[5])
+    [ 3.42459174 18.60172442]
+
     """
     param_name = param_name.lower()
     if param_name not in ["mc", "beta", "theta_c"]:
@@ -276,18 +319,18 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
         theta_c = param_value
         if (not isinstance(theta_c, (int, float))) or (theta_c <= 0) or (theta_c > 90):
             raise ValueError("The half cone angle must be 0 < theta_c < 90.")
-    
+
     if Mc:
         _, theta_c, beta = shock_angle_from_machs(M1, Mc, gamma, flag)
     elif beta:
         Mc, theta_c = mach_cone_angle_from_shock_angle(M1, beta, gamma)
     elif theta_c:
         Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag)
-    
+
     # compute the ratios across the shockwave
     MN1 = M1 * np.sin(np.deg2rad(beta))
     pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
-    
+
     # delta is the flow deflection angle (Anderson's Figure 10.4)
     delta = theta_from_mach_beta(M1, beta, gamma)
     M2 = MN2 /  np.sin(np.deg2rad(beta - delta))
@@ -299,20 +342,10 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     Tc_T1 = ise_TR(Mc) / ise_TR(M2) * tr
 
     # set Mc, theta_c to have the same shape as M1 and the other ratios. This is
-    # necessary because Mc or theta_c are parameters passed in by the user, in 
+    # necessary because Mc or theta_c are parameters passed in by the user, in
     # that case they are scalars.
     theta_c = theta_c * np.ones_like(M1)
     if not isinstance(Mc, np.ndarray):
         Mc = Mc * np.ones_like(M1)
 
     return M1, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
-
-if __name__ == "__main__":
-    # print(conical_shockwave_solver(2, "theta_c", 38.76391345757847))
-    # print(conical_shockwave_solver(2, "beta", 61.485371643068866))
-    # print(conical_shockwave_solver(3, "mc", 2))
-    # print(conical_shockwave_solver(2, 'theta_c', 45))
-    # print(shockwave_solver("m1", [2, 5], "theta", [20, 20]))
-    # print(shockwave_solver("beta", 60, "theta", 45))
-    # print(conical_shockwave_solver(2, "beta", 20))
-    print(conical_shockwave_solver(2, "mc", 0.8))

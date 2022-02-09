@@ -34,7 +34,7 @@ def fanno_solver(param_name, param_value, gamma=1.4):
         input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     M : array_like
@@ -53,6 +53,30 @@ def fanno_solver(param_name, param_value, gamma=1.4):
         Critical Friction Parameter 4fL*/D
     eps : array_like
         Critical Entropy Ratio (s*-s)/R
+
+    Examples
+    --------
+
+    Compute all ratios starting from a Mach number:
+
+    >>> from pygasflow import fanno_solver
+    >>> fanno_solver("m", 2)
+    [2.0, 0.408248290463863, 0.6123724356957945, 0.6666666666666667, 1.6875000000000002, 1.632993161855452, 0.3049965025814798, 0.523248143764548]
+
+    Compute the subsonic Mach number starting from the critical friction
+    parameter:
+
+    >>> results = fanno_solver("friction_sub", 0.3049965025814798)
+    >>> print(results[0])
+    0.6572579935727846
+
+    Compute the critical temperature ratio starting from multiple Mach numbers
+    for a gas having specific heat ratio gamma=1.2:
+
+    >>> results = fanno_solver("m", [0.5, 1.5], 1.2)
+    >>> print(results[3])
+    [1.07317073 0.89795918]
+
     """
 
     if not isinstance(param_name, str):
@@ -94,5 +118,5 @@ def fanno_solver(param_name, param_value, gamma=1.4):
 
     # compute the different ratios
     prs, drs, trs, tprs, urs, fps, eps = fanno.get_ratios_from_mach.__no_check(M, gamma)
-    
+
     return M, prs, drs, trs, tprs, urs, fps, eps

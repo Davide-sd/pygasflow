@@ -28,7 +28,7 @@ def critical_temperature_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -48,7 +48,7 @@ def critical_pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -70,7 +70,7 @@ def critical_density_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -92,7 +92,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -114,7 +114,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -135,7 +135,7 @@ def critical_friction_parameter(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -159,7 +159,7 @@ def critical_entropy_parameter(M, gamma=1.4):
         will be attempted. Must be M > 0.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -178,11 +178,11 @@ def m_from_critical_temperature_ratio(ratio, gamma=1.4):
     ----------
     ratio : array_like
         Fanno's Critical Temperature Ratio T/T*. If float, list, tuple is
-        given as input, a conversion will be attempted. 
+        given as input, a conversion will be attempted.
         Must be 0 < T/T* < Critical_Temperature_Ratio(0, gamma).
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -205,7 +205,7 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
         as input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -226,7 +226,7 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
         Must be: rho/rho* > np.sqrt((gamma - 1) / (gamma + 1))
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -254,7 +254,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -262,12 +262,12 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
     """
     if np.any(ratio < 1):
         raise ValueError("It must be P/P* > 1.")
-    
+
     # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
     func = lambda M, r: r - (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
 
     return apply_bisection(ratio, func, flag=flag)
-    
+
 @check
 def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     """
@@ -277,11 +277,11 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     ----------
     ratio : array_like
         Fanno's Critical Velocity Ratio U/U*. If float, list, tuple is given
-        as input, a conversion will be attempted. 
+        as input, a conversion will be attempted.
         Must be 0 <= U/U* < (1 / np.sqrt((gamma - 1) / (gamma + 1))).
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -313,13 +313,13 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
         Mach Number.
     """
-    
+
     if flag == "sub":
         if np.any(fp < 0):
             raise ValueError('It must be fp >= 0.')
@@ -327,14 +327,14 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
         upper_lim = ((gamma + 1) * np.log((gamma + 1) / (gamma - 1)) - 2) / (2 * gamma)
         if np.any(fp < 0) or np.any(fp > upper_lim):
             raise ValueError('It must be 0 <= fp <= {}'.format(upper_lim))
-        
+
     # TODO: when solving the supersonic case, and ratio -> upper limit,
     # I get: ValueError: f(a) and f(b) must have different signs
     # need to be dealt with!
 
     # func = lambda M, r: r - Critical_Friction_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - (((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M**2 / (1 + ((gamma - 1) / 2) * M**2)) + (1 / gamma) * (1 / M**2 - 1))
-    
+
     return apply_bisection(fp, func, flag=flag)
 
 @check
@@ -346,14 +346,14 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     ----------
     ep : array_like
         Fanno's Critical Entropy Parameter (s*-s)/R. If float, list, tuple
-        is given as input, a conversion will be attempted. 
+        is given as input, a conversion will be attempted.
         Must be (s* - s) / R >= 0.
     flag : string, optional
         Can be either 'sub' (subsonic) or 'super' (supersonic).
         Default to 'sub'.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     out : ndarray
@@ -361,10 +361,10 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     """
     if np.any(ep < 0):
         raise ValueError("It must be (s* - s) / R >= 0.")
-    
+
     # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
     func = lambda M, r: r - np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
-    
+
     return apply_bisection(ep, func, flag=flag)
 
 @check
@@ -378,7 +378,7 @@ def get_ratios_from_mach(M, gamma):
         Mach number
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     prs : array_like

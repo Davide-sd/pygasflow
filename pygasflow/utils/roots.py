@@ -2,7 +2,7 @@ import numpy as np
 from scipy.optimize import bisect
 
 def apply_bisection(ratio, func, flag="sub"):
-    """ Helper function used for applying the bisection method to find the 
+    """ Helper function used for applying the bisection method to find the
     roots of a given function.
 
     Parameters
@@ -13,7 +13,7 @@ def apply_bisection(ratio, func, flag="sub"):
         Function returning a number.
     flag : str
         Can be either ``"sub"`` or ``"super"``.
-    
+
     Returns
     -------
     roots : np.array_like
@@ -27,7 +27,7 @@ def apply_bisection(ratio, func, flag="sub"):
         # TODO: evaluate if this mach range is sufficient for all gamma and ratios.
         mach_range = [1, 100]
 
-    # Since I'm using 
+    # Since I'm using
     M = np.zeros_like(ratio)
     for i, r in enumerate(ratio):
         M[i] = bisect(func, *mach_range, args=(r))

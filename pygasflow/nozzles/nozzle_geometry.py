@@ -42,7 +42,7 @@ class Nozzle_Geometry:
         self._Rt = Rt
 
         # compute areas
-        # for planar case, the radius corresponds to half the height of 
+        # for planar case, the radius corresponds to half the height of
         # the nozzle. Width remain constant along nozzle's length, therefore
         # it simplifies, hence it is not considered in the planar case.
         self._Ai = 2 * Ri
@@ -61,7 +61,7 @@ class Nozzle_Geometry:
         self._length_array = None
         self._area_ratio_array = None
         self._wall_radius_array = None
-    
+
     @property
     def inlet_radius(self):
         return self._Ri
@@ -69,7 +69,7 @@ class Nozzle_Geometry:
     @property
     def outlet_radius(self):
         return self._Re
-    
+
     @property
     def critical_radius(self):
         return self._Rt
@@ -81,35 +81,35 @@ class Nozzle_Geometry:
     @property
     def outlet_area(self):
         return self._Ae
-    
+
     @property
     def critical_area(self):
         return self._At
-    
+
     @property
     def length_convergent(self):
         return self._Lc
-    
+
     @property
     def length_divergent(self):
         return self._Ld
-    
+
     @property
     def length(self):
         return self._Lc + self._Ld
-    
+
     @property
     def length_array(self):
         return self._length_array
-    
+
     @property
     def wall_radius_array(self):
         return self._wall_radius_array
-    
+
     @property
     def area_ratio_array(self):
         return self._area_ratio_array
-    
+
     def __str__(self):
         s = ""
         s += "Radius:\n"
@@ -125,9 +125,9 @@ class Nozzle_Geometry:
         s += "\tLd\t{}\n".format(self.length_divergent)
         s += "\tL\t{}\n".format(self.length)
         return s
-    
+
     def get_points(self, area_ratio=False, offset=1.2):
-        """ 
+        """
         Helper function used to construct a matrix of points representing
         the nozzle for visualization purposes.
 
@@ -137,9 +137,9 @@ class Nozzle_Geometry:
             If True, represents the area ratio A/A*. Otherwise, represents
             the radius. Default to False.
         offset : float
-            Used to construct the container (or the walls) of the nozzle. 
+            Used to construct the container (or the walls) of the nozzle.
             The container radius is equal to offset * max_nozzle_radius.
-        
+
         Returns
         -------
             points_top : np.ndarray [Nx2]
@@ -163,7 +163,7 @@ class Nozzle_Geometry:
         nozzle = np.vstack((L, nozzle)).T
 
         return nozzle, container
-    
+
     def location_divergent_from_area_ratio(self, A_ratio):
         """
         Given an area ratio, compute the location on the divergent where
@@ -173,7 +173,7 @@ class Nozzle_Geometry:
         ----------
         A_ratio : float
             A / At
-        
+
         Returns
         -------
         x : float

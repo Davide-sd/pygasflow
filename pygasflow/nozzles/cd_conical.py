@@ -9,7 +9,33 @@ from pygasflow.nozzles.utils import (
 class CD_Conical_Nozzle(Nozzle_Geometry):
     """
     Convergent-Divergent nozzle with conical divergent.
+
+    Examples
+    --------
+
+    .. plot::
+       :context: reset
+       :format: python
+       :include-source: True
+
+       from pygasflow import CD_Conical_Nozzle
+       import matplotlib.pyplot as plt
+       Ri = 0.4
+       Re = 1.2
+       Rt = 0.2
+       geom = CD_Conical_Nozzle(Ri, Re, Rt, 0.15, 1, 30, 25)
+       x, y = geom.build_geometry(100)
+       plt.figure()
+       plt.plot(x, y)
+       plt.xlabel("Length")
+       plt.ylabel("Radius")
+       plt.grid()
+       plt.axis('equal')
+       plt.show()
+
     """
+
+    _title = "Conical Nozzle"
 
     def __init__(self, Ri, Re, Rt, Rj, R0, theta_c, theta_N=15,
                     geometry_type="axisymmetric", N=100):
@@ -32,16 +58,16 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
             Half angle [degrees] of the conical divergent. Default to 15 deg.
         geometry_type : string
             Specify the geometry type of the nozzle. Can be either
-            ``'axisymmetric'`` or ``'planar'``. 
+            ``'axisymmetric'`` or ``'planar'``.
             If ``'planar'`` is specified, Ri, Re, Rt will be considered as
             half of the height of the respective sections (therefore, R is the
             distance from the line of symmetry and the nozzle wall).
-            To compute the cross section area, "axisymmetric" uses the formula 
+            To compute the cross section area, "axisymmetric" uses the formula
             A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note
             the lack of width in the planar formula, this is because in the
-            area ratios it simplifies, hence it is not considere here.         
+            area ratios it simplifies, hence it is not considere here.
         N : int
-            Number of discretization elements along the length of the nozzle. 
+            Number of discretization elements along the length of the nozzle.
             Default to 100.
         """
         if (Ri <= Rt) or (Re <= Rt):
@@ -73,7 +99,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         self._area_ratio_array = 2 * y / self._At
         if self._geometry_type == "axisymmetric":
             self._area_ratio_array = np.pi * y**2 / self._At
-    
+
     def __str__(self):
         s = "C-D Conical Nozzle\n"
         s += super().__str__()
@@ -81,7 +107,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         s += "\ttheta_c\t{}\n".format(self._theta_c)
         s += "\ttheta_N\t{}\n".format(self._theta_N)
         return s
-    
+
     def _compute_intersection_points(self):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
@@ -89,7 +115,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
 
         # divergent length
         self._Ld = nozzle_length(Rt, Re, Rj, 1, self._theta_N)
-        
+
         # find interesting points for the convergent
         x0, y0, x1, y1, xc, yc = convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
         # convergent length
@@ -109,20 +135,19 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
             "N": [xN, RN],  # throat circle - divergent straight line
             "E": [self._Ld, Re] # end point
         }
-    
+
     @property
     def intersection_points(self):
         return self._intersection_points
 
     def build_geometry(self, N):
-        """
-        Discretize the length of the nozzle and compute the nozzle profile.
+        """Discretize the length of the nozzle and compute the nozzle profile.
 
         Parameters
         ----------
         N : int
             Number of discretization elements along the length of the nozzle. Default to 100.
-        
+
         Returns
         -------
         x : array_like
@@ -136,7 +161,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
 
         Lc = self.length_convergent
         Ld = self.length_divergent
-        
+
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
         xN, RN = self._intersection_points["N"]
@@ -147,7 +172,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         q = y1 + x1 * np.tan(theta_c)
         # intercept for the straight line of the divergent
         qN = RN - np.tan(theta_N) * xN
-        
+
         # Compute the points
         x = np.linspace(-Lc, Ld, N)
         y = np.zeros_like(x)
@@ -163,27 +188,3 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
         y[x > xN] = np.tan(theta_N) * x[x > xN] + qN
 
         return x, y
-    
-
-def main():
-    Ai = 5
-    Ae = 20
-    At = 2
-    
-    geom = CD_Conical_Nozzle(Ai, Ae, At, 0.5, 1, 30, 25)
-    print(geom)
-
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-
-    N = 1000
-    x, y = geom.build_geometry(N)
-    plt.plot(x, y)
-    for k in geom.intersection_points.keys():
-        plt.plot(*geom.intersection_points[k], 'v')
-    plt.axis('equal')
-    plt.grid()
-    plt.show()
-
-if __name__ == "__main__":
-    main()

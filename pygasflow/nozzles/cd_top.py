@@ -22,7 +22,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
     Then they set the slope constraint on the start and end points
     of the parabolic section, ending up with a system of 3 equations in the
-    unkowns a,b,c. THIS IS WRONG, because the aformentioned parabolic equation 
+    unkowns a,b,c. THIS IS WRONG, because the aformentioned parabolic equation
     does not consider a rotated parabola!!!!
 
     For example:
@@ -31,7 +31,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         (2) xE = a * yE^2 + b * yE + c
         (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
 
-    Here, you are not giving the constraint on the slope of the end point 
+    Here, you are not giving the constraint on the slope of the end point
     (xE, yE). Therefore, the computed theta_e will be wrong.
     Another example:
 
@@ -40,15 +40,43 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
 
     Here, you end up with the correct computed slopes, but xE - xN will
-    be wrong. 
+    be wrong.
 
-    All this because the actual parabola is rotated!!! To solve for a 
+    All this because the actual parabola is rotated!!! To solve for a
     rotated parabola, you can use the Quadratic Bézier parameterization
-    or the general parabola equation: 
+    or the general parabola equation:
     (A * x + C * y)^2 + D * x + E * y + F = 0
+
+    Examples
+    --------
+
+    .. plot::
+       :context: reset
+       :format: python
+       :include-source: True
+
+       from pygasflow import CD_TOP_Nozzle
+       import matplotlib.pyplot as plt
+       Ri = 0.4
+       Re = 1.2
+       Rt = 0.2
+       geom = CD_TOP_Nozzle(Ri, Re, Rt, 0.40, 30, 0.7)
+       x, y = geom.build_geometry(1000)
+       plt.figure()
+       plt.plot(x, y)
+       for k in geom.Intersection_Points.keys():
+           plt.plot(*geom.Intersection_Points[k], 'v')
+       plt.xlabel("Length")
+       plt.ylabel("Radius")
+       plt.axis('equal')
+       plt.grid()
+       plt.show()
+
     """
 
-    def __init__(self, Ri, Re, Rt, R0, theta_c, K=0.8, 
+    _title = "TOP Nozzle"
+
+    def __init__(self, Ri, Re, Rt, R0, theta_c, K=0.8,
                     geometry_type="axisymmetric", N=100):
         """
         Parameters
@@ -69,11 +97,11 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
             Default to 0.8.
         geometry_type : string
             Specify the geometry type of the nozzle. Can be either
-            ``'axisymmetric'`` or ``'planar'``. 
+            ``'axisymmetric'`` or ``'planar'``.
             If ``'planar'`` is specified, Ri, Re, Rt will be considered as
             half of the height of the respective sections (therefore, R is the
             distance from the line of symmetry and the nozzle wall).
-            To compute the cross section area, "axisymmetric" uses the formula 
+            To compute the cross section area, "axisymmetric" uses the formula
             A = pi * r**2, whereas "planar" uses the formula A = 2 * r. Note
             the lack of width in the planar formula, this is because in the
             area ratios it simplifies, hence it is not considered here.
@@ -99,14 +127,14 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         self._theta_c = theta_c
 
         self._compute_intersection_points()
-        
+
         x, y = self.build_geometry(N)
         self._length_array = x
         self._wall_radius_array = y
         self._area_ratio_array = 2 * y / self._At
         if self._geometry_type == "axisymmetric":
             self._area_ratio_array = np.pi * y**2 / self._At
-    
+
     def __str__(self):
         s = "C-D TOP Nozzle\n"
         s += super().__str__()
@@ -115,11 +143,11 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         s += "\ttheta_N\t{}\n".format(self._theta_N)
         s += "\ttheta_e\t{}\n".format(self._theta_e)
         return s
-    
+
     @property
     def Fractional_Length(self):
         return self._K
-    
+
     @property
     def Intersection_Points(self):
         return self._intersection_points
@@ -166,18 +194,26 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         }
 
     def build_geometry(self, N):
-        """
+        """Discretize the length of the nozzle and compute the nozzle profile.
+
         Parameters
         ----------
         N : int
             Number of discretization elements along the length of the nozzle. Default to 100.
+
+        Returns
+        -------
+        x : array_like
+            x-coordinate along the nozzle length.
+        y : array_like
+            y_coordinate of the nozzle wall.
         """
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
 
         Lc = self.length_convergent
         Ld = self.length_divergent
-        
+
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
         xN, RN = self._intersection_points["N"]
@@ -220,31 +256,3 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         # y[x >= xN] = xy[:, 1]
 
         return x, y
-
-
-def main():
-    Ai = 7
-    Ae = 20
-    At = 4
-
-    geom = CD_TOP_Nozzle(Ai, Ae, At, 0.40, 30, 0.7)
-    print(geom)
-
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-
-    N = 1000
-    x, y = geom.build_geometry(N)
-
-    plt.plot(x, y)
-    for k in geom.Intersection_Points.keys():
-        plt.plot(*geom.Intersection_Points[k], 'v')
-    
-    plt.xlabel("Length")
-    plt.ylabel("Radius")
-    plt.axis('equal')
-    plt.grid()
-    plt.show()
-
-if __name__ == "__main__":
-    main()

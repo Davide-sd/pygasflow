@@ -9,7 +9,7 @@ from pygasflow.utils.common import ret_correct_vals
 class Rao_Parabola_Angles(object):
     """
     This class is used to generate the relation from the extracted data
-    of plot 4-16, page 77, Modern Engineering for Design of 
+    of plot 4-16, page 77, Modern Engineering for Design of
     Liquid-Propellant Rocket Engines, D.K. Huzel and D.H. Huang.
 
     Useful for finding the Rao's parabola angles given the fractional
@@ -19,14 +19,43 @@ class Rao_Parabola_Angles(object):
 
     * theta_n, initial parabola angle
     * theta_e, final parabola angle
-    
-    with the expansion ratio, epsilon, varying the fractional nozzle 
-    length Lf. 
+
+    with the expansion ratio, epsilon, varying the fractional nozzle
+    length Lf.
 
     Note that the data has been manually extracted from the plot in the
     book, hence it is definitely a huge "approximation".
     If you have the original Rao's plot, you can probably extract better
     data.
+
+    Examples
+    --------
+
+    Visualize the plot:
+
+    .. plot::
+       :context: reset
+       :format: python
+       :include-source: True
+
+       from pygasflow import Rao_Parabola_Angles
+       p = Rao_Parabola_Angles()
+       p.plot()
+
+    Compute the angles at the end points of Rao's parabola for a nozzle with
+    fractional length 68 and area ratio 35:
+
+    >>> from pygasflow import Rao_Parabola_Angles
+    >>> p = Rao_Parabola_Angles()
+    >>> print(p.angles_from_Lf_Ar(68, 35))
+    (36.11883335948745, 10.695233384809715)
+
+    Compute the area ratio for a nozzle with fractional length 68 and an angle
+    at the start of the parabola of 35 degrees:
+
+    >>> p.area_ratio_from_Lf_angle(68, theta_n=35)
+    24.83022334667575
+
     """
 
     def __init__(self):
@@ -34,7 +63,7 @@ class Rao_Parabola_Angles(object):
         current_dir = os.path.dirname(os.path.realpath(__file__))
         # path of the folder containing the data of the plot
         data_dir = os.path.join(current_dir, "plot-4-16-data")
-        data_files = [os.path.join(data_dir, f) for f in os.listdir(data_dir) 
+        data_files = [os.path.join(data_dir, f) for f in os.listdir(data_dir)
             if os.path.isfile(os.path.join(data_dir, f))]
 
         # substitute "," with "." for decimal separator
@@ -73,12 +102,12 @@ class Rao_Parabola_Angles(object):
     def _find_Lf_range(self, Lf):
         """
         Compute the interval where to interpolate the fractional length.
-        
+
         Parameters
         ----------
         Lf : float
             Fractional length in percent. Must be 60 <= Lf <= 100.
-            
+
         Returns
         -------
         Lf_inf : float
@@ -101,7 +130,7 @@ class Rao_Parabola_Angles(object):
             Fractional length in percent. Must be 60 <= Lf <= 100.
         Ar : float
             Area ratio. Must be 5 <= Ar <= 50.
-        
+
         Returns
         -------
         theta_n : float
@@ -131,22 +160,23 @@ class Rao_Parabola_Angles(object):
             the = the_inf + (Lf - Lf_inf) / (Lf_sup - Lf_inf) * (the_sup - the_inf)
         return thn, the
 
-    def area_ratio_from_Lf_angle(self, Lf=60, **args):
+    def area_ratio_from_Lf_angle(self, Lf=60, **kwargs):
         """
         Compute the Area Ratio given Lf, theta_n or theta_e.
-
-        Example usage: Find_Area_Ratio(65, theta_n=35)
 
         Parameters
         ----------
         Lf : float
             Fractional length in percent. Must be 60 <= Lf <= 100.
-        **args : float.
+
+        kwargs : float.
             It can either be:
 
-            * theta_n: the angle in degrees at the start of the parabola.
-            * theta_e: the angle in degrees at the end of the parabola.
-        
+            theta_n : float
+                The angle in degrees at the start of the parabola.
+            theta_e : float
+                The angle in degrees at the end of the parabola.
+
         Returns
         -------
         Ar : float
@@ -158,20 +188,20 @@ class Rao_Parabola_Angles(object):
             raise ValueError("Fractional length must be 60 <= Lf <= 100.")
 
         # convert all keywords to lower case
-        args = {k.lower(): v for k,v in args.items()}
+        kwargs = {k.lower(): v for k,v in kwargs.items()}
         angle, angle_name, theta_dict = None, None, None
-        
-        if "theta_n" in args.keys():
-            angle = args["theta_n"]
+
+        if "theta_n" in kwargs.keys():
+            angle = kwargs["theta_n"]
             angle_name = "theta_n"
             theta_dict = self._theta_n
-        if "theta_e" in args.keys():
-            angle = args["theta_e"]
+        if "theta_e" in kwargs.keys():
+            angle = kwargs["theta_e"]
             angle_name = "theta_e"
             theta_dict = self._theta_e
         if angle == None:
             raise ValueError("Either theta_n or theta_e must be given in input.")
-        
+
         # function to compute area ratio given the angle and fractional length
         # https://stackoverflow.com/questions/1029207/interpolation-in-scipy-finding-x-that-produces-y
         def func(data):
@@ -188,7 +218,7 @@ class Rao_Parabola_Angles(object):
 
             def Min_Max(arr):
                 return min(arr), max(arr)
-            
+
             # TODO: isn't it better to compute min, max for each curve in the
             # __init__ and save the values in the dictionary?
 
@@ -208,7 +238,7 @@ class Rao_Parabola_Angles(object):
             Ar = Ar_inf + (Lf - Lf_inf) / (Lf_sup - Lf_inf) * (Ar_sup - Ar_inf)
 
         return ret_correct_vals(Ar)
-    
+
     def plot(self, N=30):
         """
         Plot the relation.
@@ -216,7 +246,7 @@ class Rao_Parabola_Angles(object):
         Parameters
         ----------
         N : int
-            Number of interpolated point for each curve. Default to 30. 
+            Number of interpolated point for each curve. Default to 30.
         """
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
@@ -234,7 +264,7 @@ class Rao_Parabola_Angles(object):
         k1.sort()
         for k in k1:
             ax1.plot(x, self._theta_e[k]["spline"](x), label="Lf = {}%".format(k))
-        
+
         # use a different color map
         k2 = list(self._theta_n.keys())
         k2.sort()
@@ -262,18 +292,3 @@ class Rao_Parabola_Angles(object):
         ax1.grid(which='major', linestyle='-', alpha=0.7)
         ax1.grid(which='minor', linestyle=':', alpha=0.5)
         plt.show()
-
-def main():
-    a = Rao_Parabola_Angles()
-    print(a.angles_from_Lf_Ar(68, 35))
-    print(a.area_ratio_from_Lf_angle(68, theta_n=35))
-    a.plot()
-
-
-if __name__ == "__main__":
-    main()
-
-
-
-
-

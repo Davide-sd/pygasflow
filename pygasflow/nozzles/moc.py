@@ -34,16 +34,16 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         Number of characteristic lines.
     Me : float
         Mach number at the exit section. Default to None. Must be > 1.
-        If set to None, A_ratio must be provided. If both are set, 
+        If set to None, A_ratio must be provided. If both are set,
         Me will be used.
     A_ratio : float
-        Ratio between the exit area and the throat area. Since this 
+        Ratio between the exit area and the throat area. Since this
         nozzle is planar, it is equivalent to Re/Rt. It must be > 1.
-        Default to None. If set to None, Me must be provided. 
+        Default to None. If set to None, Me must be provided.
         If both are set, Me will be used.
     gamma : float
         Specific heats ratio. Default to 1.4. Must be > 1.
-    
+
     Returns
     -------
     wall : np.ndarray  [2 x n+1]
@@ -59,6 +59,48 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         points lying on the same left-running characteristic.
     theta_w_max : float
         Maximum wall inclination at the sharp corner.
+
+    Examples
+    --------
+
+    .. plot::
+       :context: reset
+       :format: python
+       :include-source: True
+
+       from pygasflow.nozzles.moc import min_length_supersonic_nozzle_moc
+       import numpy as np
+       import matplotlib.pyplot as plt
+       import matplotlib.cm as cmx
+       ht = 1.5
+       n = 20
+       Me = 5
+       gamma = 1.4
+       wall, characteristics, left_runn_chars, theta_w_max = min_length_supersonic_nozzle_moc(ht, n, Me, None, gamma)
+       x, y, z = np.array([]), np.array([]), np.array([])
+       for char in left_runn_chars:
+           x = np.append(x, char["x"])
+           y = np.append(y, char["y"])
+           z = np.append(z, char["M"])
+       plt.figure()
+       # draw characteristics lines
+       for c in characteristics:
+           plt.plot(c["x"], c["y"], "k:", linewidth=0.65)
+           # draw nozzle wall
+           plt.plot(wall[:, 0], wall[:, 1], "k")
+       # over impose grid points colored by Mach number
+       sc = plt.scatter(x, y, c=z, s=15, vmin=min(z), vmax=max(z), cmap=cmx.cool)
+       cbar = plt.colorbar(sc, orientation='vertical', aspect=40)
+       cbar.ax.get_yaxis().labelpad = 15
+       cbar.ax.set_ylabel("Mach number", rotation=270)
+       plt.xlabel("x")
+       plt.ylabel("y")
+       plt.title(r"$M_e$ = {}, n = {}, ht = {} ".format(Me, n, ht))
+       plt.grid()
+       plt.axis('equal')
+       plt.tight_layout()
+       plt.show()
+
     """
     if ht <= 0:
         raise ValueError("The throat height must be a number > 0.")
@@ -94,9 +136,9 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
     delta_theta = (theta_w_max - theta_1) / (n - 1)
 
     ###
-    ### Generate the grid 
+    ### Generate the grid
     ###
-    
+
     # collection of left running characteristics.
     # each left running characteristic is composed by a certain number of
     # points, resulting from the intersection of this left running characteristic
@@ -129,21 +171,21 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
             else:
                 left_runn_chars[i]["Km"][j] = left_runn_chars[i - 1]["Km"][j + 1]
                 left_runn_chars[i]["nu"][j] = left_runn_chars[i]["Km"][j] - left_runn_chars[i]["theta"][j]
-                
+
             left_runn_chars[i]["Kp"][j] = left_runn_chars[i]["theta"][j] - left_runn_chars[i]["nu"][j]
             left_runn_chars[i]["M"][j] = m_from_prandtl_meyer_angle(left_runn_chars[i]["nu"][j], gamma)
             left_runn_chars[i]["mu"][j] = mach_angle(left_runn_chars[i]["M"][j])
-        
+
         left_runn_chars[i]["theta"][j + 1] = left_runn_chars[i]["theta"][j]
         left_runn_chars[i]["nu"][j + 1] = left_runn_chars[i]["nu"][j]
         left_runn_chars[i]["Km"][j + 1] = left_runn_chars[i]["Km"][j]
         left_runn_chars[i]["Kp"][j + 1] = left_runn_chars[i]["Kp"][j]
         left_runn_chars[i]["M"][j + 1] = left_runn_chars[i]["M"][j]
         left_runn_chars[i]["mu"][j + 1] = left_runn_chars[i]["mu"][j]
-        
+
         # after first line, we do not need this value anymore
         theta_1 = 0
-    
+
     ###
     ### Compute nodes coordinates
     ###
@@ -159,28 +201,28 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         y = np.zeros(_n)
 
         for j in range(_n):
-            # the first characteristic is a special case, because at its left 
+            # the first characteristic is a special case, because at its left
             # there is only the point (0, 1)
             if i == 0:
                 # point in the simmetry line
                 if j == 0:
                     x[j] = -1 / tand(l["theta"][j] - l["mu"][j])
                     y[j] = 0
-                
+
                 # point at the wall
                 elif j == _n - 1:
                     num = y[j-1] - 1 - x[j-1] * tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j]))
                     den = tand(0.5 * (theta_w_max + l["theta"][j])) - tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j]))
                     x[j] = num / den
                     y[j] = 1 + x[j] * tand(0.5 * (theta_w_max + l["theta"][j]))
-                
+
                 # points in the flow region
                 else:
                     num = (1 - y[j-1] + x[j-1] * tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j])))
                     den = tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j])) - tand(l["theta"][j] - l["mu"][j])
                     x[j] = num / den
                     y[j] = tand(l["theta"][j] - l["mu"][j]) * x[j] + 1
-            
+
             # all other left characteristics
             else:
                 # previous left running characteristic line
@@ -192,32 +234,32 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
                 mu_prev = lprev["mu"][j+1]
 
                 # points in the simmetry line
-                if j == 0:                    
+                if j == 0:
                     x[j] = x_prev - y_prev / (tand(0.5 * (l["theta"][j] + theta_prev - l["mu"][j] - mu_prev)))
                     y[j] = 0
-                
+
                 # point at the wall
                 elif j == _n - 1:
                     num = x_prev * tand(0.5 * (theta_prev + l["theta"][j])) \
                         - y_prev + l["y"][j-1] - l["x"][j-1] * tand(0.5 * (l["theta"][j] + l["theta"][j-1] + l["mu"][j] + l["mu"][j-1]))
-                    
+
                     den = tand(0.5 * (l["theta"][j] + theta_prev)) \
                         - tand(0.5 * (l["theta"][j-1] + l["theta"][j] + l["mu"][j-1] + l["mu"][j]))
-                    
-                    x[j] = num / den                    
+
+                    x[j] = num / den
                     y[j] = y_prev + (l["x"][j] - x_prev) * tand(0.5 * (theta_prev + l["theta"][j]))
-                
+
                 # points in the flow region
                 else:
                     s1 = tand(0.5 * (l["theta"][j] + l["theta"][j-1] + l["mu"][j] + l["mu"][j-1]))
                     s2 = tand(0.5 * (l["theta"][j] + theta_prev - l["mu"][j] - mu_prev))
                     x[j] = (y_prev - l["y"][j-1] + s1 * l["x"][j-1] - s2 * x_prev) / (s1 - s2)
                     y[j] = l["y"][j-1] + (l["x"][j] - l["x"][j-1]) * s1
-            
+
             # add the computed coordinates points to the left running characteristic
             left_runn_chars[i]["x"] = x
             left_runn_chars[i]["y"] = y
-    
+
     for l in left_runn_chars:
         l["x"] *= ht
         l["y"] *= ht
@@ -242,7 +284,7 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         for j in range(i):
             x[j + 1] = left_runn_chars[j]["x"][i - j]
             y[j + 1] = left_runn_chars[j]["y"][i - j]
-        
+
         # add the point of the current left-running characteristic
         if i == 0: j = -1
         x[j+2:] = left_runn_chars[i]["x"]
@@ -254,7 +296,7 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
         })
 
         wall[i + 1, :] = [l["x"][-1], l["y"][-1]]
-    
+
     return wall, characteristics, left_runn_chars, theta_w_max
 
 
@@ -262,7 +304,36 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
     """
     Planar Convergent-Divergent nozzle based on Minimum Length computed
     with the Method of Characteristics.
+
+    Examples
+    --------
+
+    .. plot::
+       :context: reset
+       :format: python
+       :include-source: True
+
+       from pygasflow import CD_Min_Length_Nozzle
+       import matplotlib.pyplot as plt
+       Ri = 0.4
+       Rt = 0.2
+       Re = 1.2
+       Rj = 0.1
+       R0 = 0.2
+       theta_c = 40
+       nozzle = CD_Min_Length_Nozzle(Ri, Re, Rt, Rj, R0, theta_c, 10)
+       x, y = nozzle.build_geometry(1000)
+       plt.figure()
+       plt.plot(x, y)
+       plt.xlabel("Length")
+       plt.ylabel("Radius")
+       plt.grid()
+       plt.axis('equal')
+       plt.show()
+
     """
+
+    _title = "MOC Nozzle"
 
     def __init__(self, Ri, Re, Rt, Rj, R0, theta_c, n, gamma=1.4, N=100):
         """
@@ -285,7 +356,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         gamma : float
             Specific heats ratio. Default to 1.4. Must be > 1.
         N : int
-            Number of discretization elements along the length of the nozzle. 
+            Number of discretization elements along the length of the nozzle.
             Default to 100.
         """
         if (Ri <= Rt) or (Re <= Rt):
@@ -318,7 +389,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         self._length_array = x
         self._wall_radius_array = y
         self._area_ratio_array = 2 * y / self._At
-    
+
     def __str__(self):
         s = "C-D Minimum Length Nozzle\n"
         s += super().__str__()
@@ -326,7 +397,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         s += "\ttheta_c\t{}\n".format(self._theta_c)
         s += "\ttheta__w_max\t{}\n".format(self._theta_w_max)
         return s
-    
+
     def _compute_intersection_points(self):
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
@@ -358,17 +429,25 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
             "orig": [0, Rt],  # throat origin
             "E": [self._Ld, Re] # end point
         }
-    
+
     @property
     def intersection_points(self):
         return self._intersection_points
 
     def build_geometry(self, N):
-        """
+        """Discretize the length of the nozzle and compute the nozzle profile.
+
         Parameters
         ----------
-            N : int
-                Number of discretization elements along the length of the nozzle. Default to 100.
+        N : int
+            Number of discretization elements along the length of the nozzle. Default to 100.
+
+        Returns
+        -------
+        x : array_like
+            x-coordinate along the nozzle length.
+        y : array_like
+            y_coordinate of the nozzle wall.
         """
         Ri, Rt, Re = self._Ri, self._Rt, self._Re
         R0 = self._R0
@@ -376,7 +455,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
 
         Lc = self.length_convergent
         Ld = self.length_divergent
-        
+
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
 
@@ -409,73 +488,3 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
             x[idx[-1]] = 0
 
         return x, y
-    
-
-
-def main():
-    Ri = 0.4
-    Rt = 0.2
-    Re = 1.2
-    Rj = 0.1
-    R0 = 0.2
-    theta_c = 40
-
-    nozzle = CD_Min_Length_Nozzle(Ri, Re, Rt, Rj, R0, theta_c, 10)
-    x, y = nozzle.build_geometry(1000)
-    print(nozzle)
-
-    import matplotlib.pyplot as plt
-    plt.plot(x, y)
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.grid()
-    plt.axis('equal')
-    plt.show()    
-
-    # ht = 1.5
-    # n = 20
-    # Me = 5
-    # gamma = 1.4
-
-    # wall, characteristics, left_runn_chars, theta_w_max = min_length_supersonic_nozzle_moc(ht, n, Me, None, gamma)
-
-    # print("ht \t\t {}".format(ht))
-    # print("n \t\t {}".format(n))
-    # print("Me \t\t {}".format(Me))
-    # print("gamma \t\t {}".format(gamma))
-    # print("theta_w_max \t {}".format(theta_w_max))
-
-    # import matplotlib.pyplot as plt
-    # import matplotlib.colors as colors
-    # import matplotlib.cm as cmx
-
-    # x, y, z = np.array([]), np.array([]), np.array([])    
-    # for char in left_runn_chars:
-    #     x = np.append(x, char["x"])
-    #     y = np.append(y, char["y"])
-    #     z = np.append(z, char["M"])
-    
-    # plt.figure(figsize=(12, 6))
-    # cmap = plt.get_cmap('cool')
-
-    # # draw characteristics lines
-    # for c in characteristics:
-    #     plt.plot(c["x"], c["y"], "k:", linewidth=0.65)
-    # # draw nozzle wall
-    # plt.plot(wall[:, 0], wall[:, 1], "k")
-    # # # over impose grid points colored by Mach number
-    # # sc = plt.scatter(x, y, c=z, s=15, vmin=min(z), vmax=max(z), cmap=cmap)
-    # # cbar = plt.colorbar(sc, orientation='vertical', aspect=40)
-    # # cbar.ax.get_yaxis().labelpad = 15
-    # # cbar.ax.set_ylabel("Mach number", rotation=270)
-    
-    # plt.xlabel("x")
-    # plt.ylabel("y")
-    # plt.title(r"$M_e$ = {}, n = {}, ht = {} ".format(Me, n, ht))
-    # plt.grid()
-    # plt.axis('equal')
-    # plt.tight_layout()
-    # plt.show()    
-
-if __name__ == "__main__":
-    main()

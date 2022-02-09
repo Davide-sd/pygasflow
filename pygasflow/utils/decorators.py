@@ -4,7 +4,7 @@ from timeit import default_timer as timer
 from functools import wraps
 import inspect
 
-# NOTE: 
+# NOTE:
 # Decorators are used to get rid of repetitive code. For example, consider
 # the isentropic functions; many of them requires an input Mach number which
 # must be positive. Instead of repeating the same code on every function, I use
@@ -13,28 +13,28 @@ import inspect
 # At the moment there are two main decorators:
 # * check: used in isentropic, fanno, rayleigh flows.
 # * check_shockwave: used in shockwave functions.
-# 
+#
 # Each function expect Numpy-like data structures. Therefore, each decorator
 #  can be called:
 # * without arguments: in that case, only the first function parameter will be
 #   converted to a Numpy array.
-# * with an argument of type list, specifing the indeces of the arguments that 
+# * with an argument of type list, specifing the indeces of the arguments that
 #   needs to be converted to a Numpy array.
 #
 # On top of that, each decorator check the validity of common parameters, such
-# as the mach number for flows and shockwave, the specific heat ratio (gamma), 
-# the flag (sub, super, weak, strong), or the angles beta, theta for oblique 
+# as the mach number for flows and shockwave, the specific heat ratio (gamma),
+# the flag (sub, super, weak, strong), or the angles beta, theta for oblique
 # showckwaves. Any other check is left to the specific function.
 #
-# The decorators check and check_shockwave also implements a __no_check 
-# function. This is useful to avoid the function to execute the decorator's 
+# The decorators check and check_shockwave also implements a __no_check
+# function. This is useful to avoid the function to execute the decorator's
 # code: in this way, solvers can call all the specific functions without having
 # to execute the same conversion/check every time, thus improving performance.
 #
-# If I pass a single mach number, the decorator converts it to a 1-D array. 
-# However, I would like the function to return a scalar value, not a 1-D result 
-# array. The decorator is supposed to convert 0-D or 1-D outputs to scalar 
-# values. If a function returns a tuple of elements, the decorators will repeat 
+# If I pass a single mach number, the decorator converts it to a 1-D array.
+# However, I would like the function to return a scalar value, not a 1-D result
+# array. The decorator is supposed to convert 0-D or 1-D outputs to scalar
+# values. If a function returns a tuple of elements, the decorators will repeat
 # the same process to each element. In doing so:
 # 1. If I provide a scalar value, the functions will return either a scalar
 #    value or a tuple of scalars.
@@ -97,7 +97,7 @@ def check_shockwave(var=None):
         def wrapper_function(*args, **kwargs):
             args = list(args)
             all_param = get_parameters_dict(original_function, *args, **kwargs)
-            
+
             if "M" in all_param.keys():
                 _check_mach_number(all_param["M"], 0)
             if "M1" in all_param.keys():
@@ -120,7 +120,7 @@ def check_shockwave(var=None):
 
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
-        
+
         def no_check_function(*args, **kwargs):
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
@@ -159,7 +159,7 @@ def check(var=None):
                 _check_mach_number(all_param["M1"], 0)
             if "gamma" in all_param.keys():
                 _check_specific_heat_ratio(all_param["gamma"])
-            
+
             # all_param include all parameters, even if they were not specified.
             # therefore, I need to check if flag has been effectively given!
             if "flag" in all_param.keys():
@@ -170,7 +170,7 @@ def check(var=None):
                     kwargs["flag"] = flag
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
-        
+
         def no_check_function(*args, **kwargs):
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
@@ -198,7 +198,7 @@ def as_array(index_list=[0]):
     def decorator(original_function):
         @wraps(original_function)
         def wrapper_function(*args, **kwargs):
-            
+
             args = list(args)
             for i in index_list:
                 if i < len(args):
@@ -224,7 +224,7 @@ def get_parameters_dict(original_function, *args, **kwargs):
 
 # This decorator is used to compute the average execution time of a function.
 # By default, @Average_Execution_Time repeats the function 10 times.
-# It is possible to override the number of repetition by providing an 
+# It is possible to override the number of repetition by providing an
 # input number: @Average_Execution_Time(20)
 def average_execution_time(N=10):
     def decorator(original_function):
@@ -244,7 +244,7 @@ def average_execution_time(N=10):
             print("{} averaged execution time for {} repetitions: {} sec".format(original_function.__name__, n, t))
             return result
         return wrapper_function
-    
+
     if callable(N):
         return decorator(N)
     else:
