@@ -16,6 +16,15 @@ The following flow relations are implemented:
 * Rayleigh flow
 * Shock wave relations (normal shock, oblique shock, conical shock)
 
+Depending on the problem at hand, the user can:
+
+* use the appropriate :doc:`solver </modules/solvers/index>` which, given a
+  parameter (mach number or ratio), computes all other ratios and mach
+  numbers. This is the preferred option.
+* search the appropriate function in the following submodules:
+  ``pygasflow.isentropic``, ``pygasflow.fanno``,
+  ``pygasflow.rayleigh``, ``pygasflow.shockwave``.
+
 The following charts has been generated with the functions included in this package:
 
 .. image:: _static/isentropic.png

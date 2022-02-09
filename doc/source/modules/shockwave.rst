@@ -34,8 +34,6 @@ Normal Shock Waves
 Oblique Shock Waves
 ===================
 
-.. module:: pygasflow.shockwave
-
 .. autofunction:: theta_from_mach_beta
 
 .. autofunction:: beta_from_mach_theta
@@ -67,8 +65,6 @@ Oblique Shock Waves
 
 Conical Flow
 ============
-
-.. module:: pygasflow.shockwave
 
 .. autofunction:: taylor_maccoll
 
