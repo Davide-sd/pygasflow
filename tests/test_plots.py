@@ -116,7 +116,7 @@ def test_oblique_shock():
     # labels
     lbls = [r"$M_{1}$ = " + str(M[i]) for  i in range(len(M))]
     lbls[-1] = r"$M_1$ = $\infty$"
-    
+
     for i, m in enumerate(M):
         beta_min = np.rad2deg(np.arcsin(1 / m))
         betas = np.linspace(beta_min, 90, N)
@@ -127,34 +127,34 @@ def test_oblique_shock():
     M1 = np.logspace(0, 3, 5 * N)
     beta = beta_from_mach_max_theta(M1, gamma)
     beta_M2_equal_1, theta_max = beta_theta_max_for_unit_mach_downstream(M1, gamma)
-    
+
     plt.plot(theta_max, beta, '--', color="0.2", linewidth=1)
     plt.plot(theta_max, beta_M2_equal_1, ':', color="0.3", linewidth=1)
 
     # select an index where to put the annotation
     i = 50
-    plt.annotate("strong", 
+    plt.annotate("strong",
         (theta_max[i], beta[i]),
         (theta_max[i], beta[i] + 10),
         horizontalalignment='center',
         arrowprops=dict(arrowstyle = "<-")
     )
-    plt.annotate("weak", 
+    plt.annotate("weak",
         (theta_max[i], beta[i]),
         (theta_max[i], beta[i] - 10),
         horizontalalignment='center',
         arrowprops=dict(arrowstyle = "<-"),
     )
-    
+
     i = 20
-    plt.annotate("$M_{2} < 1$", 
+    plt.annotate("$M_{2} < 1$",
         (theta_max[i], beta_M2_equal_1[i]),
         (theta_max[i], beta_M2_equal_1[i] + 10),
         horizontalalignment='center',
         arrowprops=dict(arrowstyle = "<-", color="0.3"),
         color="0.3",
     )
-    plt.annotate("$M_{2} > 1$", 
+    plt.annotate("$M_{2} > 1$",
         (theta_max[i], beta_M2_equal_1[i]),
         (theta_max[i], beta_M2_equal_1[i] - 10),
         horizontalalignment='center',
@@ -214,8 +214,8 @@ def test_conical_flow():
         plt.plot(theta_c, theta_s, color=c[j], label=lbls[j])
 
     # Compute the line passing through theta_c_max
-    M = np.asarray([1.0005, 1.0025, 1.005, 1.025, 1.05, 1.07, 1.09, 
-                    1.12, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5, 
+    M = np.asarray([1.0005, 1.0025, 1.005, 1.025, 1.05, 1.07, 1.09,
+                    1.12, 1.15, 1.2, 1.25, 1.3, 1.35, 1.4, 1.45, 1.5,
                     1.6, 1.75, 2, 2.25, 3, 4, 5, 10, 100, 10000])
     b = np.zeros_like(M)
     tc = np.zeros_like(M)
@@ -227,13 +227,13 @@ def test_conical_flow():
 
     # select an index where to put the annotation (chosen by trial and error)
     i = 16
-    plt.annotate("strong", 
+    plt.annotate("strong",
         (tc[i], b[i]),
         (tc[i], b[i] + 10),
         horizontalalignment='center',
         arrowprops=dict(arrowstyle = "<-")
     )
-    plt.annotate("weak", 
+    plt.annotate("weak",
         (tc[i], b[i]),
         (tc[i], b[i] - 10),
         horizontalalignment='center',
@@ -244,14 +244,14 @@ def test_conical_flow():
     plt.plot(np.asarray(theta_c), np.asarray(beta), ':', color="0.2", linewidth=1)
 
     i = 54
-    plt.annotate("$M_{2} < 1$", 
+    plt.annotate("$M_{2} < 1$",
         (theta_c[i], beta[i]),
         (theta_c[i], beta[i] + 10),
         horizontalalignment='center',
         arrowprops=dict(arrowstyle = "<-", color="0.3"),
         color="0.3",
     )
-    plt.annotate("$M_{2} > 1$", 
+    plt.annotate("$M_{2} > 1$",
         (theta_c[i], beta[i]),
         (theta_c[i], beta[i] - 10),
         horizontalalignment='center',

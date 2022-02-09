@@ -1,12 +1,12 @@
 # NOTE:
-# 
+#
 # 1. The expected results comes from:
 #    http://www.dept.aoe.vt.edu/~devenpor/aoe3114/calc.html
 #
 # 2. Instead of testing every single function in the shockwave.py module,
 # I only test the shockwave_solver and conical_shockwave_solver functions
 # from the solvers.shockwave module, which are going to call (almost) every
-# function implemented in the shockwave.py module. Hence I can easily compare 
+# function implemented in the shockwave.py module. Hence I can easily compare
 # the result with known values.
 
 import numpy as np
@@ -220,7 +220,7 @@ def test_conical_shockwave():
         1.83257331, # Tc/T1
     ]
 
-    # very high tolerances since the online calculator is using a fixed-step 
+    # very high tolerances since the online calculator is using a fixed-step
     # iterative procedure, where I'm using bisection
     do_test(5, "theta_c", 20, expected_res, 1.4, 1e-01)
     do_test(5, "beta", 24.9785489, expected_res, 1.4, 1e-01)

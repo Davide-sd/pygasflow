@@ -1,5 +1,5 @@
 # NOTE:
-# 
+#
 # 1. The expected results comes from:
 #    http://www.dept.aoe.vt.edu/~devenpor/aoe3114/calc.html
 #
@@ -8,7 +8,7 @@
 # which is going to call (almost) every function implemented in the
 # rayleigh.py module. Hence I can easily compare the result with known values.
 
-# TODO: 
+# TODO:
 # 1. The web calculator linked above doesn't provide values for the critical
 # density ratio, hence that parameter is currently untested.
 #
@@ -108,7 +108,7 @@ def test_single_value_input():
 def test_multiple_values_input():
     tol = 1e-05
     gamma = 1.4
-    
+
     def do_test(param_name, value, er, gamma=1.4):
         r = rayleigh_solver(param_name, value, gamma)
         assert len(r) == len(er)

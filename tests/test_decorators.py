@@ -11,7 +11,7 @@ from pytest import raises
 # 1. The decorators do what they are supposed to do.
 # 2. The functions raising conditional exceptions work as expected.
 #
-# Be careful with numpy array: 
+# Be careful with numpy array:
 #       np.asarray([2, 3]) -> dtype=int
 #       np.asarray([2., 3]) -> dtype=float
 # which is going to produce different results in the functions when
@@ -24,7 +24,7 @@ from pytest import raises
 
 def test_mach_zero():
     def test_0(r, is_iter=False):
-        # Almost all functions require the mach number to be a Numpy array: the 
+        # Almost all functions require the mach number to be a Numpy array: the
         # decorator convert the provided input to a Numpy array. If I pass a single
         # mach number, the decorator converts it to a 1-D array. However, I would
         # like the function to return a scalar value, not a 1-D result array.
@@ -33,7 +33,7 @@ def test_mach_zero():
         # same process to each element. In doing so:
         # 1. If I provide a scalar value, the functions will return either a scalar
         #    value or a tuple of scalars.
-        # 2. If I provide a list or array of values (with more than one element), 
+        # 2. If I provide a list or array of values (with more than one element),
         #    the function will return either an array or a tuple of arrays
         for e in r:
             assert isinstance(e, (list, tuple, np.ndarray)) == is_iter

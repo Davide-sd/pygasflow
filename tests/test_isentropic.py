@@ -1,5 +1,5 @@
 # NOTE:
-# 
+#
 # 1. The expected results comes from:
 #    http://www.dept.aoe.vt.edu/~devenpor/aoe3114/calc.html
 #
@@ -8,7 +8,7 @@
 # which is going to call (almost) every function implemented in the
 # isentropic.py module. Hence I can easily compare the result with known values.
 
-# TODO: 
+# TODO:
 # 1. The web calculator linked above doesn't provide values for the critical
 # velocity ratio, hence that parameter is currently untested.
 
@@ -65,7 +65,7 @@ def test_input_mach():
 def test_input_parameters():
     tol = 1e-05
     gamma = 1.4
-    
+
     def do_test(param_name, value, er):
         r = ise(param_name, value, gamma)
         assert len(r) == 11
