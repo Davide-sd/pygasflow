@@ -16,9 +16,11 @@ setup(
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
     classifiers=[
-        'License :: GNU GPL v3',
-        'Programming Language :: Python :: 3.6',
-        'Topic :: Engineering :: Propulsion',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3.9',
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Topic :: Scientific/Engineering :: Physics"
     ],
     keywords='gasdynamic shockwave fanno rayleigh isentropic flow perfect gas',
     url = 'https://github.com/Davide-sd/pygasflow',
