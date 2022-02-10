@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+v1.0.5
+======
+
+* Updated README
+* Released conda and pypi packages
+
+
 v1.0.2
 ======
 
