@@ -16,10 +16,12 @@ requirements:
     - numpy
     - scipy
     - matplotlib
+    - python
   run:
     - numpy
     - scipy
     - matplotlib
+    - python
 
 test:
   imports:
