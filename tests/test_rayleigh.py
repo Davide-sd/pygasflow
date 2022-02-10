@@ -15,6 +15,7 @@
 # 2. do_test("temperature_sub", 1, expected_res, gamma) return wrong results
 #    (expected M=1). Investigate why that happens...
 
+import numpy as np
 from pygasflow.solvers.rayleigh import rayleigh_solver
 
 # TODO: test for critical density ratio
@@ -162,3 +163,26 @@ def test_multiple_values_input():
     do_test("total_pressure_super", [2.22183128, 18.6338998], expected_res, gamma)
     do_test("total_temperature_super", [0.71005917, 0.55555555], expected_res, gamma)
     do_test("entropy_super", [1.99675616, 4.98223581], expected_res, gamma)
+
+
+def test_to_dict():
+    tol = 1e-05
+    gamma = 1.4
+    M = 0.5
+    r1 = rayleigh_solver("m", M, gamma, to_dict=False)
+    assert len(r1) == 8
+    for e in r1:
+        assert not isinstance(e, np.ndarray)
+
+    r2 = rayleigh_solver("m", M, gamma, to_dict=True)
+    assert len(r2) == 8
+    assert isinstance(r2, dict)
+
+    check_val(r2["m"], r1[0], tol)
+    check_val(r2["prs"], r1[1], tol)
+    # check_val(r2["drs"], r1[2], tol)
+    check_val(r2["trs"], r1[3], tol)
+    check_val(r2["tprs"], r1[4], tol)
+    check_val(r2["ttrs"], r1[5], tol)
+    check_val(r2["urs"], r1[6], tol)
+    check_val(r2["eps"], r1[7], tol)

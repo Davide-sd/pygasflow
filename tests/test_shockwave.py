@@ -309,3 +309,51 @@ def test_oblique_shockwave_multiple_input_mach():
     do_test("m1", [2, 5], "theta", [20, 20], expected_res, 1.4, flag="strong")
     do_test("m1", [2, 5], "beta", [74.2701370, 84.5562548], expected_res, 1.4, flag="strong")
     do_test("m1", [2, 5], "mn1", [1.92510115, 4.97744911], expected_res, 1.4, flag="strong")
+
+
+def test_shockwave_solver_to_dict():
+    tol = 1e-05
+    gamma = 1.4
+    M = 2
+    r1 = ss("m1", M, gamma=gamma, to_dict=False)
+    assert len(r1) == 10
+
+    r2 = ss("m1", M, gamma=gamma, to_dict=True)
+    assert len(r2) == 10
+    assert isinstance(r2, dict)
+
+    check_val(r2["m1"], r1[0], tol)
+    check_val(r2["mn1"], r1[1], tol)
+    check_val(r2["m2"], r1[2], tol)
+    check_val(r2["mn2"], r1[3], tol)
+    check_val(r2["beta"], r1[4], tol)
+    check_val(r2["theta"], r1[5], tol)
+    check_val(r2["pr"], r1[6], tol)
+    check_val(r2["dr"], r1[7], tol)
+    check_val(r2["tr"], r1[8], tol)
+    check_val(r2["tpr"], r1[9], tol)
+
+
+def test_conical_shockwave_solver_to_dict():
+    tol = 1e-05
+    gamma = 1.4
+
+    r1 = css(5, "theta_c", 20, 1.4, to_dict=False)
+    assert len(r1) == 12
+
+    r2 = css(5, "theta_c", 20, 1.4, to_dict=True)
+    assert len(r2) == 12
+    assert isinstance(r2, dict)
+
+    check_val(r2["m"], r1[0], tol)
+    check_val(r2["mc"], r1[1], tol)
+    check_val(r2["theta_c"], r1[2], tol)
+    check_val(r2["beta"], r1[3], tol)
+    check_val(r2["delta"], r1[4], tol)
+    check_val(r2["pr"], r1[5], tol)
+    check_val(r2["dr"], r1[6], tol)
+    check_val(r2["tr"], r1[7], tol)
+    check_val(r2["tpr"], r1[8], tol)
+    check_val(r2["pc_p1"], r1[9], tol)
+    check_val(r2["rhoc_rho1"], r1[10], tol)
+    check_val(r2["Tc_T1"], r1[11], tol)

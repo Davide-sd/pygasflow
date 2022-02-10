@@ -129,3 +129,31 @@ def test_input_parameters():
     # no prandtl_meyer-angle and mach-angle for subsonic case
     # do_test("prandtl_meyer", np.nan, expected_res)
     # do_test("mach_angle", np.nan, expected_res)
+
+
+def test_to_dict():
+    tol = 1e-05
+    gamma = 1.4
+
+    # single scalar mach
+    M = 2
+    r1 = ise("m", M, gamma, to_dict=False)
+    assert len(r1) == 11
+    for e in r1:
+        assert not isinstance(e, np.ndarray)
+
+    r2 = ise("m", M, gamma, to_dict=True)
+    assert len(r2) == 11
+    assert isinstance(r2, dict)
+
+    check_val(r2["m"], r1[0], tol)
+    check_val(r2["pr"], r1[1], tol)
+    check_val(r2["dr"], r1[2], tol)
+    check_val(r2["tr"], r1[3], tol)
+    check_val(r2["prs"], r1[4], tol)
+    check_val(r2["drs"], r1[5], tol)
+    check_val(r2["trs"], r1[6], tol)
+    check_val(r2["urs"], r1[7], tol)
+    check_val(r2["ars"],  r1[8], tol)
+    check_val(r2["ma"], r1[9], tol)
+    check_val(r2["pm"], r1[10], tol)

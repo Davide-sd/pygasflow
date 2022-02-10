@@ -12,6 +12,7 @@
 # 1. The web calculator linked above doesn't provide values for the critical
 # density ratio, hence that parameter is currently untested.
 
+import numpy as np
 from pygasflow.solvers.fanno import fanno_solver
 
 # TODO: test for critical density ratio
@@ -110,3 +111,26 @@ def test_2():
     do_test("velocity", [1, 1.82574185], expected_res, gamma)
     do_test("friction_super", [0, 0.43197668], expected_res, gamma)
     do_test("entropy_super", [0, 0.96953524], expected_res, gamma)
+
+
+def test_to_dict():
+    tol = 1e-05
+    gamma = 1.4
+    M = 2.5
+    r1 = fanno_solver("m", M, gamma, to_dict=False)
+    assert len(r1) == 8
+    for e in r1:
+        assert not isinstance(e, np.ndarray)
+
+    r2 = fanno_solver("m", M, gamma, to_dict=True)
+    assert len(r2) == 8
+    assert isinstance(r2, dict)
+
+    check_val(r2["m"], r1[0], tol)
+    check_val(r2["prs"], r1[1], tol)
+    # check_val(r2["drs"], r1[2], tol)
+    check_val(r2["trs"], r1[3], tol)
+    check_val(r2["tprs"], r1[4], tol)
+    check_val(r2["urs"], r1[5], tol)
+    check_val(r2["fps"], r1[6], tol)
+    check_val(r2["eps"], r1[7], tol)

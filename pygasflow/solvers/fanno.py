@@ -4,7 +4,7 @@ from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.decorators import check
 
 @check([1])
-def fanno_solver(param_name, param_value, gamma=1.4):
+def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
     """
     Compute all Fanno ratios and Mach number given an input parameter.
 
@@ -34,10 +34,14 @@ def fanno_solver(param_name, param_value, gamma=1.4):
         input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
 
     Returns
     -------
-    M : array_like
+    m : array_like
         Mach number
     prs : array_like
         Critical Pressure Ratio P/P*
@@ -118,5 +122,17 @@ def fanno_solver(param_name, param_value, gamma=1.4):
 
     # compute the different ratios
     prs, drs, trs, tprs, urs, fps, eps = fanno.get_ratios_from_mach.__no_check(M, gamma)
+
+    if to_dict:
+        return {
+            "m": M,
+            "prs": prs,
+            "drs": drs,
+            "trs": trs,
+            "tprs": tprs,
+            "urs": urs,
+            "fps": fps,
+            "eps": eps
+        }
 
     return M, prs, drs, trs, tprs, urs, fps, eps

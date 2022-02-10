@@ -4,7 +4,7 @@ from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.decorators import check
 
 @check([1])
-def isentropic_solver(param_name, param_value, gamma=1.4):
+def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
     """
     Compute all isentropic ratios and Mach number given an input parameter.
 
@@ -27,10 +27,14 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         input, a conversion will be attempted.
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be > 1.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
 
     Returns
     -------
-    M : array_like
+    m : array_like
         Mach number
     pr : array_like
         Pressure Ratio P/P0
@@ -46,7 +50,7 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
         Critical Temperature Ratio T/T*
     urs : array_like
         Critical Velocity Ratio U/U*
-    ar : array_like
+    ars : array_like
         Critical Area Ratio A/A*
     ma : array_like
         Mach Angle
@@ -114,4 +118,18 @@ def isentropic_solver(param_name, param_value, gamma=1.4):
     # compute the different ratios
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
 
+    if to_dict:
+        return {
+            "m": M,
+            "pr": pr,
+            "dr": dr,
+            "tr": tr,
+            "prs": prs,
+            "drs": drs,
+            "trs": trs,
+            "urs": urs,
+            "ars": ar,
+            "ma": ma,
+            "pm": pm
+        }
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm

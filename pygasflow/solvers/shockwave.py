@@ -29,7 +29,7 @@ from pygasflow.utils.decorators import check_shockwave
 # number
 
 @check_shockwave([1, 3])
-def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak"):
+def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak", to_dict=False):
     """
     Try to compute all the ratios, angles and mach numbers across the shock wave.
 
@@ -72,16 +72,20 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     flag : string, optional
         Chose what solution to compute if the angle 'theta' is provided.
         Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
 
     Returns
     -------
-    M1 : float
+    m1 : float
         Mach number upstream of the shock wave.
-    Mn1 : float
+    mn1 : float
         Normal Mach number upstream of the shock wave.
-    M2 : float
+    m2 : float
         Mach number downstream of the shock wave.
-    Mn2 : float
+    mn2 : float
         Normal Mach number downstream of the shock wave.
     beta : float
         Shock wave angle in degrees.
@@ -221,10 +225,24 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     # TODO
     # 1. What if p1_name is M2????
     #
+
+    if to_dict:
+        return {
+            "m1": M1,
+            "mn1": MN1,
+            "m2": M2,
+            "mn2": MN2,
+            "beta": beta,
+            "theta": theta,
+            "pr": pr,
+            "dr": dr,
+            "tr": tr,
+            "tpr": tpr
+        }
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 @check_shockwave
-def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"):
+def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak", to_dict=False):
     """
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
@@ -251,12 +269,16 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     flag : string, optional
         Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``
         (in conical shockwaves, the strong solution is rarely encountered).
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
 
     Returns
     -------
-    M : float
+    m : float
         Upstream Mach number.
-    Mc : float
+    mc : float
         Mach number at the surface of the cone.
     theta_c : float
         Half cone angle.
@@ -348,4 +370,19 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     if not isinstance(Mc, np.ndarray):
         Mc = Mc * np.ones_like(M1)
 
+    if to_dict:
+        return {
+            "m": M1,
+            "mc": Mc,
+            "theta_c": theta_c,
+            "beta": beta,
+            "delta": delta,
+            "pr": pr,
+            "dr": dr,
+            "tr": tr,
+            "tpr": tpr,
+            "pc_p1": pc_p1,
+            "rhoc_rho1": rhoc_rho1,
+            "Tc_T1": Tc_T1
+        }
     return M1, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
