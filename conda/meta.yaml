@@ -1,0 +1,39 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: "pygasflow"
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - numpy
+    - scipy
+    - matplotlib
+  run:
+    - numpy
+    - scipy
+    - matplotlib
+
+test:
+  imports:
+    - pygasflow
+    - pygasflow.solvers
+    - pygasflow.nozzles
+    - pygasflow.utils
+
+about:
+  home: {{ data['url'] }}
+  license: {{ data['license'] }}
+  license_family: GPL
+  license_file: 
+  summary: {{ data['description'] }}
+  doc_url: 
+  dev_url: 
+
