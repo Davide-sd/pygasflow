@@ -123,6 +123,13 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     >>> print(results[2])
     [1.04454822 1.12256381]
 
+    Compute the Mach number downstream of an oblique shockwave starting with
+    multiple upstream Mach numbers, returning a dictionary:
+
+    >>> results = shockwave_solver("m1", [1.5, 3], "beta", [60, 60], to_dict=True)
+    >>> print(results["m2"])
+    [1.04454822 1.12256381]
+
     """
 
     beta, theta = None, None
@@ -317,6 +324,14 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
 
     >>> results = conical_shockwave_solver([2.5, 5], "mc", 1.5)
     >>> print(results[5])
+    [ 3.42459174 18.60172442]
+
+    Compute the pressure ratio across a conical shockwave starting with
+    multiple upstream Mach numbers and Mach numbers at the cone surface,
+    but returning a dictionary:
+
+    >>> results = conical_shockwave_solver([2.5, 5], "mc", 1.5, to_dict=True)
+    >>> print(results["pr"])
     [ 3.42459174 18.60172442]
 
     """

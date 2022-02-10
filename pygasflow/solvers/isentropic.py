@@ -84,6 +84,13 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
     >>> print(results[1])
     [0.12780453 0.02722368]
 
+    Compute the pressure ratios starting from two Mach numbers, returning a
+    dictionary:
+
+    >>> results = isentropic_solver("m", [2, 3], to_dict=True)
+    >>> print(results["pr"])
+    [0.12780453 0.02722368]
+
     """
 
     if not isinstance(param_name, str):

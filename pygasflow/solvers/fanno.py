@@ -81,6 +81,13 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
     >>> print(results[3])
     [1.07317073 0.89795918]
 
+    Compute the critical temperature ratio starting from multiple Mach numbers
+    for a gas having specific heat ratio gamma=1.2, returning a dictionary:
+
+    >>> results = fanno_solver("m", [0.5, 1.5], 1.2, to_dict=True)
+    >>> print(results["trs"])
+    [1.07317073 0.89795918]
+
     """
 
     if not isinstance(param_name, str):

@@ -83,6 +83,13 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
     >>> print(results[3])
     [0.71597633 0.79547115]
 
+    Compute the critical temperature ratio starting from multiple Mach numbers
+    for a gas having specific heat ratio gamma=1.2, returning a dictionary:
+
+    >>> results = rayleigh_solver("m", [0.5, 1.5], 1.2, to_dict=True)
+    >>> print(results["trs"])
+    [0.71597633 0.79547115]
+
     """
 
     if not isinstance(param_name, str):
