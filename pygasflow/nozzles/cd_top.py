@@ -22,7 +22,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
     Then they set the slope constraint on the start and end points
     of the parabolic section, ending up with a system of 3 equations in the
-    unkowns a,b,c. THIS IS WRONG, because the aformentioned parabolic equation
+    unkowns a,b,c. This is wrong, because the aformentioned parabolic equation
     does not consider a rotated parabola!!!!
 
     For example:
