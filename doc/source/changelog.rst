@@ -1,6 +1,16 @@
 Changelog
 ---------
 
+v1.0.6
+======
+
+* added `to_dict` keyword argument to solvers.
+* Improved doctests
+* Added latex equations to ReadTheDocs documentation
+* Added examples to ReadTheDocs documentation
+* Added linkcode resolve to documentation
+
+
 v1.0.5
 ======
 

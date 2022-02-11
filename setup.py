@@ -1,21 +1,23 @@
 from setuptools import setup
 import os
 
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
 here = os.path.dirname(os.path.abspath(__file__))
 version_ns = {}
 with open(os.path.join(here, 'pygasflow', '_version.py')) as f:
     exec (f.read(), {}, version_ns)
-
-def readme():
-    with open('README.md') as f:
-        return f.read()
 
 setup(
     name = 'pygasflow',
     version = version_ns["__version__"],
     description = 'Ideal Gasdynamics utilities for Python 3.6+',
     long_description = readme(),
+    long_description_content_type="text/markdown",
     classifiers=[
+        'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.9',
         "Topic :: Scientific/Engineering",
