@@ -16,7 +16,7 @@ The following flow relations are implemented:
 * Rayleigh flow
 * Shock wave relations (normal shock, oblique shock, conical shock)
 
-Depending on the problem at hand, the user can:
+Depending on the problem at hand, you can:
 
 * use the appropriate :doc:`solver </modules/solvers/index>` which, given a
   parameter (mach number or ratio), computes all other ratios and mach
