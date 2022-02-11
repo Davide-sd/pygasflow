@@ -58,6 +58,7 @@ The following charts has been generated with the functions included in this pack
    :caption: Contents:
 
    install.rst
+   examples/index.rst
    modules/index.rst
    changelog.rst
 

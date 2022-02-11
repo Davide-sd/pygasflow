@@ -52,6 +52,8 @@ extensions = [
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
     'sphinx_rtd_theme',
+    'nbsphinx',
+    'nbsphinx_link', # to link to ipynb files outside of the source folder
 ]
 
 # hide the table inside classes autodoc
