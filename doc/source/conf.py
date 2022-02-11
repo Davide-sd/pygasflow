@@ -16,9 +16,12 @@
 
 import os
 import sys
+import inspect
 import sphinx_rtd_theme
 
 sys.path.insert(0, os.path.abspath('../../'))
+
+import pygasflow
 
 
 # -- Project information -----------------------------------------------------
@@ -49,6 +52,7 @@ release = v
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
+    'sphinx.ext.linkcode',
     'sphinx_math_dollar', 'sphinx.ext.mathjax',
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
@@ -80,6 +84,56 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+blobpath = "https://github.com/Davide-sd/pygasflow/blob/master/pygasflow/"
+
+def linkcode_resolve(domain, info):
+    """Determine the URL corresponding to Python object."""
+    if domain != 'py':
+        return
+
+    modname = info['module']
+    fullname = info['fullname']
+
+    submod = sys.modules.get(modname)
+    if submod is None:
+        return
+
+    obj = submod
+    for part in fullname.split('.'):
+        try:
+            obj = getattr(obj, part)
+        except Exception:
+            return
+
+    # strip decorators, which would resolve to the source of the decorator
+    # possibly an upstream bug in getsourcefile, bpo-1764286
+    try:
+        unwrap = inspect.unwrap
+    except AttributeError:
+        pass
+    else:
+        obj = unwrap(obj)
+
+    try:
+        fn = inspect.getsourcefile(obj)
+    except Exception:
+        fn = None
+    if not fn:
+        return
+
+    try:
+        source, lineno = inspect.getsourcelines(obj)
+    except Exception:
+        lineno = None
+
+    if lineno:
+        linespec = "#L%d-L%d" % (lineno, lineno + len(source) - 1)
+    else:
+        linespec = ""
+
+    fn = os.path.relpath(fn, start=os.path.dirname(pygasflow.__file__))
+    return blobpath + fn + linespec
 
 # Replace literal math expression with latex expressions.
 # longer expressions first!
