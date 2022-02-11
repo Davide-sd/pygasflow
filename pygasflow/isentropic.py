@@ -28,7 +28,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -52,7 +52,7 @@ def critical_temperature_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -73,7 +73,7 @@ def critical_pressure_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -86,7 +86,7 @@ def critical_pressure_ratio(M, gamma=1.4):
 @check
 def critical_density_ratio(M, gamma=1.4):
     """
-    Compute the critical density ratio rho*/rho.
+    Compute the critical density ratio rho/rho*.
 
     Parameters
     ----------
@@ -94,12 +94,12 @@ def critical_density_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
     out : ndarray
-        Critical density ratio rho*/rho.
+        Critical density ratio rho/rho*.
     """
     # TODO: this first version appears to be faster!
     return density_ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
@@ -116,7 +116,7 @@ def critical_area_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -140,7 +140,7 @@ def pressure_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -160,7 +160,7 @@ def temperature_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -178,7 +178,7 @@ def density_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -198,7 +198,7 @@ def m_from_temperature_ratio(ratio, gamma=1.4):
         Isentropic Temperature Ratio T/T0. If float, list, tuple is given
         as input, a conversion will be attempted. Must be 0 <= T/T0 <= 1.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -220,7 +220,7 @@ def m_from_pressure_ratio(ratio, gamma=1.4):
         Isentropic Pressure Ratio P/P0. If float, list, tuple is given
         as input, a conversion will be attempted. Must be 0 <= P/P0 <= 1.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -242,7 +242,7 @@ def m_from_density_ratio(ratio, gamma=1.4):
         Isentropic Density Ratio rho/rho0. If float, list, tuple is given
         as input, a conversion will be attempted. Must be 0 <= rho/rho0 <= 1.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -264,10 +264,10 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
         Isentropic Critical Area Ratio A/A*. If float, list, tuple is given
         as input, a conversion will be attempted. Must be A/A* >= 1.
     flag : string, optional
-        Can be either 'sub' (subsonic) or 'sup' (supersonic).
-        Default to 'sub'.
+        Can be either ``'sub'`` (subsonic) or ``'sup'`` (supersonic).
+        Default to ``'sub'``.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -298,7 +298,7 @@ def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
         as input, a conversion will be attempted. Must be 0 <= P/P0 <= 1.
         If array_like, must be a_ratio.shape == p_ratio.shape.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -322,10 +322,10 @@ def m_from_mach_angle(angle, gamma=1.4):
     Parameters
     ----------
     ratio : array_like
-        Mach Angle [degrees]. If float, list, tuple is given as input,
+        Mach Angle, [degrees]. If float, list, tuple is given as input,
         a conversion will be attempted. Must be 0 <= Mach Angle <= 90.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -350,7 +350,7 @@ def mach_angle(M):
     Returns
     -------
     out : ndarray
-        Critical area Mach_Angle [degrees].
+        Mach Angle [degrees].
     """
     # here I use dtype=float to be able to assign np.nan where necessary (np.nan is an IEEE 754 floating point representation of Not a Number)
     angle = np.zeros_like(M, dtype=float)
@@ -369,7 +369,7 @@ def m_from_prandtl_meyer_angle(angle, gamma=1.4):
     angle : array_like
         Prandtl Meyer angle [degrees].
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -396,7 +396,7 @@ def prandtl_meyer_angle(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -423,7 +423,7 @@ def get_ratios_from_mach(M, gamma):
     M : array_like
         Mach number
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------

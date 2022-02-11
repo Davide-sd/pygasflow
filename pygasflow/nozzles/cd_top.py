@@ -29,15 +29,15 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
         (1) xN = a * yN^2 + b * yN + c
         (2) xE = a * yE^2 + b * yE + c
-        (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
+        (3) dxN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
 
     Here, you are not giving the constraint on the slope of the end point
     (xE, yE). Therefore, the computed theta_e will be wrong.
     Another example:
 
         (1) xN = a * yN^2 + b * yN + c
-        (3) xE / dyE = 2 * a * yE + b = 1 / tan(theta_E)
-        (3) xN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
+        (2) dxE / dyE = 2 * a * yE + b = 1 / tan(theta_E)
+        (3) dxN / dyN = 2 * a * yN + b = 1 / tan(theta_N)
 
     Here, you end up with the correct computed slopes, but xE - xN will
     be wrong.

@@ -27,7 +27,7 @@ def critical_temperature_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -47,7 +47,7 @@ def critical_pressure_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -69,7 +69,7 @@ def critical_density_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -91,7 +91,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -113,7 +113,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -134,7 +134,7 @@ def critical_friction_parameter(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -158,7 +158,7 @@ def critical_entropy_parameter(M, gamma=1.4):
         Mach number. If float, list, tuple is given as input, a conversion
         will be attempted. Must be M > 0.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -181,7 +181,7 @@ def m_from_critical_temperature_ratio(ratio, gamma=1.4):
         given as input, a conversion will be attempted.
         Must be 0 < T/T* < Critical_Temperature_Ratio(0, gamma).
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -204,7 +204,7 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
         Fanno's Critical Pressure Ratio P/P*. If float, list, tuple is given
         as input, a conversion will be attempted.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -225,7 +225,7 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
         given as input, a conversion will be attempted.
         Must be: rho/rho* > np.sqrt((gamma - 1) / (gamma + 1))
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -250,10 +250,10 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
         Fanno's Critical Total Pressure Ratio P0/P0*. If float, list, tuple
         is given as input, a conversion will be attempted. Must be P0/P0* > 1.
     flag : string, optional
-        Can be either 'sub' (subsonic) or 'super' (supersonic).
-        Default to 'sub'.
+        Can be either ``'sub'`` (subsonic) or ``'super'`` (supersonic).
+        Default to ``'sub'``.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -280,7 +280,7 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
         as input, a conversion will be attempted.
         Must be 0 <= U/U* < (1 / np.sqrt((gamma - 1) / (gamma + 1))).
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -309,10 +309,10 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
         If flag="sub", it must be fp >= 0.
         Else, 0 <= fp <= ((gamma + 1) * np.log((gamma + 1) / (gamma - 1)) - 2) / (2 * gamma)
     flag : string, optional
-        Can be either 'sub' (subsonic) or 'super' (supersonic).
-        Default to 'sub'.
+        Can be either ``'sub'`` (subsonic) or ``'super'`` (supersonic).
+        Default to ``'sub'``.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -347,12 +347,12 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     ep : array_like
         Fanno's Critical Entropy Parameter (s*-s)/R. If float, list, tuple
         is given as input, a conversion will be attempted.
-        Must be (s* - s) / R >= 0.
+        Must be (s*-s)/R >= 0.
     flag : string, optional
-        Can be either 'sub' (subsonic) or 'super' (supersonic).
-        Default to 'sub'.
+        Can be either ``'sub'`` (subsonic) or ``'super'`` (supersonic).
+        Default to ``'sub'``.
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
@@ -377,7 +377,7 @@ def get_ratios_from_mach(M, gamma):
     M : array_like
         Mach number
     gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be > 1.
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
 
     Returns
     -------
