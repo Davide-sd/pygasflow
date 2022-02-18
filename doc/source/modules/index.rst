@@ -11,6 +11,7 @@ This document is automatically generated using pygasflow's docstrings.
    :maxdepth: 2
 
    solvers/index.rst
+   common.rst
    fanno.rst
    isentropic.rst
    rayleigh.rst
