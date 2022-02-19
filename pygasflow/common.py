@@ -1,6 +1,81 @@
 import numpy as np
 from pygasflow.utils.decorators import check
 
+
+def sound_speed(*args, **kwargs):
+    """Compute the sound speed.
+
+    There are two modes of operations:
+
+    * provide ``gamma``, ``R``, ``T``:
+      ``sound_speed(gamma, R, T)``
+    * provide a Cantera's ``Solution`` object, from which the parameters will
+      be retrieved:
+      ``sound_speed(gas)``
+
+    Parameters
+    ----------
+    args :
+        gamma : float or array_like
+            Specific heats ratio. Default to 1.4. Must be gamma > 1.
+        R : float or array_like
+            Specific gas constant [J / (kg * K)]
+        T : float or array_like
+            Temperature of the gas [K].
+        gas : ct.Solution, optional (second mode of operation)
+            A Cantera's ``Solution`` object from which the quantities will
+            be retrieved.
+
+    Returns
+    -------
+    a : float or array_like
+        Sound speed [m / s]
+
+    Examples
+    --------
+
+    Compute the speed of sound of air at 300K. First mode of operation,
+    providing gamma, R, T:
+
+    >>> from pygasflow.common import sound_speed
+    >>> sound_speed(1.4, 287, 300)
+    347.18870949384285
+
+    Compute the speed of sound of air at multiple temperatures:
+
+    >>> sound_speed(1.4, 287, [300, 500])
+    array([347.18870949, 448.21869662])
+
+    Compute the sound speed in N2 at 300K and 1atm:
+
+    >>> import cantera as ct
+    >>> gas = ct.Solution("gri30.yaml")
+    >>> gas.TPX = 300, ct.one_atm, {"N2": 1}
+    >>> sound_speed(gas)
+    353.1256637274762
+    """
+    if len(args) == 3:
+        gamma, R, T = args
+        to_np = lambda x: x if not hasattr(x, "__iter__") else np.array(x)
+        gamma = to_np(gamma)
+        R = to_np(R)
+        T = to_np(T)
+    elif len(args) == 1:
+        import cantera as ct
+        gas = args[0]
+        if not isinstance(gas, ct.Solution):
+            raise TypeError("`gas` must be an instance of `ct.Solution`.")
+        gamma = gas.cp / gas.cv
+        R = ct.gas_constant / gas.mean_molecular_weight
+        T = gas.T
+    else:
+        raise ValueError(
+            "This function accepts either 1 argument (a Cantera's `Solution` "
+            "object, or 3 arguments (gamma, R, T).\n"
+            "Received: %s arguments" % len(args))
+    return np.sqrt(gamma * R * T)
+
+
 @check([0])
 def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnation=False, gamma=1.4):
     """Compute the pressure coefficient of a compressible flow.
