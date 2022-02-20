@@ -1,6 +1,6 @@
 import numpy as np
 from pygasflow.utils.decorators import check
-
+from pygasflow.shockwave import rayleigh_pitot_formula
 
 def sound_speed(*args, **kwargs):
     """Compute the sound speed.
@@ -141,7 +141,8 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     References
     ----------
 
-    "Basic of Aerothermodynamics", by Ernst H. Hirschel
+    * "Basic of Aerothermodynamics", by Ernst H. Hirschel
+    * "Hypersonic Aerothermodynamics" by John J. Bertin
 
     """
 
@@ -179,8 +180,10 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     # NOTE: now let's deal with supersonic case
     idx = np.invert(idx)
     if stagnation or ((param_name in ["velocity", "pressure_fs"]) and (param_value == 0)):
-        # eq (6.63)
-        results[idx] = 2 / (gamma * Mfs[idx]**2) * (((gamma + 1)**2 * Mfs[idx]**2 / (4 * gamma * Mfs[idx]**2 - 2 * (gamma - 1)))**(gamma / (gamma - 1)) * (2 * gamma * Mfs[idx]**2 - (gamma - 1)) / (gamma + 1) - 1)
+        # Exercise 6.1 from "Hypersonic Aerothermodynamics", or a variation of
+        # eq (6.63) from
+        pt2_p1 = rayleigh_pitot_formula(Mfs[idx], gamma)
+        results[idx] = (pt2_p1 - 1) * (2 / (gamma * Mfs[idx]**2))
     else:
         # eq (6.62)
         results[idx] = 4 * (Mfs[idx]**2 - 1) / ((gamma + 1) * Mfs[idx]**2)

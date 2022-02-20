@@ -16,6 +16,8 @@ Normal Shock Waves
 
 .. autofunction:: total_temperature_ratio
 
+.. autofunction:: rayleigh_pitot_formula
+
 .. autofunction:: entropy_difference
 
 .. autofunction:: mach_downstream

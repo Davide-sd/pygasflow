@@ -195,6 +195,7 @@ replacements = {
     "P02/P01": r"$\frac{P_{2}^{0}}{P_{1}^{0}}$",
     "T02/T01": r"$\frac{T_{2}^{0}}{T_{1}^{0}}$",
     "(s2 - s1) / C_p": r"$\frac{s_{2} - s_{1}}{C_{p}}$",
+    "Pt2 / P1": r"$\frac{P_{t2}}{P_{1}}$",
 }
 def replace(app, what, name, obj, options, lines):
     for i in range(len(lines)):

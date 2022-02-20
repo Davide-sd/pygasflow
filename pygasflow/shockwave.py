@@ -118,6 +118,31 @@ def total_temperature_ratio(M1, gamma=1.4):
     return np.ones_like(M1)
 
 @check_shockwave
+def rayleigh_pitot_formula(M1, gamma=1.4):
+    """Compute the ratio Pt2 / P1, between the stagnation pressure behind a
+    normal shock wave and the static pressure ahead of the shock wave.
+
+    Parameters
+    ----------
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    out : ndarray
+        Ratio Pt2 / P1
+
+    References
+    ----------
+
+    "Equations, Tables and Charts for compressible flow", NACA R-1135, 1953
+    """
+    return ((gamma + 1) * M1**2 / 2)**(gamma / (gamma - 1)) * ((gamma + 1) / (2 * gamma * M1**2 - (gamma - 1)))**(1 / (gamma - 1))
+
+@check_shockwave
 def entropy_difference(M1, gamma=1.4):
     """ Compute the dimensionless entropy difference, (s2 - s1) / C_p.
     Eq (3.60) Anderson's.
