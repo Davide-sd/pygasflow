@@ -138,6 +138,8 @@ def linkcode_resolve(domain, info):
 # Replace literal math expression with latex expressions.
 # longer expressions first!
 replacements = {
+    "cos(alpha) * sin(theta) + sin(alpha) * cos(theta) * cos(beta) = 0": r"$\cos{\alpha} \sin{\theta} + \sin{\alpha} \cos{\theta} \cos{\beta}$",
+    "beta in [0, 2*pi]": r"$\beta \in [0, 2 \pi]$",
     "x = a * y^2 + b * y + c": r"$x = a y^{2} + b y + c$",
     "xN = a * yN^2 + b * yN + c": r"$x_{N} = a y_{N}^{2} + b y_{N} + c$",
     "xE = a * yE^2 + b * yE + c": r"$x_{E} = a y_{E}^{2} + b y_{E} + c$",
@@ -196,6 +198,7 @@ replacements = {
     "T02/T01": r"$\frac{T_{2}^{0}}{T_{1}^{0}}$",
     "(s2 - s1) / C_p": r"$\frac{s_{2} - s_{1}}{C_{p}}$",
     "Pt2 / P1": r"$\frac{P_{t2}}{P_{1}}$",
+    "Ps / Pt2": r"$\frac{P_{s}}{P_{t2}}$",
 }
 def replace(app, what, name, obj, options, lines):
     for i in range(len(lines)):
