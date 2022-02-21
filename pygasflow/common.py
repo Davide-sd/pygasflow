@@ -181,7 +181,7 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     idx = np.invert(idx)
     if stagnation or ((param_name in ["velocity", "pressure_fs"]) and (param_value == 0)):
         # Exercise 6.1 from "Hypersonic Aerothermodynamics", or a variation of
-        # eq (6.63) from
+        # eq (6.63) from "Basic of Aerothermodynamics"
         pt2_p1 = rayleigh_pitot_formula(Mfs[idx], gamma)
         results[idx] = (pt2_p1 - 1) * (2 / (gamma * Mfs[idx]**2))
     else:
