@@ -12,9 +12,9 @@ This document is automatically generated using pygasflow's docstrings.
 
    solvers/index.rst
    common.rst
-   newton.rst
    fanno.rst
    isentropic.rst
    rayleigh.rst
    shockwave.rst
    nozzles/index.rst
+   atd/index.rst

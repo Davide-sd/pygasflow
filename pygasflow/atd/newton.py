@@ -203,3 +203,56 @@ def shadow_region(alpha, theta):
             s1 = np.nan
     s2 = 2 * np.pi - s1
     return s1, s2
+
+
+def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):
+    """Compute the pressure coefficient with the tangent-cone method.
+
+    Parameters
+    ----------
+    theta_c : float or array_like
+        Cone half-angle [radians].
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    Cp : float or array_like
+        Pressure coefficient
+
+    Examples
+    --------
+
+    >>> from pygasflow.atd.tangent_cone_wedge import pressure_coefficient_tangent_cone
+    >>> from numpy import deg2rad
+    >>> pressure_coefficient_tangent_cone(deg2rad(10), 1.4)
+    0.06344098329442194
+
+    """
+    return 2 * (gamma + 1) * (gamma + 7) / (gamma + 3)**2 * theta_c**2
+
+def pressure_coefficient_tangent_wedge(theta_w, gamma=1.4):
+    """Compute the pressure coefficient with the tangent-wedge method.
+
+    Parameters
+    ----------
+    theta_w : float or array_like
+        Wedge angle [radians].
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    Cp : float or array_like
+        Pressure coefficient
+
+    Examples
+    --------
+
+    >>> from pygasflow.atd.tangent_cone_wedge import pressure_coefficient_tangent_wedge
+    >>> from numpy import deg2rad
+    >>> pressure_coefficient_tangent_wedge(deg2rad(10), 1.4)
+    0.07310818074881005
+
+    """
+    return (gamma + 1) * theta_w**2

@@ -182,6 +182,26 @@ def check(var=None):
     else:
         return decorator
 
+# The following decorator is used to verify the temperature in the
+# pygasflow.atd.viscosity and pygasflow.atd.thermal_conductivity
+def check_T(var=None):
+    def decorator(original_function):
+        @wraps(original_function)
+        @as_array([0])
+        def wrapper_function(*args, **kwargs):
+            args = list(args)
+            all_param = get_parameters_dict(original_function, *args, **kwargs)
+
+            if "T" in all_param.keys():
+                _check_mach_number(all_param["T"], 0)
+            res = original_function(*args, **kwargs)
+            return ret_correct_vals(res)
+        return wrapper_function
+    if callable(var):
+        return decorator(var)
+    else:
+        return decorator
+
 # Convert the arguments specified in index_list to np.ndarray.
 # By applying this conversion, the function will be able to handle
 # as argument both a number, a list of numbers or a np.ndarray.

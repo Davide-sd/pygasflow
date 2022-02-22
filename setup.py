@@ -31,6 +31,7 @@ setup(
     license='GNU GPL v3',
     packages = [
         'pygasflow',
+        'pygasflow.atd',
         'pygasflow.nozzles',
         'pygasflow.solvers',
         'pygasflow.utils',
@@ -40,6 +41,8 @@ setup(
     install_requires = [
         "numpy",
         "scipy",
-        "matplotlib"
+        "matplotlib",
+        "pandas"
+        # "cantera"
     ]
 )

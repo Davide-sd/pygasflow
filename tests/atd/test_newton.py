@@ -1,5 +1,5 @@
 import numpy as np
-from pygasflow.newton import (
+from pygasflow.atd.newton import (
     pressure_coefficient, shadow_region, modified_newtonian_pressure_ratio
 )
 from pygasflow.shockwave import rayleigh_pitot_formula
@@ -57,3 +57,34 @@ def test_modified_newtonian_pressure_ratio():
     assert np.allclose(
         modified_newtonian_pressure_ratio(10, theta_b, alpha=np.deg2rad(33)),
         np.array([0.70566393, 0.99728214, 0.79548767, 0.30207499]))
+
+
+import numpy as np
+from pygasflow.atd.tangent_cone_wedge import (
+    pressure_coefficient_tangent_cone,
+    pressure_coefficient_tangent_wedge
+)
+
+
+def test_pressure_coefficient_tangent_cone():
+    theta_c = np.deg2rad(10)
+    assert np.isclose(
+        pressure_coefficient_tangent_cone(theta_c, 1.4),
+        0.06344098329442194)
+
+    # as gamma -> 1, the expression reduces to the Newtonian value
+    assert np.isclose(
+        pressure_coefficient_tangent_cone(theta_c, 1+1e-06) / theta_c**2,
+        2)
+
+
+def test_pressure_coefficient_tangent_wedge():
+    theta_c = np.deg2rad(10)
+    assert np.isclose(
+        pressure_coefficient_tangent_wedge(theta_c, 1.4),
+        0.07310818074881005)
+
+    # as gamma -> 1, the expression reduces to the Newtonian value
+    assert np.isclose(
+        pressure_coefficient_tangent_wedge(theta_c, 1+1e-06) / theta_c**2,
+        2)
