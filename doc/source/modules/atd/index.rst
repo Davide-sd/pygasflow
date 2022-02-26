@@ -6,6 +6,7 @@ computations.
 
 .. toctree::
 
+   avf/index.rst
    nd_numbers.rst
    newton.rst
    thermal_conductivity.rst

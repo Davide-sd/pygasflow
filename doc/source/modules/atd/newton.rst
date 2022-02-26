@@ -2,6 +2,9 @@
 Newtonian Flow Model
 --------------------
 
+A few functions to quickly estimate the pressure distribution
+with the Newtonian Theory.
+
 .. module:: pygasflow.atd.newton
 
 .. autofunction:: pressure_coefficient

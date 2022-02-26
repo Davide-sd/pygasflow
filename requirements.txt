@@ -1,3 +1,5 @@
 numpy
 scipy
 matplotlib==3.5.1
+pandas
+cantera

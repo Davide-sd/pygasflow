@@ -1,6 +1,6 @@
 import numpy as np
 import cantera as ct
-from pygasflow.atd.numbers import Prandtl
+from pygasflow.atd.nd_numbers import Prandtl
 from pygasflow.atd.thermal_conductivity import thermal_conductivity_hansen
 from pygasflow.atd.viscosity import viscosity_air_southerland
 
