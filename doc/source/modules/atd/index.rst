@@ -11,3 +11,4 @@ computations.
    newton.rst
    thermal_conductivity.rst
    viscosity.rst
+   viscous_interaction.rst
