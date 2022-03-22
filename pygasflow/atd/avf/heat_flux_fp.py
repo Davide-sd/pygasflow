@@ -44,6 +44,7 @@ def wall_temperature(L, x, Reinf_L, Ts_Tinf, Tr, Pr, kinf, eps, sigma=sigma, lam
     out : float or array_like
     """
     def func(Tra, x):
+        # eq (7.156)
         return sigma * eps * Tra**4 - heat_flux(L, x, Reinf_L, Ts_Tinf, Tra, Tr, Pr, kinf, laminar=laminar, omega=omega)
 
     x = np.asarray(x)
@@ -95,7 +96,9 @@ def heat_flux(L, x, Reinf_L, Ts_Tinf, Tw, Tr, Pr, kinf, laminar=True, omega=0.65
     else:
         C = 0.0345
         n = 0.21
+    # eq (7.157)
     gfp = C * (Ts_Tinf)**(n * (1 + omega) - 1) * (L / x)**n * Reinf_L**(1 - n)
+    # eq (7.158)
     return kinf * np.cbrt(Pr) * gfp * (1 / L) * (Tr - Tw)
 
 

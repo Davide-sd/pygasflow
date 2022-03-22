@@ -12,7 +12,8 @@ from pygasflow.atd.viscosity import viscosity_air_power_law
 
 
 def interaction_parameter(Minf, Re_inf, Cinf=1, laminar=True):
-    """Compute the viscous interaction parameter, Chi.
+    """Compute the viscous interaction parameter, Chi, which correlates
+    pressure changes.
 
     Parameters
     ----------
@@ -44,7 +45,9 @@ def interaction_parameter(Minf, Re_inf, Cinf=1, laminar=True):
 
 
 def rarefaction_parameter(Minf, Re_inf, Cinf):
-    """Compute the rarefaction parameter, V.
+    """Compute the rarefaction parameter, V, which correlates
+    viscous/inviscid-induced perturbations in the skin friction and heat
+    transfer.
 
     Parameters
     ----------

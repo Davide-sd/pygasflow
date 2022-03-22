@@ -131,7 +131,7 @@ def skin_friction(tau_w, q):
     -------
     out : float or array_like
     """
-    # eq (1.137)
+    # eq (7.137)
     return tau_w / q
 
 
@@ -177,7 +177,7 @@ def friction_drag_tur_c(Re, Ts_Tinf, omega=0.65):
     -------
     out : float or array_like
     """
-    # eq (7.167)
+    # eq (7.168)
     return 0.074 / Re**0.2 * Ts_Tinf**(-0.67)
 
 
@@ -194,6 +194,7 @@ def friction_drag_lam_ic(Re):
     -------
     out : float or array_like
     """
+    # eq (7.167)
     return 1.328 / Re**0.5
 
 
@@ -210,6 +211,7 @@ def friction_drag_tur_ic(Re):
     -------
     out : float or array_like
     """
+    # eq (7.168)
     return 0.074 / Re**0.2
 
 

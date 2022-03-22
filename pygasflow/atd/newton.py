@@ -193,7 +193,10 @@ def shadow_region(alpha, theta):
     * "Hypersonic Aerothermodynamics" by John J. Bertin
 
     """
-    s1 = np.arccos(-np.tan(theta) / np.tan(alpha))
+    t = -np.tan(theta) / np.tan(alpha)
+    t[t > 1] = 1
+    t[t < -1] = -1
+    s1 = np.arccos(t)
 
     if hasattr(s1, "__iter__"):
         idx = np.iscomplex(s1)
