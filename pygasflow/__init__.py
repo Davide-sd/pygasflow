@@ -8,6 +8,12 @@ from pygasflow.solvers import (
     De_Laval_Solver
 )
 
+ise = isentropic_solver
+fanno = fanno_solver
+ray = rayleigh_solver
+ss = shockwave_solver
+css = conical_shockwave_solver
+
 from pygasflow.nozzles import (
     CD_Conical_Nozzle,
     CD_Min_Length_Nozzle,
