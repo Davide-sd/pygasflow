@@ -10,12 +10,4 @@ to attached viscous flow.
    thickness_fp.rst
    wall_shear_stress_fp.rst
    heat_flux_fp.rst
-
-
-.. automodule:: pygasflow.atd.avf
-
-.. autofunction:: recovery_factor
-
-.. autofunction:: recovery_temperature
-
-.. autofunction:: reference_temperature
+   heat_flux_sp.rst

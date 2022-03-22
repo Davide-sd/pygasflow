@@ -32,7 +32,7 @@ def viscosity_air_power_law(T):
 
     Compute air's viscosity at T=50K:
 
-    >>> from pygasflow.atd.viscosity import viscosity_air_southerland
+    >>> from pygasflow.atd.viscosity import viscosity_air_power_law
     >>> viscosity_air_power_law(50)
     3.5100000000000003e-06
 

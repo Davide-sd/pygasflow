@@ -9,6 +9,7 @@ computations.
    avf/index.rst
    nd_numbers.rst
    newton.rst
+   temperatures.rst
    thermal_conductivity.rst
    viscosity.rst
    viscous_interaction.rst

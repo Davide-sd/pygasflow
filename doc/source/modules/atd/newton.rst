@@ -3,7 +3,12 @@ Newtonian Flow Model
 --------------------
 
 A few functions to quickly estimate the pressure distribution
-with the Newtonian Theory.
+and the aerodynamic characteristics over the surfaces of simple
+geometric configurations with the Newtonian Theory.
+
+
+Pressure Distribution
+=====================
 
 .. module:: pygasflow.atd.newton
 
@@ -16,3 +21,9 @@ with the Newtonian Theory.
 .. autofunction:: pressure_coefficient_tangent_cone
 
 .. autofunction:: pressure_coefficient_tangent_wedge
+
+
+Aerodynamic Characteristics
+===========================
+
+.. autofunction:: sharp_cone_solver

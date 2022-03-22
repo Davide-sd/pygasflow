@@ -1,5 +1,5 @@
 import numpy as np
-from pygasflow.atd.avf import *
+from pygasflow.atd.temperatures import *
 
 
 # NOTE: the following values come from Problem 7.8

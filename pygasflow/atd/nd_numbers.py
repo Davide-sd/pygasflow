@@ -55,7 +55,7 @@ def Prandtl(*args, **kwargs):
 
     Compute the Prandtl number of air with specific heat ratio of 1.4:
 
-    >>> from pygasflow.atd.numbers import Prandtl
+    >>> from pygasflow.atd.nd_numbers import Prandtl
     >>> Prandtl(1.4)
     0.7368421052631579
 

@@ -50,7 +50,7 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
     Compute Cp with a Newtonian model for a body with an angle of attack of
     5deg:
 
-    >>> from pygasflow.newton import pressure_coefficient
+    >>> from pygasflow.atd.newton.pressures import pressure_coefficient
     >>> from numpy import deg2rad
     >>> pressure_coefficient(deg2rad(5))
     0.015192246987791938
@@ -123,7 +123,7 @@ def modified_newtonian_pressure_ratio(Mfs, theta_b, alpha=0, beta=0, gamma=1.4):
     0deg angle of attack:
 
     >>> import numpy as np
-    >>> from pygasflow.newton import modified_newtonian_pressure_ratio
+    >>> from pygasflow.atd.newton.pressures import modified_newtonian_pressure_ratio
     >>> theta_b = np.deg2rad([90, 60, 30, 0])
     >>> modified_newtonian_pressure_ratio(10, theta_b)
     array([1.        , 0.75193473, 0.25580419, 0.00773892])
@@ -182,7 +182,7 @@ def shadow_region(alpha, theta):
     with an angle of attack of 20deg:
 
     >>> import numpy as np
-    >>> from pygasflow.newton import shadow_region
+    >>> from pygasflow.atd.newton.pressures import shadow_region
     >>> sol = shadow_region(np.deg2rad(20), np.deg2rad(15))
     >>> np.rad2deg(sol[0])
     137.40738758045816
@@ -193,10 +193,7 @@ def shadow_region(alpha, theta):
     * "Hypersonic Aerothermodynamics" by John J. Bertin
 
     """
-    t = -np.tan(theta) / np.tan(alpha)
-    t[t > 1] = 1
-    t[t < -1] = -1
-    s1 = np.arccos(t)
+    s1 = np.arccos(-np.tan(theta) / np.tan(alpha))
 
     if hasattr(s1, "__iter__"):
         idx = np.iscomplex(s1)
@@ -226,7 +223,7 @@ def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):
     Examples
     --------
 
-    >>> from pygasflow.atd.tangent_cone_wedge import pressure_coefficient_tangent_cone
+    >>> from pygasflow.atd.newton.pressures import pressure_coefficient_tangent_cone
     >>> from numpy import deg2rad
     >>> pressure_coefficient_tangent_cone(deg2rad(10), 1.4)
     0.06344098329442194
@@ -252,7 +249,7 @@ def pressure_coefficient_tangent_wedge(theta_w, gamma=1.4):
     Examples
     --------
 
-    >>> from pygasflow.atd.tangent_cone_wedge import pressure_coefficient_tangent_wedge
+    >>> from pygasflow.atd.newton.pressures import pressure_coefficient_tangent_wedge
     >>> from numpy import deg2rad
     >>> pressure_coefficient_tangent_wedge(deg2rad(10), 1.4)
     0.07310818074881005

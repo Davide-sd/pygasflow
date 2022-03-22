@@ -102,42 +102,42 @@ def heat_flux(L, x, Reinf_L, Ts_Tinf, Tw, Tr, Pr, kinf, laminar=True, omega=0.65
     return kinf * np.cbrt(Pr) * gfp * (1 / L) * (Tr - Tw)
 
 
-if __name__ == "__main__":
-    from pygasflow.atd.avf import reference_temperature
-    from pygasflow.atd.viscosity import viscosity_air_power_law
-    from pygasflow.atd.thermal_conductivity import thermal_conductivity_power_law
+# if __name__ == "__main__":
+#     from pygasflow.atd.avf import reference_temperature
+#     from pygasflow.atd.viscosity import viscosity_air_power_law
+#     from pygasflow.atd.thermal_conductivity import thermal_conductivity_power_law
 
-    Tinf = 226.50908361133006
-    rhoinf = 0.01841010086243616
-    muinf = viscosity_air_power_law(Tinf)
-    kinf = thermal_conductivity_power_law(Tinf)
-    gamma = 1.4
-    Minf = 6
-    Lref = 80
-    ainf = np.sqrt(gamma * 287 * Tinf)
-    uinf = Minf * ainf
-    Reinf_L = rhoinf * uinf / muinf * Lref
+#     Tinf = 226.50908361133006
+#     rhoinf = 0.01841010086243616
+#     muinf = viscosity_air_power_law(Tinf)
+#     kinf = thermal_conductivity_power_law(Tinf)
+#     gamma = 1.4
+#     Minf = 6
+#     Lref = 80
+#     ainf = np.sqrt(gamma * 287 * Tinf)
+#     uinf = Minf * ainf
+#     Reinf_L = rhoinf * uinf / muinf * Lref
 
-    Prs = 0.74  # reference Prandtl number
-    rs_lam = np.sqrt(Prs)
-    rs_tur = np.cbrt(Prs)
-    Me, Te = Minf, Tinf
+#     Prs = 0.74  # reference Prandtl number
+#     rs_lam = np.sqrt(Prs)
+#     rs_tur = np.cbrt(Prs)
+#     Me, Te = Minf, Tinf
 
-    Tw1 = 1000
-    Ts1 = reference_temperature(Te, Tw1, rs=rs_lam, Me=Me, gamma_e=1.4)
-    Ts2 = reference_temperature(Te, Tw1, rs=rs_tur, Me=Me, gamma_e=1.4)
+#     Tw1 = 1000
+#     Ts1 = reference_temperature(Te, Tw1, rs=rs_lam, Me=Me, gamma_e=1.4)
+#     Ts2 = reference_temperature(Te, Tw1, rs=rs_tur, Me=Me, gamma_e=1.4)
 
-    Tw2 = 2000
-    Ts3 = reference_temperature(Te, Tw2, rs=rs_lam, Me=Me, gamma_e=1.4)
-    Ts4 = reference_temperature(Te, Tw2, rs=rs_tur, Me=Me, gamma_e=1.4)
+#     Tw2 = 2000
+#     Ts3 = reference_temperature(Te, Tw2, rs=rs_lam, Me=Me, gamma_e=1.4)
+#     Ts4 = reference_temperature(Te, Tw2, rs=rs_tur, Me=Me, gamma_e=1.4)
 
-    L = 1
-    x = [0.1, 0.5, 0.8]
+#     L = 1
+#     x = [0.1, 0.5, 0.8]
 
-    from pygasflow.atd.nd_numbers import Prandtl
-    Pr = Prandtl(gamma)
-    r = np.sqrt(Pr)
-    Tr = Tinf * (1 + r * (gamma - 1) / 2 * Minf**2)
+#     from pygasflow.atd.nd_numbers import Prandtl
+#     Pr = Prandtl(gamma)
+#     r = np.sqrt(Pr)
+#     Tr = Tinf * (1 + r * (gamma - 1) / 2 * Minf**2)
 
-    print(Ts1, Tinf, Tr, Pr, kinf)
-    print(wall_temperature(L, x, Reinf_L, Ts1 / Tinf, Tr, Pr, kinf, 0.5))
+#     print(Ts1, Tinf, Tr, Pr, kinf)
+#     print(wall_temperature(L, x, Reinf_L, Ts1 / Tinf, Tr, Pr, kinf, 0.5))

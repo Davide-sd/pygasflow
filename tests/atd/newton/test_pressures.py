@@ -1,5 +1,5 @@
 import numpy as np
-from pygasflow.atd.newton import (
+from pygasflow.atd.newton.pressures import (
     pressure_coefficient, shadow_region, modified_newtonian_pressure_ratio,
     pressure_coefficient_tangent_cone,
     pressure_coefficient_tangent_wedge
