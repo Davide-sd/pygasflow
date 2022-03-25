@@ -25,7 +25,7 @@ def wall_temperature(eps, R, uinf, u_grad, Reinf_R, pe_pinf, Ts_Tinf, Tr, Pr, ki
     coming to the surface is radiated away from it. Hence, the
     "radiation-adiabatic temperature" Tra will result: no heat is exchanged
     between gas and material, but the surface radiates heat away.
-    
+
     With steady flow conditions and a steady heat flux q_w into the wall,
     Tra also is a conservative estimate of the surface temperature. Depending
     on the employed structure and materials concept (either a cold primary structure with a thermal protection system (TPS), or a hot primary

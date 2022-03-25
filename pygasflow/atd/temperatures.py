@@ -53,9 +53,9 @@ def recovery_temperature(T, M, r, gamma=1.4):
     Consider a wall with finite thickness and finite heat capacity, which is
     completely insulated from the surroundings, except at the surface, where it
     is exposed to the (viscous) flow. Without radiation cooling, the wall
-    material will be heated up by the flow, depending on the heat amount 
+    material will be heated up by the flow, depending on the heat amount
     penetrating the surface and the heat capacity of the material. The surface
-    temperature will always be that of the gas at the wall: Tw = Tgw, apart 
+    temperature will always be that of the gas at the wall: Tw = Tgw, apart
     from a possible temperature jump, which can be present in the slip-flow
     regime. If enough heat has entered the wall material (function of time),
     the temperature in the entire wall and at the surface will reach an
@@ -63,7 +63,7 @@ def recovery_temperature(T, M, r, gamma=1.4):
     The surface is then called an adiabatic surface: no exchange of heat takes
     place between gas and wall material. With steady flow conditions the
     recovery (adiabatic) temperature Tr is somewhat smaller than the total
-    temperature Tt, but always of the same order of magnitude. 
+    temperature Tt, but always of the same order of magnitude.
 
     The total enthalpy at hypersonic flight is proportional to the flight
     velocity squared. This holds also for the total temperature, if perfect gas
@@ -81,7 +81,7 @@ def recovery_temperature(T, M, r, gamma=1.4):
     References
     ----------
     Basic of Aerothermodynamics, Ernst H. Hirschel
-    
+
     See Also
     --------
     recovery_factor

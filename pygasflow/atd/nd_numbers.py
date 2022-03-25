@@ -154,7 +154,7 @@ def Knudsen(*args):
       with the body surface and with each other).
     * Kn >= 10: free molecular flow (gas particles collide only with the body
       surface).
-    
+
     See Also
     --------
     Reynolds
@@ -421,7 +421,7 @@ def Schmidt(*args):
       molecular transport.
     * Sc = O(1): the molecular transport of mass has the same order of
       magnitude as the convective transport.
-    
+
     See Also
     --------
     Lewis, Prandtl
