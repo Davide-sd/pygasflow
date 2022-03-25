@@ -17,7 +17,7 @@ def sphere_solver(R, alpha, beta, phi_1=0, phi_2=2*np.pi):
         t2[np.isclose(t2, o)] = 1
         t2[np.isclose(t2, -o)] = -1
         return np.arcsin(t2)
-    
+
     def phi_2_func(sigma):
         # avoid NaN values due to rounding errors
         t = tau**2 - lamb**2 * cotan(sigma)**2
@@ -38,11 +38,11 @@ def sphere_solver(R, alpha, beta, phi_1=0, phi_2=2*np.pi):
             - np.sin(phi_1) / 3 * (3 * omega**2 + (nu**2 - omega**2) * np.sin(phi_1)**2) * (3 * sigma / 2 - np.sin(2 * sigma) + 1 / 8 * np.sin(4 * sigma))
             - lamb * omega * (np.pi - phi_1 - 1/2 * np.sin(2 * phi_1) * np.sin(sigma)**4)
         )
-    
+
     def CN_func_2(sigma):
         phi_1c = phi_1_func(sigma)
         phi_2c = phi_2_func(sigma)
-        
+
         # avoid NaN values due to rounding errors
         t = tau**2 - np.cos(sigma)**2
         t[np.abs(t) < 1e-15] = 1e-15
@@ -65,7 +65,7 @@ def sphere_solver(R, alpha, beta, phi_1=0, phi_2=2*np.pi):
             + omega / 2 * np.arcsin(t2)
             - lamb * omega / 2 * np.arctan((lamb * np.cos(sigma)) / np.sqrt(t))
         )
-    
+
     def CN_func_3(sigma):
         phi_1c = phi_1_func(sigma)
         phi_2c = phi_2_func(sigma)
@@ -88,7 +88,7 @@ def sphere_solver(R, alpha, beta, phi_1=0, phi_2=2*np.pi):
             + omega * np.arcsin(t2)
             - lamb * omega * np.arctan((lamb * np.cos(sigma)) / np.sqrt(t))
         )
-    
+
     def sigma_func(phi):
         return arccotan((-nu * np.sin(phi) + omega * np.cos(phi)) / lamb)
     sigma_1 = np.pi / 2 - np.arctan(tau / lamb)
@@ -105,7 +105,7 @@ def sphere_solver(R, alpha, beta, phi_1=0, phi_2=2*np.pi):
     print("sigma_2", sigma_2, np.rad2deg(sigma_2))
     print("sigma_3", sigma_3, np.rad2deg(sigma_3))
     print("sigma_4", sigma_4, np.rad2deg(sigma_4))
-    
+
     S = 4 * np.pi * R**2
     CN = -R**2 / S * (
         (CN_func_1(sigma_2) - CN_func_1(0))

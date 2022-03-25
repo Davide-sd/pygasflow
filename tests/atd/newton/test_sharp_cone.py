@@ -1,5 +1,6 @@
 import numpy as np
 from pygasflow.atd.newton.sharp_cone import sharp_cone_solver
+from pytest import raises
 
 alpha = np.deg2rad([1, 2, 4, 6, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85])
 
@@ -14,6 +15,28 @@ def test_phi1_0_phi2_360_beta_0_theta_c_2_5():
     res1 = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True)
     res2 = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=False)
     assert len(res1) == len(res2)
+
+
+def test_single_alpha_multiple_beta():
+    alpha = np.deg2rad(25)
+    theta_c = np.deg2rad(2.5)
+    beta = np.deg2rad([5, 10, 15])
+    res = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True)
+    assert len(res["CA"]) == 3
+
+
+def test_multiple_alpha_multiple_beta_1():
+    theta_c = np.deg2rad(2.5)
+    alpha = np.deg2rad([2, 4, 6])
+    beta = np.deg2rad([5, 10, 15])
+    res = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True)
+    assert len(res["CA"]) == 3
+
+
+def test_multiple_alpha_multiple_beta_2():
+    theta_c = np.deg2rad(2.5)
+    beta = np.deg2rad([5, 10, 15])
+    raises(ValueError, lambda: sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True))
 
 
 ###############################################################################

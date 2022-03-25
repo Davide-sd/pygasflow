@@ -26,7 +26,7 @@ def elliptic_cone(theta_xy, theta_xz):
             + (2 * lamb * omega * np.sin(2 * theta_xz) * np.tan(theta_xy)) / (1 - s**2) * (np.arctan(cotan(phi) / m) - s * np.arctan(cotan(phi) / (m * s)))
             - (4 * s * nu * omega * np.sin(theta_xy) * np.cos(xz)) / (1 - s**2) * (s / np.sqrt(1 - s**2) * np.arctan(np.cos(phi) * np.sqrt(1 - s**2) / (s * np.sqrt(Sigma))) - np.cos(phi) / np.sqrt(Sigma))
         )
-    
+
     def CN_func_2(phi):
         return(
             (
@@ -39,7 +39,7 @@ def elliptic_cone(theta_xy, theta_xz):
             + (2 * lamb * omega * np.sin(2 * theta_xz) * np.tan(theta_xy)) / (1 - s**2) * (np.arctan(cotan(phi) / m) - s * np.arctan(cotan(phi) / (m * s)))
             - (4 * s * nu * omega * np.sin(theta_xy) * np.cos(xz)) / (1 - s**2) * (s / (2 * np.sqrt(s**2 - 1)) * np.log((np.sqrt(Sigma) + np.cos(phi) * np.sqrt(s**2 - 1) / s) / (np.sqrt(Sigma) - np.cos(phi) * np.sqrt(s**2 - 1) / s)) - np.cos(phi) / np.sqrt(Sigma))
         )
-    
+
     # eq (24a) and (24b)
     common_1 = s**2 * nu * omega * np.cos(theta_xy)**2
     common_2 = lamb * m * np.sin(theta_xz) * np.sqrt(s**2 * nu**2 * np.cos(theta_xy)**2 - (lamb**2 * np.sin(theta_xz)**2 - omega**2 * np.cos(theta_xz)**2))
