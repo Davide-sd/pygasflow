@@ -30,6 +30,10 @@ def ret_correct_vals(x):
         for e in x:
             new_x.append(ret_correct_vals(e))
         return new_x
+    elif isinstance(x, dict):
+        # Many functions may return a dictionary of elements. Each value may
+        # be a 1-D one-element array. If that's the case, extract that number.
+        x = {k: ret_correct_vals(v) for k, v in x.items()}
     if isinstance(x, np.ndarray) and (x.ndim == 1) and (x.size == 1):
         return x[0]
     elif isinstance(x, np.ndarray) and (x.ndim == 0):
