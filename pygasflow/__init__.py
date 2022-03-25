@@ -9,7 +9,7 @@ from pygasflow.solvers import (
 )
 
 ise = isentropic_solver
-fanno = fanno_solver
+fan = fanno_solver
 ray = rayleigh_solver
 ss = shockwave_solver
 css = conical_shockwave_solver
@@ -20,3 +20,5 @@ from pygasflow.nozzles import (
     CD_TOP_Nozzle,
     Rao_Parabola_Angles
 )
+
+from pygasflow.common import pressure_coefficient, sound_speed
