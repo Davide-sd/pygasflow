@@ -37,11 +37,14 @@ def test_pressure_coefficient_newton_modified_axisymmetric():
 
 
 def test_shadow_region():
-    sol = shadow_region(np.deg2rad(20), np.deg2rad(15))
-    assert np.allclose(
-        np.array(sol),
-        np.array((2.39821132984296, 3.8849739773366263))
-    )
+    alpha = np.deg2rad(35)
+    beta = np.deg2rad(0)
+    theta_c = np.deg2rad(9)
+    phi_i, phi_f, func = shadow_region(alpha, theta_c, beta)
+    assert np.isclose(phi_i, 1.342625208348352)
+    assert np.isclose(phi_f, 4.940560098831234)
+    assert np.isclose(func(alpha, theta_c, beta, phi_i), 0)
+    assert np.isclose(func(alpha, theta_c, beta, phi_f), 0)
 
 
 def test_modified_newtonian_pressure_ratio():

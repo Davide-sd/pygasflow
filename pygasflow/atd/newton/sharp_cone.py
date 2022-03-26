@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 from pygasflow.utils.decorators import as_array
+from pygasflow.atd.newton.pressures import shadow_region
 from scipy.optimize import fsolve
 
 
@@ -182,20 +183,13 @@ def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2
     nu = -np.sin(beta)
     omega = np.sin(alpha) * np.cos(beta)
 
-    # different from paper because:
-    # https://stackoverflow.com/questions/71554667/wrong-solution-to-a-quadratic-equation/
-    A = lamb * np.sin(theta_c)
-    B = nu * np.cos(theta_c)
-    C = omega * np.cos(theta_c)
-    t1 = (-B + np.sqrt(B**2 - (A**2 - C**2)))/(A + C)
-    t2 = (-B - np.sqrt(B**2 - (A**2 - C**2)))/(A + C)
-    phi_i = 2 * np.arctan(t1)
-    phi_f = 2 * np.arctan(t2)
+    # compute the shadow region boundaries
+    phi_i, phi_f, _ = shadow_region(alpha, theta_c, beta)
+    # set default limits of integration if no shadow region is present
+    phi_i[np.isnan(phi_i) & (alpha < np.pi / 2)] = 0
+    phi_i[np.isnan(phi_i) & (alpha > np.pi / 2)] = phi_f[np.isnan(phi_f) & (alpha > np.pi / 2)] = np.pi
+    phi_f[np.isnan(phi_f) & (alpha < np.pi / 2)] = 2 * np.pi
 
-    phi_i[np.isnan(phi_i) & (alpha < np.pi / 2)] = phi_f[np.isnan(phi_f) & (alpha < np.pi / 2)] = 0
-    phi_i[np.isnan(phi_i) & (alpha > np.pi / 2)] = np.pi
-    phi_f[np.isnan(phi_f) & (alpha > np.pi / 2)] = -np.pi
-    phi_f += 2 * np.pi
 
     def CN_integral(phi):
         # eq (39)

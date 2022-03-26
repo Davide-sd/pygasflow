@@ -151,15 +151,10 @@ def modified_newtonian_pressure_ratio(Mfs, theta_b, alpha=0, beta=0, gamma=1.4):
     return cos_eta_square + (1 / pt2_pinf) * sin_eta_square
 
 
-def shadow_region(alpha, theta):
-    """Compute the upper limit of the shadow region in which the pressure
-    coefficient is Cp=0.
-
-    This function solves:
-
-    cos(alpha) * sin(theta) + sin(alpha) * cos(theta) * cos(beta) = 0
-
-    for beta in [0, 2*pi].
+def shadow_region(alpha, theta, beta=0):
+    """Compute the boundaries in the circumferential direction (``phi``) in
+    which the pressure coefficient ``Cp=0`` for an axisymmetric object.
+    The shadow region is identified by Cp<0.
 
     Parameters
     ----------
@@ -167,42 +162,98 @@ def shadow_region(alpha, theta):
         Angle of attack [radians].
     theta : float or array_like
         Local body slope [radians].
+    beta : float or array_like
+        Sideslip angle [radians]. Default to 0 (no sideslip).
 
     Returns
     -------
-    beta : tuple (s1, s2)
-        Upper limit of the angular position of a point on the surface of the
-        body where Cp=0 [radians]. In the interval beta in [0, 2*pi] there are
-        two solutions, s1 and s2. The upper limit is s1.
+    phi_i : float or array_like
+        Lower limit of the shadow region [radians]. If NaN, there is no shadow
+        region.
+    phi_f : float or array_like
+        Upper limit of the shadow region [radians]. If NaN, there is no shadow
+        region.
+    func : callable
+        A lambda function with signature (alpha, theta, beta, phi), which can
+        be used to test the configuration. It represents the angle between the
+        velocity vector and the normal vector to the surface (see Notes).
+
+    Notes
+    -----
+    The newtonian pressure coefficient is given by:
+
+    Cp = Cpt2 * cos(eta)**2
+
+    where cos(eta) is the angle between the vecocity vector and and normal
+    vector to the surface:
+
+    cos(eta) = cos(alpha) * cos(beta) * sin(theta) - cos(theta) * sin(phi) * sin(beta) - cos(phi) * cos(theta) * sin(alpha) * cos(beta)
+
+    This function solves cos(eta) = 0 for phi, the angle in the circumferential
+    direction.
+
+    Let's consider an axisymmetric geometry, for example a cone. The positive
+    x-axis starts from the base and move to the apex. The base of the cone lies
+    on the y-z plane, where the positive z-axis points down. The angle ``phi``
+    starts from the negative z-axis and is positive in the counter-clockwise
+    direction.
+
+    .. code-block:: text
+
+                  |
+          phi_i  _|_   phi_f
+               /\ | /\ 
+              /  \|/  \ 
+        +y <-|---------|----
+              \   |   /
+               \ _|_ /
+                  |
+                  v
+                  +z
+
+    The pressure coefficient is positive for ``phi_1 <= phi <= phi_f``.
+    The shadow region (where Cp<0) is identified by ``0 <= phi <= phi_1`` and
+    ``phi_f <= phi <= 2 * pi``.
 
     Examples
     --------
 
-    Compute the upper limit in which Cp=0 for a sharp cone (theta_c=15deg)
-    with an angle of attack of 20deg:
-
     >>> import numpy as np
-    >>> from pygasflow.atd.newton.pressures import shadow_region
-    >>> sol = shadow_region(np.deg2rad(20), np.deg2rad(15))
-    >>> np.rad2deg(sol[0])
-    137.40738758045816
+    >>> from pygasflow.atd.newton import shadow_region
+    >>> alpha = np.deg2rad(35)
+    >>> beta = np.deg2rad(0)
+    >>> theta_c = np.deg2rad(9)
+    >>> phi_i, phi_f, func = shadow_region(alpha, theta_c, beta)
+    >>> print(phi_i, phi_f)
+    1.342625208348352 4.940560098831234
 
     References
     ----------
 
-    * "Hypersonic Aerothermodynamics" by John J. Bertin
+    * "Tables of aerodynamic coefficients obtained from developed newtonian
+      expressions for complete and partial conic and spheric bodies at combined
+      angle of attack and sideslip with some comparison with hypersonic
+      experimental data", by William R. Wells and William O. Armstrong, 1962.
 
     """
-    s1 = np.arccos(-np.tan(theta) / np.tan(alpha))
+    # substitutions to shorten the expressions
+    lamb = np.cos(alpha) * np.cos(beta)
+    tau = np.sqrt(1 - lamb**2)
+    nu = -np.sin(beta)
+    omega = np.sin(alpha) * np.cos(beta)
 
-    if hasattr(s1, "__iter__"):
-        idx = np.iscomplex(s1)
-        s1[idx] = np.nan
-    else:
-        if np.iscomplex(s1):
-            s1 = np.nan
-    s2 = 2 * np.pi - s1
-    return s1, s2
+    # different from paper because:
+    # https://stackoverflow.com/questions/71554667/wrong-solution-to-a-quadratic-equation/
+    A = lamb * np.sin(theta)
+    B = nu * np.cos(theta)
+    C = omega * np.cos(theta)
+    t1 = (-B + np.sqrt(B**2 - (A**2 - C**2)))/(A + C)
+    t2 = (-B - np.sqrt(B**2 - (A**2 - C**2)))/(A + C)
+    phi_i = 2 * np.arctan(t1)
+    phi_f = 2 * np.arctan(t2) + 2 * np.pi
+
+    func = lambda a, t, b, p: np.cos(a) * np.cos(b) * np.sin(t) - np.cos(t) * np.sin(p) * np.sin(b) - np.cos(p) * np.cos(t) * np.sin(a) * np.cos(b)
+    return phi_i, phi_f, func
 
 
 def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):

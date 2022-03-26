@@ -27,3 +27,5 @@ Aerodynamic Characteristics
 ===========================
 
 .. autofunction:: sharp_cone_solver
+
+.. autofunction:: lift_drag_crosswind

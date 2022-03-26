@@ -138,6 +138,10 @@ def linkcode_resolve(domain, info):
 # Replace literal math expression with latex expressions.
 # longer expressions first!
 replacements = {
+    "Cp = Cpt2 * cos(eta)**2": r"$C_{p} = C_{p, t2} \cos^{2}{\eta}$",
+    "cos(eta) = cos(alpha) * cos(beta) * sin(theta) - cos(theta) * sin(phi) * sin(beta) - cos(phi) * cos(theta) * sin(alpha) * cos(beta)": r"$\cos{\eta} = \cos{\alpha} \cos{\beta} \sin{\theta} - \cos{\theta} \sin{\phi} \sin{\beta} - \cos{\phi} \cos{\theta} \sin{\alpha} \cos{\beta}$",
+    "cos(eta) = 0": r"$\cos{\eta} = 0$",
+    "cos(eta)": r"$\cos{\eta}$",
     "Sc -> 0": r"$Sc \rightarrow 0$",
     "Sc -> oo": r"$Sc \rightarrow \infty$",
     "Sc = O(1)": r"$Sc = O(1)$",
