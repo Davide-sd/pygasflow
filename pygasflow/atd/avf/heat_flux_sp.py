@@ -268,4 +268,4 @@ def heat_flux_radiation_martin(Rn, u_inf, rho_inf, rho_sl, metric=True):
     if not metric:
         f2m = 1
     # eq (5.46)
-    return 100 * R * f2m * (u_inf * f2m / 1e04)**8.5 * (rho_inf / rho_sl)**1.6
+    return 100 * Rn * f2m * (u_inf * f2m / 1e04)**8.5 * (rho_inf / rho_sl)**1.6
