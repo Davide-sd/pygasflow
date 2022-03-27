@@ -1,6 +1,26 @@
 Changelog
 ---------
 
+v1.10.0
+=======
+
+* Added aliases to solvers:
+
+  * ``ise`` for ``isentropic_solver``.
+  * ``fan`` for ``fanno_solver``.
+  * ``ray`` for ``rayleigh_solver``.
+  * ``ss`` for ``shockwave_solver``.
+  * ``css`` for ``conical_shockwave_solver``.
+
+* Added Aerothermodynamic module (``pygasflow.atd``):
+
+  * correlations to compute boundary layer thickness, heat flux, wall
+    shear stress.
+  * functions to compute the pressure distribution and aerodynamic
+    characteristics with the Newtonian (and modified Newtonian)
+    flow theory.
+
+
 v1.0.6
 ======
 

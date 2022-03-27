@@ -6,24 +6,26 @@
 Welcome to pygasflow's documentation!
 =====================================
 
-pygasflow provides a few handful functions to quickly perform quasi-1D ideal
-gasdynamic (perfect gas) computations with Python.
+pygasflow provides a few handful functions to quickly perform:
 
-The following flow relations are implemented:
+* Quasi-1D ideal gasdynamic (perfect gas) computations with Python. The
+  following solvers are implemented:
 
-* Isentropic flow
-* Fanno flow
-* Rayleigh flow
-* Shock wave relations (normal shock, oblique shock, conical shock)
+  * Isentropic flow: ``isentropic_solver`` (or ``ise``).
+  * Fanno flow: ``fanno_solver`` (or ``fan``).
+  * Rayleigh flow: ``rayleigh_solver`` (or ``ray``).
+  * Normal/Oblique shock waves: ``shockwave_solver`` (or ``ss``).
+  * Conical shock waves: ``conical_shockwave_solver`` (or ``css``).
 
-Depending on the problem at hand, you can:
+  If a solver doesn't suit your needs, try and search into the submodules
+  for a suitable function.
 
-* use the appropriate :doc:`solver </modules/solvers/index>` which, given a
-  parameter (mach number or ratio), computes all other ratios and mach
-  numbers. This is the preferred option.
-* search the appropriate function in the following submodules:
-  ``pygasflow.isentropic``, ``pygasflow.fanno``,
-  ``pygasflow.rayleigh``, ``pygasflow.shockwave``.
+* Aerothermodynamic Computations with Python (``pygasflow.atd`` module):
+
+  * Correlations to estimate boundary layer thickness, heat flux and wall
+    shear stress over a flat plate or a stagnation region.
+  * Newtonian Flow Theory to estimate the pressure distribution around
+    objects and their aerodynamic characteristics. 
 
 The following charts has been generated with the functions included in this package:
 
