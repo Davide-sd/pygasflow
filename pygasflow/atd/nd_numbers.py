@@ -1,5 +1,4 @@
 import numpy as np
-import cantera as ct
 
 def Prandtl(*args, **kwargs):
     """Compute the Prandtl number.
@@ -87,9 +86,11 @@ def Prandtl(*args, **kwargs):
             # eq (4.19)
             gamma = args[0]
             return 4 * gamma / (9 * gamma - 5)
-        elif isinstance(args[0], ct.Solution):
-            gas = args[0]
-            return gas.viscosity * gas.cp_mass / gas.thermal_conductivity
+        else:
+            import cantera as ct
+            if isinstance(args[0], ct.Solution):
+                gas = args[0]
+                return gas.viscosity * gas.cp_mass / gas.thermal_conductivity
         raise ValueError(
             "When 1 argument is provided, it must be an instance of int, or "
             "float, or np.ndarray or ct.Solution"
