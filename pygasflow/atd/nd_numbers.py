@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def Prandtl(*args, **kwargs):
     """Compute the Prandtl number.
 

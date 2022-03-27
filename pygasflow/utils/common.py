@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def convert_to_ndarray(x):
     """
     Check if the input parameter is of type np.ndarray.
@@ -11,6 +12,7 @@ def convert_to_ndarray(x):
     if x.ndim == 0:
         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
     return x
+
 
 def ret_correct_vals(x):
     """ Many functions implemented in this package requires their input
@@ -39,6 +41,7 @@ def ret_correct_vals(x):
     elif isinstance(x, np.ndarray) and (x.ndim == 0):
         return x[()]
     return x
+
 
 class Ideal_Gas(object):
     def __init__(self, R=287.058, gamma=1.4):
@@ -230,16 +233,3 @@ class Flow_State(object):
         )
 
         return b
-
-if __name__ == "__main__":
-    gas = Ideal_Gas(287, 1.4)
-
-    a = Flow_State(
-        M=6.8,
-        P=1000,
-        T=220,
-        rho=gas.solve(p=1000, t=220),
-        name=1
-    )
-    print(a)
-    # print(a.to_string())

@@ -1,7 +1,6 @@
 import numpy as np
 from pygasflow.common import pressure_coefficient as cp
 from pygasflow.shockwave import rayleigh_pitot_formula
-import warnings
 
 
 def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
@@ -238,7 +237,6 @@ def shadow_region(alpha, theta, beta=0):
     """
     # substitutions to shorten the expressions
     lamb = np.cos(alpha) * np.cos(beta)
-    tau = np.sqrt(1 - lamb**2)
     nu = -np.sin(beta)
     omega = np.sin(alpha) * np.cos(beta)
 

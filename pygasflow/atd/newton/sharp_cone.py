@@ -2,7 +2,6 @@ import itertools
 import numpy as np
 from pygasflow.utils.decorators import as_array
 from pygasflow.atd.newton.pressures import shadow_region
-from scipy.optimize import fsolve
 
 
 def cotan(x):
@@ -179,7 +178,6 @@ def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2
 
     # substitutions to shorten the expressions
     lamb = np.cos(alpha) * np.cos(beta)
-    tau = np.sqrt(1 - lamb**2)
     nu = -np.sin(beta)
     omega = np.sin(alpha) * np.cos(beta)
 

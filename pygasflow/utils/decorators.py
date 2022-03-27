@@ -54,13 +54,16 @@ import inspect
 #    the last parameter to the (shockwave) functions. Do not change
 #    the parameter orders if you don't know what you are doing.
 
+
 def _check_specific_heat_ratio(gamma):
     if gamma <= 1:
         raise ValueError("The specific heats ratio must be > 1.")
 
+
 def _check_mach_number(M, value):
     if not np.all(M >= value):
         raise ValueError("The Mach number must be >= {}.".format(value))
+
 
 def _check_flag(flag):
     flag = flag.lower()
@@ -68,11 +71,13 @@ def _check_flag(flag):
         raise ValueError("Flag can be either 'sub' or 'super'.")
     return flag
 
+
 def _check_flag_shockwave(flag):
     flag = flag.lower()
     if flag not in ["weak", "strong"]:
         raise ValueError("Flag can be either 'weak' or 'strong'.")
     return flag
+
 
 # TODO: this approach let the user insert an angle=None even into
 # functions that need a float value!
@@ -182,6 +187,7 @@ def check(var=None):
     else:
         return decorator
 
+
 # The following decorator is used to verify the temperature in the
 # pygasflow.atd.viscosity and pygasflow.atd.thermal_conductivity
 def check_T(var=None):
@@ -201,6 +207,7 @@ def check_T(var=None):
         return decorator(var)
     else:
         return decorator
+
 
 # Convert the arguments specified in index_list to np.ndarray.
 # By applying this conversion, the function will be able to handle
@@ -241,6 +248,7 @@ def get_parameters_dict(original_function, *args, **kwargs):
     }
     all_param.update(kwargs)
     return all_param
+
 
 # This decorator is used to compute the average execution time of a function.
 # By default, @Average_Execution_Time repeats the function 10 times.
