@@ -5,7 +5,19 @@
 [![Documentation Status](https://readthedocs.org/projects/pygasflow/badge/?version=latest)](https://pygasflow.readthedocs.io/en/latest/?badge=latest)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
 
-**pygasflow** provides a few handful functions to quickly perform quasi-1D ideal gasdynamic (perfect gas) computations with Python (see requirements below).
+**pygasflow** is a Python package that provides a few handful functions to quickly perform:
+
+* Quasi-1D ideal gasdynamic (perfect gas). The following solvers are implemented:
+  * ``isentropic_solver`` (or ``ise``).
+  * ``fanno_solver`` (or ``fan``).
+  * ``rayleigh_solver`` (or ``ray``).
+  * ``shockwave_solver`` (or ``ss``) for normal and oblique shock waves.
+  * ``conical_shockwave_solver`` (or ``css``).
+  * ``De_Laval_solver`` and the ``nozzles`` sub-module, containing functions and classes to understand convergent-divergent nozzles, Rao's TOP nozzles (Thrust Optmizie Parabolic), Minimum Length nozzle with Method of Characteristics. Nozzles can be used to quickly visualize their geometric differences or to solve the isentropic expansion with the `De_Laval_Solver` class. 
+
+* Aerothermodynamic computations (``pygasflow.atd`` module):
+  * Correlations to estimate boundary layer thickness, heat flux and wall shear stress over a flat plate or a stagnation region.
+  * Newtonian Flow Theory to estimate the pressure distribution around objects and their aerodynamic characteristics. 
 
 The following charts has been generated with the functions included in this package:
 <div>
@@ -16,15 +28,6 @@ The following charts has been generated with the functions included in this pack
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/conical-flow.png" width=250/>
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/shock-reflection.png" width=250/>
 </div>
-
-The package contains the following sub-modules:
-
-* `isentropic.py`: functions to solve isentropic flows;
-* `fanno.py`: functions to solve Fanno flows;
-* `rayleigh.py`: functions to solve Rayleigh flows;
-* `showckwaves.py`: functions to solve normal / oblique / conical shock waves;
-* `solvers`: the previous modules contains dozens of functions. For convenience, a few solvers have been implemented that, by providing a few parameters, solves the flows by computing the most important ratios (pressure ratio, ..., critical temperature ratio, ...). **These are most likely the functions you will want to use**.
-* `nozzles`: functions and classes to understand convergent-divergent nozzles, Rao's TOP nozzles (Thrust Optmizie Parabolic), Minimum Length nozzle with Method of Characteristics. Nozzles can be used to quickly visualize their geometric differences or to solve the isentropic expansion with the `De_Laval_Solver` class. 
 
 
 ## Installation
@@ -44,20 +47,23 @@ conda install -c davide_sd pygasflow
 
 ## Usage
 
-The easiest way to use this code is to call a solver. The following solvers are implemented:
+The easiest way is to call a solver. Let's say you need to solve an isentropic flow: 
 
-* `isentropic_solver`
-* `fanno_solver`
-* `rayleigh_solver`
-* `shockwave_solver`: normal shockwave and obliques shock wave.
-* `conical_shockwave_solver`
-* `De_Laval_Solver`: isentropic expansion through the Convergent-Divergent nozzle.
-
-Let's say you need to solve an isentropic flow: 
-
-```
+```python
 from pygasflow import isentropic_solver
 help(isentropic_solver)
+isentropic_solver("m", 2, to_dict=True)
+# {'m': 2.0,
+#  'pr': 0.12780452546295096,
+#  'dr': 0.2300481458333117,
+#  'tr': 0.5555555555555556,
+#  'prs': 0.24192491286747442,
+#  'drs': 0.36288736930121157,
+#  'trs': 0.6666666666666667,
+#  'urs': 2.3515101530718505,
+#  'ars': 1.6875000000000002,
+#  'ma': 30.000000000000004,
+#  'pm': 26.379760813416457}
 ```
 
 Should a solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits your needs.
@@ -66,4 +72,4 @@ Please:
 
 * take a look at the notebooks contained in the [examples](examples/) folder. You can also try this package online with Binder. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
 * visit the [documentation page](https://pygasflow.readthedocs.io/en/latest/).
-* If you find any errors, submit an issue or a pull request!
+* If you find any errors, open an issue or submit a pull request!
