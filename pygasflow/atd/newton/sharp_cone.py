@@ -2,34 +2,7 @@ import itertools
 import numpy as np
 from pygasflow.utils.decorators import as_array
 from pygasflow.atd.newton.pressures import shadow_region
-
-
-def cotan(x):
-    return 1 / np.tan(x)
-
-
-def arccotan(x):
-    # https://mathworld.wolfram.com/InverseCotangent.html
-    return np.arctan(1 / x)
-
-
-def body2wind(alpha, beta):
-    """Rotation matrix from the body frame to the wind frame.
-
-    Parameters
-    ----------
-    alpha, beta : float
-        Angle of attack and side slip angle [radians].
-
-    Returns
-    -------
-    R : np.ndarray [3 x 3]
-        Rotation matrix.
-    """
-    return np.array([
-        [np.cos(alpha) * np.cos(beta), np.sin(beta), np.sin(alpha) * np.cos(beta)],
-        [-np.sin(beta) * np.cos(alpha), np.cos(beta), -np.sin(alpha) * np.sin(beta)],
-        [-np.sin(alpha), 0, np.cos(alpha)]])
+from pygasflow.atd.newton.utils import body2wind, cotan
 
 
 @as_array([2, 3])
