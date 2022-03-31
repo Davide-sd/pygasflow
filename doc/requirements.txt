@@ -4,3 +4,5 @@ sphinx-math-dollar
 nbsphinx
 nbsphinx_link
 sphinx-rtd-theme
+cantera
+jinja2==3.0.3
