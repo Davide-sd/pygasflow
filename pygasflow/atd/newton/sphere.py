@@ -14,6 +14,20 @@ from scipy.integrate import dblquad
 # integration (phi, phi_1, phi_2) and (sigma, 0, sigma_c). The results of
 # the integration have been simplified and then `cse` has been used to
 # optmize the code.
+#
+# In particular, the results of the paper assume that `phi_2=2*pi - phi_1`.
+# Still, there are errors in the analytical solutions. For example,
+# expression (56), the second term inside from 0 to sigma_2, it is missing a
+# multiplication. Results from page 70 confirms that they have been computed
+# with such errors.
+#
+# From sigma_2 to sigma_3 and from sigma_3 to sigma_4, numerical integration
+# has been used (I'm too NOOB to find analytical solution in these regions).
+# The results are in good agreement with the paper for sigma_cut <= 90deg.
+# For 90deg < sigma_cut <= 180deg the results are different: while the trends
+# are captured, numerical integration appears to compute sligthly lower values.
+# After checking and re-checking my procedure, I have confidence that my
+# results are correct.
 
 
 def CN_up_to_sigma_2(lamb, nu, omega, phi_1, phi_2, sigma_c):
@@ -269,8 +283,14 @@ def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=F
                  z
 
     ``phi_1`` and ``phi_2`` are the angles starting from the -z axis, rotating
-    counter-clockwise. ``sigma_cut`` is the angle starting from the +x axis,
-    rotating counter-clockwise.
+    counter-clockwise around the x-axis. ``sigma_cut`` represents the angle of
+    rotation around the y-axis starting from the +x axis.
+
+    NOTE: Performance of computation depends on ``sigma_cut``, ``alpha`` and
+    ``beta``. For small values of these parameters the computation is likely
+    to be done by the analytical solution (hence very fast). As we increase
+    these values, parts of the integration will be done by numerical
+    procedures, hence slow computations.
     """
     alpha = atleast_1d(alpha)
     if (sigma_cut < 0) or (sigma_cut > pi):
@@ -339,6 +359,7 @@ def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=F
     CY_B = zeros_like(CY_A)
     CY_C = zeros_like(CY_A)
     for i, (l, n, o) in enumerate(zip(lamb, nu, omega)):
+        CY_A[i] = dblquad(CY_func_to_integrate, 0, sigma_2[i], lambda sigma: phi_1, lambda sigma: phi_2, args=(l, n, o))[0]
         if not isclose(sigma_2[i], sigma_3[i]):
             CN_B[i] = dblquad(CN_func_to_integrate, sigma_2[i], sigma_3[i], lambda sigma: phi_func(l, n, o, sigma)[0], lambda sigma: upper_limit(l, n, o, sigma), args=(l, n, o))[0]
             CA_B[i] = dblquad(CA_func_to_integrate, sigma_2[i], sigma_3[i], lambda sigma: phi_func(l, n, o, sigma)[0], lambda sigma: upper_limit(l, n, o, sigma), args=(l, n, o))[0]
