@@ -442,6 +442,65 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
     beta_strong = ret_correct_vals(np.rad2deg(beta_strong))
     return { "weak": beta_weak, "strong": beta_strong }
 
+@check_shockwave
+def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
+    """Compute the downstream Mach number M2 accordingly from the input
+    parameters.
+
+    Parameters
+    ----------
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    beta : float, optional
+        The shock wave angle in degrees. If beta=None you must give in theta.
+    theta : float, optional
+        The flow deflection angle in degrees. If theta=None you must give
+        in beta.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+    flag : string, optional
+        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``.
+        Chose what value to compute if theta is provided.
+
+    Returns
+    -------
+    out : ndarray
+        Downstream Mach Number M2
+    """
+    # TODO: with the current check_shockwave decorator, flag can only be 'weak'
+    # or 'strong'. If 'both' an error will be raised.
+    if np.any(M1 < 1):
+        raise ValueError("The upstream Mach number must be M1 >= 1.")
+    if (beta is None) and (theta is None):
+        raise ValueError("To compute the normal " +
+        "component of the upstream Mach number, you have to provide " +
+        "either theta or beta.")
+    flag = flag.lower()
+    if flag not in ["weak", "strong", "both"]:
+        raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
+    
+    if beta is not None:
+        beta = np.deg2rad(beta)
+        pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
+        tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
+    elif theta is not None:
+        beta = beta_from_mach_theta(M1, theta, gamma=gamma)
+        beta = np.deg2rad(beta[flag])
+        pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
+        tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
+    
+    # Solve Flack's equation (C.8.27) to isolate downstream Mach number M2,
+    # provided we first solve for both the Pressure ratio (pr) and the Total
+    # Pressure ratio (tpr).
+    # Flack RD., "Fundamentals of Jet Propulsion with Power Generation
+    # Applications," Cambridge University Press, 2023, 978-1-316-51736-9.
+    # www.cambridge.org/highereducation/isbn/9781316517369
+    rat = (gamma - 1) / 2.0
+    ex = (gamma - 1) / gamma
+    M2 = np.sqrt( ( ((tpr/pr) ** ex) * (1 + rat*M1*M1) - 1 ) / rat )
+    return M2
+
 
 @check_shockwave([0, 1])
 def beta_from_upstream_mach(M1, MN1):
