@@ -18,7 +18,8 @@ from pygasflow.solvers.shockwave import (
 from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
     mach_cone_angle_from_shock_angle,
-    mach_downstream
+    mach_downstream,
+    oblique_mach_downstream
 )
 
 def check_val(v1, v2, tol=1e-05):
@@ -357,3 +358,14 @@ def test_conical_shockwave_solver_to_dict():
     check_val(r2["pc_p1"], r1[9], tol)
     check_val(r2["rhoc_rho1"], r1[10], tol)
     check_val(r2["Tc_T1"], r1[11], tol)
+
+
+def test_oblique_mach_downstream():
+    expected_results = ss("m1", [1.5, 3], "beta", [60, 60], to_dict=True)
+    expected_mach_downstream = expected_results["m2"]
+    actual_mach_downstream_results = oblique_mach_downstream(
+        expected_results["m1"],
+        expected_results["beta"],
+        expected_results["theta"]
+    )
+    assert np.allclose(expected_mach_downstream, actual_mach_downstream_results)
