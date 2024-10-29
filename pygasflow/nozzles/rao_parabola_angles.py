@@ -67,7 +67,10 @@ class Rao_Parabola_Angles(object):
             if os.path.isfile(os.path.join(data_dir, f))]
 
         # substitute "," with "." for decimal separator
-        func = lambda s: float(s.replace(b",", b"."))
+        def func(s):
+            if isinstance(s, str):
+                return float(s.replace(",", "."))
+            return float(s.replace(b",", b"."))
         c = {
             0: func,
             1: func,
