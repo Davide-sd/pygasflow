@@ -1,4 +1,7 @@
 import numpy as np
+from packaging import version
+curr_numpy_ver = version.parse(np.__version__)
+np_2_0_0 = version.parse("2.0.0")
 
 
 def convert_to_ndarray(x):
@@ -8,9 +11,13 @@ def convert_to_ndarray(x):
     1 dimensional.
     """
     if not isinstance(x, np.ndarray):
-        return np.atleast_1d(np.asarray(x, dtype=np.float64))
+        if curr_numpy_ver >= np_2_0_0:
+            return np.atleast_1d(np.asarray(x, dtype=np.float64))
+        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
     if x.ndim == 0:
-        return np.atleast_1d(np.asarray(x, dtype=np.float64))
+        if curr_numpy_ver >= np_2_0_0:
+            return np.atleast_1d(np.asarray(x, dtype=np.float64))
+        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
     return x
 
 
