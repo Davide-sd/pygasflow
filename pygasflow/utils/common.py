@@ -8,9 +8,9 @@ def convert_to_ndarray(x):
     1 dimensional.
     """
     if not isinstance(x, np.ndarray):
-        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+        return np.atleast_1d(np.asarray(x, dtype=np.float64))
     if x.ndim == 0:
-        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+        return np.atleast_1d(np.asarray(x, dtype=np.float64))
     return x
 
 
