@@ -1,6 +1,26 @@
 Changelog
 ---------
 
+v1.2.0
+======
+
+* Added ``oblique_mach_downstream`` to ``pygasflow.shockwave``.
+  Thank you `Dr Chad File <https://github.com/archeryguru2000>`_ for this
+  contribution.
+
+* Added support for Numpy >= 2.0.0.
+  Thank you `David Chartrand <https://github.com/DavidChartrand>`_ for this
+  contribution.
+
+* Fixed conda packaging.
+
+
+v1.1.1
+======
+
+* Included build for Python 3.11.
+
+
 v1.10.0
 =======
 

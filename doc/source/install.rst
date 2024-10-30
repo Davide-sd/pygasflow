@@ -7,4 +7,4 @@ Install
 
 Or::
 
-    conda install pygasflow
+    conda install -c conda-forge pygasflow

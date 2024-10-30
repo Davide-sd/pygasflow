@@ -13,11 +13,11 @@
   * ``rayleigh_solver`` (or ``ray``).
   * ``shockwave_solver`` (or ``ss``) for normal and oblique shock waves.
   * ``conical_shockwave_solver`` (or ``css``).
-  * ``De_Laval_solver`` and the ``nozzles`` sub-module, containing functions and classes to understand convergent-divergent nozzles, Rao's TOP nozzles (Thrust Optmizie Parabolic), Minimum Length nozzle with Method of Characteristics. Nozzles can be used to quickly visualize their geometric differences or to solve the isentropic expansion with the `De_Laval_Solver` class. 
+  * ``De_Laval_solver`` and the ``nozzles`` sub-module, containing functions and classes to understand convergent-divergent nozzles, Rao's TOP nozzles (Thrust Optmizie Parabolic), Minimum Length nozzle with Method of Characteristics. Nozzles can be used to quickly visualize their geometric differences or to solve the isentropic expansion with the `De_Laval_Solver` class.
 
 * Aerothermodynamic computations (``pygasflow.atd`` module):
   * Correlations to estimate boundary layer thickness, heat flux and wall shear stress over a flat plate or a stagnation region.
-  * Newtonian Flow Theory to estimate the pressure distribution around objects and their aerodynamic characteristics. 
+  * Newtonian Flow Theory to estimate the pressure distribution around objects and their aerodynamic characteristics.
 
 The following charts has been generated with the functions included in this package:
 <div>
@@ -41,13 +41,13 @@ pip install pygasflow
 And also on Conda:
 
 ```
-conda install -c davide_sd pygasflow 
+conda install -c conda-forge pygasflow
 ```
 
 
 ## Usage
 
-The easiest way is to call a solver. Let's say you need to solve an isentropic flow: 
+The easiest way is to call a solver. Let's say you need to solve an isentropic flow:
 
 ```python
 from pygasflow import isentropic_solver
