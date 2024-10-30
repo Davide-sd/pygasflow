@@ -1,7 +1,7 @@
 # pygasflow
 
 [![PyPI version](https://badge.fury.io/py/pygasflow.svg)](https://badge.fury.io/py/pygasflow)
-[![Install with conda](https://anaconda.org/davide_sd/pygasflow/badges/installer/conda.svg)](https://anaconda.org/Davide_sd/pygasflow)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/pygasflow.svg)](https://anaconda.org/conda-forge/pygasflow)
 [![Documentation Status](https://readthedocs.org/projects/pygasflow/badge/?version=latest)](https://pygasflow.readthedocs.io/en/latest/?badge=latest)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
 
@@ -41,7 +41,7 @@ pip install pygasflow
 And also on Conda:
 
 ```
-conda install -c conda-forge pygasflow
+conda install conda-forge::pygasflow
 ```
 
 
