@@ -22,12 +22,13 @@ import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('../../'))
 
 import pygasflow
+from datetime import datetime
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'pygasflow'
-copyright = '2022, Davide Sandonà'
+copyright = '%s, Davide Sandonà' % datetime.now().year
 author = 'Davide Sandonà'
 
 here = os.path.dirname(__file__)
