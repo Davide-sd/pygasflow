@@ -17,7 +17,7 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
         * ``'pressure'``: Critical Pressure Ratio P/P*
         * ``'density'``: Critical Density Ratio rho/rho*
         * ``'velocity'``: Critical Velocity Ratio U/U*.
-        * ``'temperature_sub'``: Critical Temperature Ratio T/T for
+        * ``'temperature_sub'``: Critical Temperature Ratio T/T* for
           subsonic case.
         * ``'temperature_super'``: Critical Temperature Ratio T/T* for
           supersonic case.
