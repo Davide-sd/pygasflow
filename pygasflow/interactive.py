@@ -8,6 +8,7 @@ from pygasflow.solvers import (
 )
 from io import StringIO
 from itertools import product
+from bokeh.models.widgets.tables import NumberFormatter
 
 
 pn.extension()
@@ -30,12 +31,27 @@ def combine(list_of_results):
         new_results[k] = arr
     return new_results
 
+theme = "dark"
+tab_header_hover_bg = "#404040" if theme == "dark" else "#e6e6e6"
+stylesheet = """
+.bk-clearfix hr {
+    border:none;
+    border-top: 1px solid var(--design-secondary-color, var(--panel-secondary-color));
+}
+:host(.bk-above) .bk-header .bk-tab {font-size: 1.25em;}
+.bk-active {
+    color: white !important;
+    background-color: var(--pn-tab-active-color) !important;
+    font-weight: bold;
+}
+"""
+
 
 class Common(param.Parameterized):
     input_value = param.String(
         default="2",
-        label="Value:",
-        doc="Comma separated list of values for the input parameter."
+        label="Parameter values:",
+        doc="Comma separated list of values."
     )
 
     gamma = param.String(
@@ -50,7 +66,19 @@ class Common(param.Parameterized):
         doc="Stores the results of the computation."
     )
 
+    num_decimal_places = param.Integer(
+        4, bounds=(2, None), label="Number of decimal places:"
+    )
+
     computation_info = param.String(default="")
+
+    # list of column names to be excluded by float formatter
+    _float_formatters_exclusion = []
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._create_sidebar_controls()
+        self._create_tabulator()
 
     def _parse_input_string(self, s):
         return np.fromstring(s, sep=",")
@@ -61,13 +89,50 @@ class Common(param.Parameterized):
         sio.seek(0)
         return sio
 
+    def _create_tabulator(self):
+        # NOTE: tabulator needs to be created at __init__ and stored in an
+        # attribute in order to be able to modify the formatters when
+        # num_decimal_places is changed
+        self._tabulator = pn.widgets.Tabulator(
+            self.param.results,
+            text_align="center",
+            header_align="center",
+            disabled=True,
+            stylesheets=[
+                ":host .tabulator {font-size: 12px;}",
+                ":host .tabulator-row .tabulator-cell {padding:8px 4px;}"
+                ":host .tabulator-row {min-height: 4px;}",
+                ":host .tabulator .tabulator-header .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover {background-color: %s; !important}" % tab_header_hover_bg
+            ],
+            formatters={
+                name: NumberFormatter(format="0." + "".join(["0"] * self.num_decimal_places))
+                for name in self._columns.values()
+                if name not in self._float_formatters_exclusion
+            }
+        )
+
+    @param.depends("num_decimal_places", watch=True, on_init=True)
+    def _update_formatters(self):
+        if hasattr(self, "_tabulator"):
+            self._tabulator.formatters = {
+                name: NumberFormatter(format="0." + "".join(
+                    ["0"] * self.num_decimal_places))
+                for name in self._columns.values()
+                if name not in self._float_formatters_exclusion
+            }
+
+    def _create_sidebar_controls(self):
+        self.controls = pn.Column(
+            self.param.input_parameter,
+            self.param.input_value,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.gamma,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.num_decimal_places
+        )
+
     def __panel__(self):
         return pn.Column(
-            pn.Row(
-                self.param.input_parameter,
-                self.param.input_value,
-                self.param.gamma
-            ),
             pn.Row(
                 pn.pane.Str(self.param.computation_info)
             ),
@@ -77,10 +142,7 @@ class Common(param.Parameterized):
                     filename=self._filename + ".csv"
                 )
             ),
-            pn.pane.DataFrame(
-                self.param.results,
-                text_align="center"
-            )
+            self._tabulator
         )
         return pn.panel(self.param)
 
@@ -386,8 +448,8 @@ class ShockWave(Common, pn.viewable.Viewer):
 
     input_value_2 = param.String(
         default="15",
-        label="Value:",
-        doc="Comma separated list of values for the input parameter."
+        label="Parameter values:",
+        doc="Comma separated list of values."
     )
 
     input_flag = param.Selector(
@@ -409,6 +471,8 @@ class ShockWave(Common, pn.viewable.Viewer):
         "tr": "T2/T1",
         "tpr": "P02/P01"
     }
+
+    _float_formatters_exclusion = ["Solution"]
 
     _internal_map = {
         "m1": "m1",
@@ -446,18 +510,22 @@ class ShockWave(Common, pn.viewable.Viewer):
         elif self.input_parameter == "total_pressure":
             self.input_value = "0.7208738614847455"
 
+    def _create_sidebar_controls(self):
+        self.controls = pn.Column(
+            self.param.input_parameter,
+            self.param.input_value,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.input_parameter_2,
+            self.param.input_value_2,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.gamma,
+            self.param.input_flag,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.num_decimal_places
+        )
+
     def __panel__(self):
         return pn.Column(
-            pn.Row(
-                self.param.input_parameter,
-                self.param.input_value,
-                self.param.gamma
-            ),
-            pn.Row(
-                self.param.input_parameter_2,
-                self.param.input_value_2,
-                self.param.input_flag
-            ),
             pn.Row(
                 pn.pane.Str(self.param.computation_info)
             ),
@@ -467,10 +535,7 @@ class ShockWave(Common, pn.viewable.Viewer):
                     filename=self._filename + ".csv"
                 )
             ),
-            pn.pane.DataFrame(
-                self.param.results,
-                text_align="center"
-            )
+            self._tabulator
         )
         return pn.panel(self.param)
 
@@ -537,7 +602,7 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
         label="Select parameter:",
         objects={
             "Mach number at the cone's surface": "mc",
-            "Half cone angle, θc, [degrees]": "theta_c",
+            "Half cone angle, θ_c, [degrees]": "theta_c",
             "Shock wave angle, β, [degrees]": "beta"
         },
         default="theta_c",
@@ -546,8 +611,8 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
 
     input_value = param.String(
         default="15",
-        label="Value:",
-        doc="Comma separated list of values for the input parameter."
+        label="Parameter values:",
+        doc="Comma separated list of values."
     )
 
     input_flag = param.Selector(
@@ -559,7 +624,7 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
         "gamma": "gamma",
         "m": "Upstream Mach",
         "mc": "M_c",
-        "theta_c": "Half cone angle",
+        "theta_c": "θ_c [deg]",
         "beta": "β [deg]",
         "delta": "δ [deg]",
         "Solution": "Solution",
@@ -570,6 +635,8 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
         "rhoc_rho1": "rho_c/rho_1",
         "Tc_T1": "T_c/T1"
     }
+
+    _float_formatters_exclusion = ["Solution"]
 
     _internal_map = {
         "m": "m",
@@ -597,17 +664,21 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
         if self.input_parameter == "beta":
             self.input_value = "33.91469752764406"
 
+    def _create_sidebar_controls(self):
+        self.controls = pn.Column(
+            self.param.input_mach_value,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.input_parameter,
+            self.param.input_value,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.gamma,
+            self.param.input_flag,
+            pn.layout.Divider(stylesheets=[stylesheet]),
+            self.param.num_decimal_places
+        )
+
     def __panel__(self):
         return pn.Column(
-            pn.Row(
-                self.param.input_mach_value,
-                self.param.input_parameter,
-                self.param.input_value
-            ),
-            pn.Row(
-                self.param.gamma,
-                self.param.input_flag
-            ),
             pn.Row(
                 pn.pane.Str(self.param.computation_info)
             ),
@@ -617,10 +688,7 @@ class ConicalShockWave(Common, pn.viewable.Viewer):
                     filename=self._filename + ".csv"
                 )
             ),
-            pn.pane.DataFrame(
-                self.param.results,
-                text_align="center"
-            )
+            self._tabulator
         )
         return pn.panel(self.param)
 
@@ -685,8 +753,10 @@ class Flow(pn.viewable.Viewer):
             "Shock Wave": ShockWave(),
             "Conical Shock Wave": ConicalShockWave()
         }
+        self.tabs = pn.Tabs(
+            *list(self.components.items()),
+            stylesheets=[stylesheet]
+        )
 
     def __panel__(self):
-        return pn.Tabs(
-            *list(self.components.items())
-        )
+        return self.tabs
