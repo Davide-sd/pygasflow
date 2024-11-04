@@ -6,6 +6,9 @@ from pygasflow.solvers import (
     isentropic_solver, fanno_solver, rayleigh_solver,
     shockwave_solver, conical_shockwave_solver
 )
+from pygasflow.diagrams import (
+    isentropic, fanno, rayleigh
+)
 from io import StringIO
 from itertools import product
 from bokeh.models.widgets.tables import NumberFormatter
@@ -133,6 +136,18 @@ class Common(param.Parameterized):
 
     def __panel__(self):
         return pn.Column(
+            pn.Card(
+                pn.pane.Bokeh(
+                    type(self)._diagram(),
+                    # height=400,
+                    # height=400,
+                    # width=800,
+                    # sizing_mode="stretch_width"
+                ),
+                title="Diagram",
+                sizing_mode='stretch_width',
+                collapsed=True
+            ),
             pn.Row(
                 pn.pane.Str(self.param.computation_info)
             ),
@@ -233,6 +248,8 @@ class Isentropic(Common, pn.viewable.Viewer):
 
     _solver = isentropic_solver
 
+    _diagram = isentropic
+
     @param.depends("input_parameter", watch=True, on_init=True)
     def _validate_input_value(self):
         # set appropriate default values so that no errors are raised
@@ -308,6 +325,8 @@ class Fanno(Common, pn.viewable.Viewer):
     _filename = "fanno"
 
     _solver = fanno_solver
+
+    _diagram = fanno
 
     @param.depends("input_parameter", watch=True, on_init=True)
     def _validate_input_value(self):
@@ -388,6 +407,8 @@ class Rayleigh(Common, pn.viewable.Viewer):
     _filename = "rayleigh"
 
     _solver = rayleigh_solver
+
+    _diagram = rayleigh
 
     @param.depends("input_parameter", watch=True, on_init=True)
     def _validate_input_value(self):
