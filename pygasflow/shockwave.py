@@ -479,7 +479,7 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
     flag = flag.lower()
     if flag not in ["weak", "strong", "both"]:
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
-    
+
     if beta is not None:
         beta = np.deg2rad(beta)
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
@@ -489,7 +489,7 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
         beta = np.deg2rad(beta[flag])
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
         tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
-    
+
     # Solve Flack's equation (C.8.27) to isolate downstream Mach number M2,
     # provided we first solve for both the Pressure ratio (pr) and the Total
     # Pressure ratio (tpr).
@@ -1213,7 +1213,7 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     def function(M):
         # find the theta_c_max associated to the given Mach number in order to
         # chose the correct bisection interval for 'weak' or 'strong' solution.
-        Mc, tcmax, bmax = max_theta_c_from_mach(M)
+        Mc, tcmax, bmax = max_theta_c_from_mach(M, gamma)
         if theta_c > tcmax:
             raise ValueError("Detachment detected: can't solve the flow when theta_c > theta_c_max.\n" +
                 "M1 = {}\n".format(M1) +
