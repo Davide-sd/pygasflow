@@ -30,6 +30,8 @@ Shockwave Solvers
 
 .. module:: pygasflow.solvers.shockwave
 
+.. autofunction:: normal_shockwave_solver
+
 .. autofunction:: shockwave_solver
 
 .. autofunction:: conical_shockwave_solver

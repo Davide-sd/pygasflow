@@ -205,6 +205,10 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             beta = beta_from_mach_theta.__no_check(M1, theta, gamma)[flag]
 
         if isinstance(M1, (list, tuple, np.ndarray)):
+            if hasattr(beta, "__iter__") and (len(beta) == 1):
+                beta = beta[0]
+            if hasattr(theta, "__iter__") and (len(theta) == 1):
+                theta = theta[0]
             beta *= np.ones_like(M1)
             theta *= np.ones_like(M1)
 
@@ -247,6 +251,86 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             "tpr": tpr
         }
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
+
+
+def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
+    """
+    Compute all the ratios across a normal shock wave.
+
+    Parameters
+    ----------
+    param_name : string
+        Name of the parameter given in input. Can be either one of:
+
+        * ``'pressure'``: Pressure Ratio P2/P1
+        * ``'temperature'``: Temperature Ratio T2/T1
+        * ``'density'``: Density Ratio rho2/rho1
+        * ``'total_pressure'``: Total Pressure Ratio P02/P01
+        * ``'m1'``: Mach upstream of the shock wave
+        * ``'m2'``: Normal Mach downstream of the shock wave
+
+        If the parameter is a ratio, it is in the form downstream/upstream:
+
+    param_value : float
+        Actual value of the parameter.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be > 1.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
+
+    Returns
+    -------
+    m1 : float
+        Mach number upstream of the shock wave.
+    m2 : float
+        Mach number downstream of the shock wave.
+    pr : float
+        Pressure ratio across the shock wave.
+    dr : float
+        Density ratio across the shock wave.
+    tr : float
+        Temperature ratio across the shock wave.
+    tpr : float
+        Total Pressure ratio across the shock wave.
+
+    Examples
+    --------
+
+    Compute all ratios across a normal shockwave starting with the upstream
+    Mach number:
+
+    >>> from pygasflow import normal_shockwave_solver
+    >>> normal_shockwave_solver("m1", 2)
+    [2.0, 0.5773502691896257, 4.5, 2.666666666666667, 1.6874999999999998, 0.7208738614847455]
+
+    Compute all ratios and parameters across a normal shockwave starting
+    from the downstream Mach:
+
+    >>> normal_shockwave_solver("m2", 0.4, to_dict=False)
+    [1.511670289641015, 1.4887046212366817, 0.7414131402857721, 0.7051257983356364, 80.0, 7.999999999999998, 2.418948357506694, 1.84271116608139, 1.312711618636739, 0.9333272472012358]
+
+    Compute the Mach number downstream of an oblique shockwave starting with
+    multiple upstream Mach numbers, returning a dictionary:
+
+    >>> results = normal_shockwave_solver("m1", [1.5, 3], to_dict=True)
+    >>> print(results["m2"])
+    [0.70108874, 0.47519096]
+
+    """
+    idx_to_exclude = [1, 3, 4, 5]
+    if param_name in ["m2", "M2"]:
+        param_name = "mn2"
+    results = shockwave_solver(param_name, param_value, "beta", 90,
+        gamma=gamma, to_dict=to_dict)
+    if not to_dict:
+        return [r for i, r in enumerate(results) if i not in idx_to_exclude]
+    return {
+        k: v for i, (k, v) in enumerate(results.items())
+        if i not in idx_to_exclude
+    }
+
 
 @check_shockwave
 def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak", to_dict=False):
