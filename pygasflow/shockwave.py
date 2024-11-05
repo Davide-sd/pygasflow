@@ -582,7 +582,7 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
             "M1 = {}\n".format(M1) +
             "theta_max(M1) = {}\n".format(theta_max) +
             "theta = {}\n".format(theta))
-        beta = beta_from_mach_theta(M1, theta)
+        beta = beta_from_mach_theta(M1, theta, gamma=gamma)
         MN1 = dict()
         for k,v in beta.items():
             beta[k] = np.deg2rad(v)
@@ -801,9 +801,9 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
         beta = np.zeros_like(M1)
         for i, (m, t) in enumerate(zip(M1, theta_max)):
             # here I chose 'weak', but in this case it's the same as 'strong'!
-            beta[i] = beta_from_mach_theta(m, t)["weak"]
+            beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
         return beta
-    return beta_from_mach_theta(M1, theta_max)["weak"]
+    return beta_from_mach_theta(M1, theta_max, gamma=gamma)["weak"]
 
 @check_shockwave
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
@@ -811,6 +811,11 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     Compute the shock maximum deflection angle, theta_max, as well as the
     wave angle beta corresponding to the unitary downstream Mach
     number, M2 = 1.
+
+    Notes
+    -----
+    This function relies on root-finding algorithms. If a root can't be found,
+    np.nan will be used as the result.
 
     Parameters
     ----------
@@ -838,12 +843,19 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
         for i, (m, t) in enumerate(zip(M1, theta_max)):
             a = np.arcsin(1 / m)
             b = np.deg2rad(beta_from_mach_max_theta.__no_check(m, gamma))
-            beta[i] = bisect(func, a, b, args=(m, t))
+            try:
+                beta[i] = bisect(func, a, b, args=(m, t))
+            except ValueError:
+                beta[i] = np.nan
         return np.rad2deg(beta), np.rad2deg(theta_max)
 
     a = np.arcsin(1 / M1)
     b = np.deg2rad(beta_from_mach_max_theta.__no_check(M1, gamma))
-    return np.rad2deg(bisect(func, a, b, args=(M1, theta_max))), np.rad2deg(theta_max)
+    try:
+        res = np.rad2deg(bisect(func, a, b, args=(M1, theta_max)))
+    except ValueError:
+        res = np.nan
+    return res, np.rad2deg(theta_max)
 
 @check_shockwave([0, 1])
 def mach_from_theta_beta(theta, beta, gamma=1.4):
