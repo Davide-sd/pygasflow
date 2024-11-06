@@ -1,6 +1,13 @@
 Changelog
 ---------
 
+v1.2.1
+======
+
+* Fix import for aerothermodynamics sub-module.
+* Updated doctest outputs to the format used by NumPy >= 2.0.0.
+
+
 v1.2.0
 ======
 
@@ -21,7 +28,7 @@ v1.1.1
 * Included build for Python 3.11.
 
 
-v1.10.0
+v1.1.0
 =======
 
 * Added aliases to solvers:
