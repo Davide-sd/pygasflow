@@ -68,6 +68,14 @@ html_css_files = [
     "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
 ]
 
+# replace "View Page Source" with "Edit on GitHub"
+html_context = {
+  'display_github': True,
+  'github_user': 'Davide-sd',
+  'github_repo': 'pygasflow',
+  'github_version': 'master/doc/source/',
+}
+
 # hide the table inside classes autodoc
 numpydoc_show_class_members = False
 
