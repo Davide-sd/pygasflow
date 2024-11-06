@@ -1,7 +1,11 @@
-import param
+import numpy as np
+import pandas as pd
 import panel as pn
+import param
 from pygasflow.interactive.diagrams import ObliqueShockDiagram
-from pygasflow.interactive.pages.base import Common
+from pygasflow.interactive.pages.base import Common, _combine, stylesheet
+from pygasflow.solvers import shockwave_solver
+from itertools import product
 
 
 class ObliqueShockPage(Common, pn.viewable.Viewer):
@@ -114,21 +118,6 @@ class ObliqueShockPage(Common, pn.viewable.Viewer):
             self.param.num_decimal_places
         )
 
-    # def __panel__(self):
-    #     return pn.Column(
-    #         pn.Row(
-    #             pn.pane.Str(self.param.computation_info)
-    #         ),
-    #         pn.Row(
-    #             pn.widgets.FileDownload(
-    #                 callback=self._df_to_csv_callback,
-    #                 filename=self._filename + ".csv"
-    #             )
-    #         ),
-    #         self._tabulator
-    #     )
-    #     return pn.panel(self.param)
-
     @param.depends(
         "input_parameter", "input_value",
         "input_parameter_2", "input_value_2",
@@ -174,7 +163,7 @@ class ObliqueShockPage(Common, pn.viewable.Viewer):
                 results["gamma"] = g * np.ones_like(results["m1"])
                 list_of_results.append(results)
 
-        results = combine(list_of_results)
+        results = _combine(list_of_results)
         rows = [results[k] for k in self._columns]
         data = np.vstack(rows).T
         self.computation_info = "\n".join(info)

@@ -1,7 +1,7 @@
 import param
 import panel as pn
 from pygasflow.interactive.diagrams import NormalShockDiagram
-from pygasflow.interactive.pages.base import Common
+from pygasflow.interactive.pages.base import Common, stylesheet
 
 
 class NormalShockPage(Common, pn.viewable.Viewer):
@@ -40,8 +40,8 @@ class NormalShockPage(Common, pn.viewable.Viewer):
     }
 
     def __init__(self, **params):
-        params.setdefault("_filename", "oblique_shockwave")
-        params.setdefault("_diagram", ObliqueShockDiagram)
+        params.setdefault("_filename", "normal_shockwave")
+        params.setdefault("_diagram", NormalShockDiagram)
         params.setdefault("page_title", "Normal Shock")
         super().__init__(**params)
 
@@ -71,68 +71,3 @@ class NormalShockPage(Common, pn.viewable.Viewer):
             pn.layout.Divider(stylesheets=[stylesheet]),
             self.param.num_decimal_places
         )
-
-    # def __panel__(self):
-    #     return pn.Column(
-    #         pn.Row(
-    #             pn.pane.Str(self.param.computation_info)
-    #         ),
-    #         pn.Row(
-    #             pn.widgets.FileDownload(
-    #                 callback=self._df_to_csv_callback,
-    #                 filename=self._filename + ".csv"
-    #             )
-    #         ),
-    #         self._tabulator
-    #     )
-    #     return pn.panel(self.param)
-
-    # @param.depends(
-    #     "input_parameter", "input_value",
-    #     "input_flag", "gamma",
-    #     watch=True, on_init=True
-    # )
-    # def compute(self):
-    #     value = self._parse_input_string(self.input_value)
-    #     value_2 = self._parse_input_string(self.input_value_2)
-    #     gamma = self._parse_input_string(self.gamma)
-
-    #     values = product(value, value_2, gamma)
-
-    #     list_of_results = []
-    #     info = [""]
-    #     flags = ["weak"]
-    #     if self.input_flag == "strong":
-    #         flags = ["strong"]
-    #     elif self.input_flag == "both":
-    #         flags = ["weak", "strong"]
-
-    #     # NOTE: isentropic_solver uses numpy vectorization for performance.
-    #     # Here, I sacrifice performance in favor of functionality. For example,
-    #     # suppose the user inputs "0.5, 2" for the pressure ratio. If I were to
-    #     # use vectorized operations, an error will be raised and no results
-    #     # will be returned because all pressure ratios must be 0 <= P/P0 <= 1.
-    #     # Instead, by looping over each provided value, I can catch the faulty
-    #     # value and insert an appropriate row in the dataframe.
-    #     for v1, v2, g in values:
-    #         for f in flags:
-    #             try:
-    #                 results = shockwave_solver(
-    #                     self.input_parameter, v1,
-    #                     self.input_parameter_2, v2,
-    #                     gamma=g, flag=f, to_dict=True)
-    #             except ValueError as err:
-    #                 results = {k: np.nan for k in self._columns}
-    #                 results[self._internal_map[self.input_parameter]] = v1
-    #                 results[self._internal_map[self.input_parameter_2]] = v2
-    #                 error_msg = "%s" % err
-    #                 info.append("ValueError: %s" % err)
-    #             results["Solution"] = [f] * len(np.atleast_1d(results["m1"]))
-    #             results["gamma"] = g * np.ones_like(results["m1"])
-    #             list_of_results.append(results)
-
-    #     results = combine(list_of_results)
-    #     rows = [results[k] for k in self._columns]
-    #     data = np.vstack(rows).T
-    #     self.computation_info = "\n".join(info)
-    #     self.results = pd.DataFrame(data, columns=self._columns.values())
