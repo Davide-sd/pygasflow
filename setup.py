@@ -32,6 +32,8 @@ setup(
     packages = [
         'pygasflow',
         'pygasflow.atd',
+        'pygasflow.atd.newton',
+        'pygasflow.atd.avf',
         'pygasflow.nozzles',
         'pygasflow.solvers',
         'pygasflow.utils',
