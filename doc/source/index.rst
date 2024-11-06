@@ -25,7 +25,7 @@ pygasflow provides a few handful functions to quickly perform:
   * Correlations to estimate boundary layer thickness, heat flux and wall
     shear stress over a flat plate or a stagnation region.
   * Newtonian Flow Theory to estimate the pressure distribution around
-    objects and their aerodynamic characteristics. 
+    objects and their aerodynamic characteristics.
 
 The following charts has been generated with the functions included in this package:
 
@@ -53,6 +53,30 @@ The following charts has been generated with the functions included in this pack
    :width: 200
    :alt: Shock Reflection
 
+
+Development and Support
+=======================
+
+If you feel like a feature could be implemented, open an issue or create a PR.
+
+If you really want a new feature but you don't have the capabilities or the
+time to make it work, I'm willing to help; but first, open an issue or send
+me an email so that we can discuss a sponsorship strategy.
+
+Developing this module and its documentation was no easy job. Implementing
+new features and fixing bugs requires time and energy too. If you found this
+module useful and would like to show your appreciation, please consider
+sponsoring this project with either one of these options:
+
+.. button-link:: https://www.buymeacoffee.com/davide_sd
+    :color: primary
+
+    :fas:`mug-hot;fa-xl` Buy me a Coffee
+
+.. button-link:: https://github.com/sponsors/Davide-sd
+    :color: primary
+
+    :fab:`github;fa-xl` Github Sponsor :fas:`heart;fa-xl`
 
 
 .. toctree::

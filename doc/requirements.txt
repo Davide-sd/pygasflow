@@ -7,3 +7,4 @@ nbsphinx_link
 sphinx-rtd-theme
 cantera
 jinja2
+sphinx_design
