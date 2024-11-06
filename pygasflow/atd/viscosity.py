@@ -34,7 +34,7 @@ def viscosity_air_power_law(T):
 
     >>> from pygasflow.atd.viscosity import viscosity_air_power_law
     >>> viscosity_air_power_law(50)
-    3.5100000000000003e-06
+    np.float64(3.5100000000000003e-06)
 
     """
     v = np.zeros_like(T)
@@ -65,7 +65,7 @@ def viscosity_air_southerland(T):
 
     >>> from pygasflow.atd.viscosity import viscosity_air_southerland
     >>> viscosity_air_southerland(50)
-    3.2137209693578125e-06
+    np.float64(3.2137209693578125e-06)
 
     """
     return 1.458e-06 * T**1.5 / (T + 110.4)
@@ -111,12 +111,12 @@ def viscosity_chapman_enskog(T, gas="air", M=None, sigma=None, Sigma_mu=None):
 
     >>> from pygasflow.atd.viscosity import viscosity_chapman_enskog
     >>> viscosity_chapman_enskog(50)
-    3.4452054654966263e-06
+    np.float64(3.4452054654966263e-06)
 
     Compute the viscosity of molecular oxygen at T=300K:
 
     >>> viscosity_chapman_enskog(300, gas="O2")
-    1.8423646870376057e-05
+    np.float64(1.8423646870376057e-05)
 
     References
     ----------

@@ -108,13 +108,13 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
     >>> from pygasflow import shockwave_solver
     >>> shockwave_solver("m1", 2)
-    [2.0, 2.0, 0.5773502691896257, 0.5773502691896257, 90.0, 5.847257748779064e-15, 4.5, 2.666666666666667, 1.6874999999999998, 0.7208738614847455]
+    [np.float64(2.0), np.float64(2.0), np.float64(0.5773502691896257), np.float64(0.5773502691896257), np.float64(90.0), np.float64(5.847257748779064e-15), np.float64(4.5), np.float64(2.666666666666667), np.float64(1.6874999999999998), np.float64(0.7208738614847455)]
 
     Compute all ratios and parameters across an oblique shockwave starting
     from the shockwave angle and the deflection angle:
 
     >>> shockwave_solver("theta", 8, "beta", 80)
-    [1.511670289641015, 1.4887046212366817, 0.7414131402857721, 0.7051257983356364, 80.0, 7.999999999999998, 2.418948357506694, 1.84271116608139, 1.312711618636739, 0.9333272472012358]
+    [np.float64(1.511670289641015), np.float64(1.4887046212366817), np.float64(0.7414131402857721), np.float64(0.7051257983356364), np.float64(80.0), np.float64(7.999999999999998), np.float64(2.418948357506694), np.float64(1.84271116608139), np.float64(1.312711618636739), np.float64(0.9333272472012358)]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
@@ -317,7 +317,7 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
 
     >>> from pygasflow import conical_shockwave_solver
     >>> conical_shockwave_solver(2.5, "theta_c", 15)
-    [2.5, 2.1179295900668067, 15.0, 28.45459370447941, 6.229019180107892, 1.488659699248579, 1.3262664608044694, 1.122443900410184, 0.9936173734022627, 1.8051864085591218, 1.5220731269187135, 1.186005045771711]
+    [np.float64(2.5), np.float64(2.1179295900667547), np.float64(15.0), np.float64(28.454593704480512), np.float64(6.2290191801091845), np.float64(1.488659699248697), np.float64(1.326266460804543), np.float64(1.122443900410211), np.float64(0.9936173734022588), np.float64(1.8051864085592608), np.float64(1.5220731269187957), np.float64(1.186005045771739)]
 
     Compute the pressure ratio across a conical shockwave starting with
     multiple upstream Mach numbers and Mach numbers at the cone surface:

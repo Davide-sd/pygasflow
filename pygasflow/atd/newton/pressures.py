@@ -52,13 +52,13 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
     >>> from pygasflow.atd.newton.pressures import pressure_coefficient
     >>> from numpy import deg2rad
     >>> pressure_coefficient(deg2rad(5))
-    0.015192246987791938
+    np.float64(0.015192246987791938)
 
     Compute Cp with a modified Newtonian model for a body with an angle of
     attack of 5deg with a free stream Mach number of 20 in air:
 
     >>> pressure_coefficient(deg2rad(5), Mfs=20, gamma=1.4)
-    0.01395744352416113
+    np.float64(0.01395744352416113)
 
     Compute Cp with a Newtonian flow model for a sharp cone (axisymmetric
     configuration) with theta_b=15deg, exposed to an hypersonic stream of
@@ -66,13 +66,13 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
     with an angle of attack of 10deg, at a point located beta=45deg:
 
     >>> pressure_coefficient(deg2rad(15), alpha=deg2rad(10), beta=deg2rad(45))
-    0.2789909245623247
+    np.float64(0.2789909245623247)
 
     On the same axisymmetric configuration, compute Cp with a modified
     Netwonian flow mode:
 
     >>> pressure_coefficient(deg2rad(15), alpha=deg2rad(10), beta=deg2rad(45), Mfs=14.9, gamma=5.0/3.0)
-    0.2454586025665183
+    np.float64(0.2454586025665183)
 
     References
     ----------
@@ -275,7 +275,7 @@ def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):
     >>> from pygasflow.atd.newton.pressures import pressure_coefficient_tangent_cone
     >>> from numpy import deg2rad
     >>> pressure_coefficient_tangent_cone(deg2rad(10), 1.4)
-    0.06344098329442194
+    np.float64(0.06344098329442194)
 
     """
     return 2 * (gamma + 1) * (gamma + 7) / (gamma + 3)**2 * theta_c**2
@@ -301,7 +301,7 @@ def pressure_coefficient_tangent_wedge(theta_w, gamma=1.4):
     >>> from pygasflow.atd.newton.pressures import pressure_coefficient_tangent_wedge
     >>> from numpy import deg2rad
     >>> pressure_coefficient_tangent_wedge(deg2rad(10), 1.4)
-    0.07310818074881005
+    np.float64(0.07310818074881005)
 
     """
     return (gamma + 1) * theta_w**2

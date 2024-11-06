@@ -39,7 +39,7 @@ def sound_speed(*args, **kwargs):
 
     >>> from pygasflow.common import sound_speed
     >>> sound_speed(1.4, 287, 300)
-    347.18870949384285
+    np.float64(347.18870949384285)
 
     Compute the speed of sound of air at multiple temperatures:
 
@@ -52,7 +52,7 @@ def sound_speed(*args, **kwargs):
     >>> gas = ct.Solution("gri30.yaml")
     >>> gas.TPX = 300, ct.one_atm, {"N2": 1}
     >>> sound_speed(gas)
-    353.1256637274762
+    np.float64(353.1256637274762)
     """
     if len(args) == 3:
         gamma, R, T = args

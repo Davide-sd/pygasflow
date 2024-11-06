@@ -66,7 +66,7 @@ def Prandtl(*args, **kwargs):
     >>> air = ct.Solution("gri30.yaml")
     >>> air.TPX = 350, ct.one_atm, {"N2": 0.79, "O2": 0.21}
     >>> Prandtl(air)
-    0.7139365242266411
+    0.7139365242266991
 
     Compute the Prandtl number by providing mu, cp, k:
 
@@ -76,7 +76,7 @@ def Prandtl(*args, **kwargs):
     >>> mu = viscosity_air_southerland(350)
     >>> k = thermal_conductivity_hansen(350)
     >>> Prandtl(mu, cp, k)
-    0.7370392202421769
+    np.float64(0.7370392202421769)
 
     See Also
     --------

@@ -68,7 +68,7 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
     >>> from pygasflow import rayleigh_solver
     >>> rayleigh_solver("m", 2)
-    [2.0, 0.36363636363636365, 0.6875, 0.5289256198347108, 1.5030959785260414, 0.793388429752066, 1.4545454545454546, 1.2175752061512626]
+    [np.float64(2.0), np.float64(0.36363636363636365), np.float64(0.6875), np.float64(0.5289256198347108), np.float64(1.5030959785260414), np.float64(0.793388429752066), np.float64(1.4545454545454546), np.float64(1.2175752061512626)]
 
     Compute the subsonic Mach number starting from the critical entropy ratio:
 

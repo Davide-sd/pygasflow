@@ -65,7 +65,7 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
     >>> from pygasflow import fanno_solver
     >>> fanno_solver("m", 2)
-    [2.0, 0.408248290463863, 0.6123724356957945, 0.6666666666666667, 1.6875000000000002, 1.632993161855452, 0.3049965025814798, 0.523248143764548]
+    [np.float64(2.0), np.float64(0.408248290463863), np.float64(0.6123724356957945), np.float64(0.6666666666666667), np.float64(1.6875000000000002), np.float64(1.632993161855452), np.float64(0.3049965025814798), np.float64(0.523248143764548)]
 
     Compute the subsonic Mach number starting from the critical friction
     parameter:

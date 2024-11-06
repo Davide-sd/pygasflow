@@ -48,13 +48,13 @@ class Rao_Parabola_Angles(object):
     >>> from pygasflow import Rao_Parabola_Angles
     >>> p = Rao_Parabola_Angles()
     >>> print(p.angles_from_Lf_Ar(68, 35))
-    (36.11883335948745, 10.695233384809715)
+    (np.float64(36.11883335948745), np.float64(10.695233384809715))
 
     Compute the area ratio for a nozzle with fractional length 68 and an angle
     at the start of the parabola of 35 degrees:
 
     >>> p.area_ratio_from_Lf_angle(68, theta_n=35)
-    24.83022334667575
+    np.float64(24.83022334667575)
 
     """
 
