@@ -139,7 +139,10 @@ class FlowCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
 
     def __panel__(self):
         return pn.Column(
-            pn.Row(pn.GridBox(*self._plot_widgets(), ncols=2)),
             pn.Row(pn.pane.Str(self.param.error_log)),
-            pn.Row(pn.pane.Bokeh(self.figure))
+            pn.FlexBox(
+                pn.GridBox(*self._plot_widgets(), ncols=1),
+                pn.pane.Bokeh(self.figure)
+            )
         )
+
