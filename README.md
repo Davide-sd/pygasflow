@@ -4,6 +4,7 @@
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/pygasflow.svg)](https://anaconda.org/conda-forge/pygasflow)
 [![Documentation Status](https://readthedocs.org/projects/pygasflow/badge/?version=latest)](https://pygasflow.readthedocs.io/en/latest/?badge=latest)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
+[![](https://img.shields.io/static/v1?label=Github%20Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/Davide-sd)
 
 **pygasflow** is a Python package that provides a few handful functions to quickly perform:
 
