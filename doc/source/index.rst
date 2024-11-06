@@ -57,7 +57,8 @@ The following charts has been generated with the functions included in this pack
 Development and Support
 =======================
 
-If you feel like a feature could be implemented, open an issue or create a PR.
+If you feel like a feature could be implemented, open an
+`issue or create a PR <https://github.com/Davide-sd/pygasflow/issues>`_.
 
 If you really want a new feature but you don't have the capabilities or the
 time to make it work, I'm willing to help; but first, open an issue or send
