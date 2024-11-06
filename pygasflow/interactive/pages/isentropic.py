@@ -52,6 +52,8 @@ class IsentropicPage(Common, pn.viewable.Viewer):
         params.setdefault("_solver", isentropic_solver)
         params.setdefault("_diagram", IsentropicDiagram)
         params.setdefault("page_title", "Isentropic")
+        params.setdefault("page_description",
+            "Adiabatic and reversible 1D flow.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)

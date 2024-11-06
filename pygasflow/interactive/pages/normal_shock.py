@@ -43,6 +43,9 @@ class NormalShockPage(Common, pn.viewable.Viewer):
         params.setdefault("_filename", "normal_shockwave")
         params.setdefault("_diagram", NormalShockDiagram)
         params.setdefault("page_title", "Normal Shock")
+        params.setdefault("page_description",
+            "Change in properties caused by a shock wave perpendicular"
+            " to a 1D flow.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)

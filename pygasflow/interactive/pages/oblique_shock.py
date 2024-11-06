@@ -81,6 +81,10 @@ class ObliqueShockPage(Common, pn.viewable.Viewer):
         params.setdefault("_filename", "oblique_shockwave")
         params.setdefault("_diagram", ObliqueShockDiagram)
         params.setdefault("page_title", "Oblique Shock")
+        params.setdefault("page_description",
+            "Change in properties of a 1D flow caused by an"
+            " oblique shock wave. The streamlines experience some"
+            " deflection angle, θ, at the shock.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)

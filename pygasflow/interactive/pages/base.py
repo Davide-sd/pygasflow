@@ -32,8 +32,9 @@ def _combine(list_of_results):
     return new_results
 
 
-theme = "dark"
-tab_header_hover_bg = "#404040" if theme == "dark" else "#e6e6e6"
+def _get_tab_header_hover_bg(theme):
+    return "#404040" if theme == "dark" else "#e6e6e6"
+
 stylesheet = """
 .bk-clearfix hr {
     border:none;
@@ -50,6 +51,9 @@ stylesheet = """
 
 class Common(param.Parameterized):
     page_title = param.String("", doc="Title of the page.")
+
+    page_description = param.String("", doc="""
+        Brief description of what a page will help to compute.""")
 
     input_value = param.String(
         default="2",
@@ -82,6 +86,10 @@ class Common(param.Parameterized):
 
     _diagram = param.ClassSelector(class_=BasePlot, is_instance=False,
         doc="The class responsible to create a particular diagram.")
+
+    _theme = param.String("default", doc="""
+        Theme used by this page. Useful to apply custom stylesheet
+        to sub-components.""")
 
     # list of column names to be excluded by float formatter
     _float_formatters_exclusion = []
@@ -116,10 +124,11 @@ class Common(param.Parameterized):
                 # the following 3d lines represents a single rule
                 ":host .tabulator .tabulator-header"
                 " .tabulator-col.tabulator-sortable.tabulator-col-sorter-element:hover"
-                " {background-color: %s; !important}" % tab_header_hover_bg
+                " {background-color: %s; !important}" % _get_tab_header_hover_bg(self._theme)
             ],
             formatters={
-                name: NumberFormatter(format="0." + "".join(["0"] * self.num_decimal_places))
+                name: NumberFormatter(
+                    format="0." + "".join(["0"] * self.num_decimal_places))
                 for name in self._columns.values()
                 if name not in self._float_formatters_exclusion
             }
@@ -147,20 +156,22 @@ class Common(param.Parameterized):
 
     def __panel__(self):
         return pn.Column(
+            pn.pane.Markdown(
+                self.param.page_description,
+                styles={
+                    "font-size": "1.2em"
+                }
+            ),
             pn.Card(
                 self._diagram(),
                 title="Diagram",
                 sizing_mode='stretch_width',
                 collapsed=True
             ),
-            pn.Row(
-                pn.pane.Str(self.param.computation_info)
-            ),
-            pn.Row(
-                pn.widgets.FileDownload(
-                    callback=self._df_to_csv_callback,
-                    filename=self._filename + ".csv"
-                )
+            pn.pane.Str(self.param.computation_info),
+            pn.widgets.FileDownload(
+                callback=self._df_to_csv_callback,
+                filename=self._filename + ".csv"
             ),
             self._tabulator
         )

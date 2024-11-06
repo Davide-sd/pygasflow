@@ -55,6 +55,7 @@ class FannoPage(Common, pn.viewable.Viewer):
         params.setdefault("_solver", fanno_solver)
         params.setdefault("_diagram", FannoDiagram)
         params.setdefault("page_title", "Fanno")
+        params.setdefault("page_description", "1D flow with friction.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)

@@ -1,4 +1,5 @@
 import panel as pn
+import param
 from pygasflow.interactive.pages import (
     IsentropicPage,
     FannoPage,
@@ -11,9 +12,13 @@ from pygasflow.interactive.pages.base import stylesheet
 
 
 class CompressibleFlow(pn.viewable.Viewer):
+    _theme = param.String("default", doc="""
+        Theme used by this page. Useful to apply custom stylesheet
+        to sub-components.""")
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        pages = [T() for T in [
+        pages = [T(_theme=self._theme) for T in [
                 IsentropicPage,
                 FannoPage,
                 RayleighPage,
@@ -32,8 +37,23 @@ class CompressibleFlow(pn.viewable.Viewer):
         return self.tabs
 
 
-def compressible_app():
-    i = CompressibleFlow()
+def compressible_app(theme="default"):
+    """Create the `CompressibleFlow` web application.
+
+    Parameters
+    ----------
+    theme : str
+        Can be ``"default"`` (light theme) or ``"dark"`` for using
+        a dark theme.
+    """
+    if not isinstance(theme, str):
+        raise TypeError("`theme` must be a string.")
+    theme = theme.lower()
+    allowed_themes = ["default", "dark"]
+    if theme not in allowed_themes:
+        raise ValueError(f"`theme` must be one of {allowed_themes}.")
+
+    i = CompressibleFlow(_theme=theme)
 
     def update_sidebar(tab_idx):
         return list(i.components.values())[tab_idx].controls
@@ -45,7 +65,7 @@ def compressible_app():
         main_max_width="100%",
         main=i,
         sidebar=pn.bind(update_sidebar, i.tabs.param.active),
-        theme="dark"
+        theme=theme
     )
     template.config.raw_css = [
         ".title {font-size: 1em; font-weight: bold;}",

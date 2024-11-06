@@ -72,6 +72,9 @@ class ConicalShockPage(Common, pn.viewable.Viewer):
         params.setdefault("_filename", "conical_shockwave")
         params.setdefault("_diagram", ConicalShockDiagram)
         params.setdefault("page_title", "Conical Shock")
+        params.setdefault("page_description",
+            "Change in properties of an axisymmetric supersonic flow"
+            " over a sharp cone at zero angle of attack to the free stream.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)

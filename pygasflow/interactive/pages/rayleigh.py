@@ -57,6 +57,7 @@ class RayleighPage(Common, pn.viewable.Viewer):
         params.setdefault("_solver", rayleigh_solver)
         params.setdefault("_diagram", RayleighDiagram)
         params.setdefault("page_title", "Rayleigh")
+        params.setdefault("page_description", "1D flow with heat addition.")
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)
