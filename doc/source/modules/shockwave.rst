@@ -64,6 +64,8 @@ Oblique Shock Waves
 
 .. autofunction:: pressure_deflection
 
+.. autofunction:: oblique_mach_downstream
+
 
 Conical Flow
 ============
