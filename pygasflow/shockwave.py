@@ -796,6 +796,7 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
     """
 
     theta_max = max_theta_from_mach.__no_check(M1, gamma)
+    theta_max = np.atleast_1d(theta_max)
 
     if M1.shape:
         beta = np.zeros_like(M1)

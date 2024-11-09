@@ -19,7 +19,8 @@ from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
     mach_cone_angle_from_shock_angle,
     mach_downstream,
-    oblique_mach_downstream
+    oblique_mach_downstream,
+    beta_from_mach_max_theta
 )
 
 def check_val(v1, v2, tol=1e-05):
@@ -369,3 +370,14 @@ def test_oblique_mach_downstream():
         expected_results["theta"]
     )
     assert np.allclose(expected_mach_downstream, actual_mach_downstream_results)
+
+
+def test_beta_from_mach_max_theta():
+    assert np.isclose(
+        beta_from_mach_max_theta(2.5, 1.4),
+        64.78216996529343
+    )
+    assert np.allclose(
+        beta_from_mach_max_theta([2.5, 3.5], 1.4),
+        [64.78216997, 65.68861403]
+    )
