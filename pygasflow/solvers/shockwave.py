@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+from numbers import Number
 
 from pygasflow.isentropic import (
     pressure_ratio as ise_PR,
@@ -429,16 +430,16 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
         Mc = param_value
         if np.any(M1 <= Mc):
             raise ValueError("It must be M1 > Mc.")
-        if (not isinstance(Mc, (int, float))) or (Mc < 0):
+        if (not isinstance(Mc, Number)) or (Mc < 0):
             raise ValueError(
                 "The Mach number at the cone's surface must be Mc >= 0.")
     elif param_name == 'beta':
         beta = param_value
-        if (not isinstance(beta, (int, float))) or (beta <= 0) or (beta > 90):
+        if (not isinstance(beta, Number)) or (beta <= 0) or (beta > 90):
             raise ValueError("The shock wave angle must be 0 < beta <= 90.")
     else:
         theta_c = param_value
-        if (not isinstance(theta_c, (int, float))) or (theta_c <= 0) or (theta_c > 90):
+        if (not isinstance(theta_c, Number)) or (theta_c <= 0) or (theta_c > 90):
             raise ValueError("The half cone angle must be 0 < theta_c < 90.")
 
     if Mc:
