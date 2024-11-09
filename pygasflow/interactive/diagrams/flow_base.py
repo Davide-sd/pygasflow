@@ -53,9 +53,9 @@ class PlotSettings(BasePlot):
 
     y_label = param.String("Ratios", label="Y Label:")
 
-    x_range = param.Range((0, 5), bounds=(0, 90), label="X Range")
+    x_range = param.Range((0, 5), label="X Range")
 
-    y_range = param.Range((0, 3), bounds=(0, 90), label="Y Range")
+    y_range = param.Range((0, 3), label="Y Range")
 
     @param.depends("x_range", watch=True)
     def update_x_range(self):
@@ -65,11 +65,19 @@ class PlotSettings(BasePlot):
     def update_y_range(self):
         self.figure.y_range = Range1d(*self.y_range)
 
-    @param.depends("title", "x_label", "y_label", watch=True, on_init=True)
-    def update_title_labels(self):
+    @param.depends("title", watch=True, on_init=True)
+    def update_title(self):
         if self.figure is not None:
             self.figure.title.text = self.title
+
+    @param.depends("x_label", watch=True, on_init=True)
+    def update_x_label(self):
+        if self.figure is not None:
             self.figure.xaxis.axis_label = self.x_label
+
+    @param.depends("y_label", watch=True, on_init=True)
+    def update_y_label(self):
+        if self.figure is not None:
             self.figure.yaxis[0].axis_label = self.y_label
 
 

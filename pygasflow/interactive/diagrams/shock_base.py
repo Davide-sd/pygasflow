@@ -118,8 +118,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             "y_axis_label": self.y_label,
             "title": self.title,
             "y_range": self.y_range,
-            "width": 700,
-            "height": 400,
+            "width": self.size[0],
+            "height": self.size[1],
         })
         colors = itertools.cycle(self.colors)
 

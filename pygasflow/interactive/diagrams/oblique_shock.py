@@ -18,6 +18,7 @@ class ObliqueShockDiagram(ShockCommon):
         params.setdefault("y_label", "Shock Wave Angle, β [deg]")
         params.setdefault("x_range", (0, 50))
         params.setdefault("y_range", (0, 90))
+        params.setdefault("size", (700, 400))
         super().__init__(**params)
 
     def _compute_results(self):

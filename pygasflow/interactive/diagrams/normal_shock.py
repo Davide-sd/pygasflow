@@ -26,6 +26,7 @@ class NormalShockDiagram(FlowCommon):
         params.setdefault("title", "Normal Shock Properties")
         params.setdefault("x_label", "Upstream Mach, M1")
         params.setdefault("y_range", (0, 1.5))
+        params.setdefault("size", (700, 400))
         params.setdefault("labels", [
             "M2", "p2/p1", "rho2/rho1", "T2/T1", "P02/P01*"
         ])

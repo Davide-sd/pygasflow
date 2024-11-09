@@ -19,8 +19,9 @@ class ConicalShockDiagram(ShockCommon):
             "title", "Conical Shock Properties: Mach - β - θc")
         params.setdefault("x_label", "Half cone angle, θc [deg]")
         params.setdefault("y_label", "Shock Wave Angle, β [deg]")
-        params.setdefault("x_range", (0, 50))
+        params.setdefault("x_range", (0, 60))
         params.setdefault("y_range", (0, 90))
+        params.setdefault("size", (700, 400))
         super().__init__(**params)
 
     def _compute_results(self):

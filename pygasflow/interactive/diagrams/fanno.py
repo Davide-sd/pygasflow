@@ -10,7 +10,6 @@ class FannoDiagram(FlowCommon):
     ie the 1D flow with head addition.
     """
 
-
     def __init__(self, **params):
         params.setdefault("title", "Fanno Flow")
         params.setdefault("labels", [

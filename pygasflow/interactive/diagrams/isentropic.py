@@ -26,6 +26,8 @@ class IsentropicDiagram(FlowCommon):
 
     @param.depends("y_range_right", watch=True)
     def update_y_range_right(self):
+        # TODO: this is wrong. How do I set the range on the other
+        # y-axis?
         self.figure.y_range = Range1d(*self.y_range)
 
     @param.depends("y_label_right", watch=True, on_init=True)
