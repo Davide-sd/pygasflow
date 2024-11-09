@@ -14,10 +14,19 @@
 
 import numpy as np
 from pygasflow.solvers import isentropic_solver as ise
-from pygasflow.isentropic import critical_pressure_ratio
+from pygasflow.isentropic import (
+    critical_pressure_ratio,
+    sonic_density_ratio,
+    sonic_pressure_ratio,
+    sonic_temperature_ratio,
+    sonic_sound_speed_ratio
+)
+from pytest import raises
+
 
 def check_val(v1, v2, tol=1e-05):
     assert abs(v1 - v2) < tol
+
 
 def test_input_mach():
     tol = 1e-05
@@ -157,3 +166,28 @@ def test_to_dict():
     check_val(r2["ars"],  r1[8], tol)
     check_val(r2["ma"], r1[9], tol)
     check_val(r2["pm"], r1[10], tol)
+
+
+def test_sonic_conditions():
+    assert np.isclose(sonic_density_ratio(), 1.5774409656148785)
+    assert np.isclose(sonic_pressure_ratio(), 1.892929158737854)
+    assert np.isclose(sonic_temperature_ratio(), 1.2)
+    assert np.isclose(sonic_sound_speed_ratio(), 1.0954451150103321)
+
+    gammas = [1.4, 1.5]
+    assert np.allclose(sonic_density_ratio(gammas), [1.57744097, 1.5625])
+    assert np.allclose(sonic_pressure_ratio(gammas), [1.89292916, 1.953125])
+    assert np.allclose(sonic_temperature_ratio(gammas), [1.2, 1.25])
+    assert np.allclose(sonic_sound_speed_ratio(gammas), [1.09544512, 1.11803399])
+
+    for f in [
+        sonic_density_ratio,
+        sonic_pressure_ratio,
+        sonic_temperature_ratio,
+        sonic_sound_speed_ratio
+    ]:
+        with raises(
+            ValueError,
+            match="The specific heats ratio must be > 1."
+        ):
+            f(0.9)

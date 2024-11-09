@@ -461,3 +461,75 @@ def get_ratios_from_mach(M, gamma):
     pm = prandtl_meyer_angle.__no_check(M, gamma)
 
     return pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
+
+
+@check([0])
+def sonic_temperature_ratio(gamma=1.4):
+    """
+    Compute the sonic temperature ratio T0/T*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    out : float
+        Sonic Temperature ratio T0/T*.
+    """
+    return (gamma + 1) / 2
+
+
+@check([0])
+def sonic_sound_speed_ratio(gamma=1.4):
+    """
+    Compute the sonic temperature ratio a0/a*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    out : float
+        Sonic Temperature ratio a0/a*.
+    """
+    return np.sqrt((gamma + 1) / 2)
+
+
+@check([0])
+def sonic_pressure_ratio(gamma=1.4):
+    """
+    Compute the sonic pressure ratio P0/P*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    out : float
+        Sonic Pressure ratio P0/P*.
+    """
+    return ((gamma + 1) / 2)**(gamma / (gamma - 1))
+
+
+@check([0])
+def sonic_density_ratio(gamma=1.4):
+    """
+    Compute the sonic density ratio rho0/rho*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    out : float
+        Sonic density ratio rho0/rho*.
+    """
+    return ((gamma + 1) / 2)**(1 / (gamma - 1))

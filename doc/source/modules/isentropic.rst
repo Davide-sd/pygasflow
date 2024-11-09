@@ -38,3 +38,11 @@ Isentropic Flow
 .. autofunction:: m_from_prandtl_meyer_angle
 
 .. autofunction:: prandtl_meyer_angle
+
+.. autofunction:: sonic_temperature_ratio
+
+.. autofunction:: sonic_pressure_ratio
+
+.. autofunction:: sonic_density_ratio
+
+.. autofunction:: sonic_sound_speed_ratio
