@@ -357,3 +357,88 @@ def test_conical_shock_related_page_ui_controls():
     assert isinstance(sidebar_controls.objects[7], pn.layout.Divider)
     assert isinstance(sidebar_controls.objects[8], pn.widgets.IntInput)
 
+
+@pytest.mark.parametrize("PageClass", [
+    IsentropicPage,
+    FannoPage,
+    RayleighPage,
+    NormalShockPage,
+])
+def test_flow_related_pages_parameter_propagation(PageClass):
+    # verify that parameters set on pages are correctly passed down
+    # to sections
+
+    p = PageClass()
+    s = p.sections[0]
+    param_name = "m1" if PageClass is NormalShockPage else "m"
+    p.input_parameter = param_name
+    p.input_value = "2, 3, 5, 8"
+    p.gamma = "1.1, 1.3, 1.5"
+    assert s.input_parameter == param_name
+    assert np.allclose(s.input_value, [2, 3, 5, 8])
+    assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
+
+    p.input_parameter = "pressure"
+    p.input_value = "0.1, 0.2, 0.3"
+    assert s.input_parameter == "pressure"
+    assert np.allclose(s.input_value, [0.1, 0.2, 0.3])
+
+
+def test_oblique_shock_page_parameter_propagation():
+    # verify that parameters set on pages are correctly passed down
+    # to sections
+
+    p = ObliqueShockPage()
+    s = p.sections[0]
+    param_name1 = "m1"
+    param_name2 = "theta"
+    p.input_parameter_1 = param_name1
+    p.input_parameter_2 = param_name2
+    p.input_value_1 = "2, 3, 5, 8"
+    p.input_value_2 = "10, 20, 30"
+    p.gamma = "1.1, 1.3, 1.5"
+    assert s.input_parameter_1 == param_name1
+    assert s.input_parameter_2 == param_name2
+    assert np.allclose(s.input_value_1, [2, 3, 5, 8])
+    assert np.allclose(s.input_value_2, [10, 20, 30])
+    assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
+
+    param_name1 = "pressure"
+    param_name2 = "beta"
+    p.input_parameter_1 = param_name1
+    p.input_parameter_2 = param_name2
+    p.input_value_1 = "5, 6"
+    p.input_value_2 = "10, 20, 30, 40"
+    assert s.input_parameter_1 == param_name1
+    assert s.input_parameter_2 == param_name2
+    assert np.allclose(s.input_value_1, [5, 6])
+    assert np.allclose(s.input_value_2, [10, 20, 30, 40])
+    assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
+
+
+def test_conical_shock_page_parameter_propagation():
+    # verify that parameters set on pages are correctly passed down
+    # to sections
+
+    p = ConicalShockPage()
+    s = p.sections[0]
+    param_name2 = "theta_c"
+    p.input_parameter_2 = param_name2
+    p.input_value_1 = "2, 3, 5, 8"
+    p.input_value_2 = "10, 20, 30"
+    p.gamma = "1.1, 1.3, 1.5"
+    assert s.input_parameter_1 == "m1"
+    assert s.input_parameter_2 == param_name2
+    assert np.allclose(s.input_value_1, [2, 3, 5, 8])
+    assert np.allclose(s.input_value_2, [10, 20, 30])
+    assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
+
+    param_name2 = "beta"
+    p.input_parameter_2 = param_name2
+    p.input_value_1 = "5, 6"
+    p.input_value_2 = "10, 20, 30, 40"
+    assert s.input_parameter_1 == "m1"
+    assert s.input_parameter_2 == param_name2
+    assert np.allclose(s.input_value_1, [5, 6])
+    assert np.allclose(s.input_value_2, [10, 20, 30, 40])
+    assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
