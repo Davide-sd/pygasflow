@@ -2,10 +2,44 @@ import param
 import panel as pn
 from pygasflow.solvers import fanno_solver
 from pygasflow.interactive.diagrams import FannoDiagram
-from pygasflow.interactive.pages.base import Common
+from pygasflow.interactive.pages.base import (
+    FlowPage,
+    FlowSection,
+    _parse_input_string
+)
 
 
-class FannoPage(Common, pn.viewable.Viewer):
+class FannoSection(FlowSection):
+    def __init__(self, **params):
+        params.setdefault("solver", fanno_solver)
+        params.setdefault("diagram", FannoDiagram)
+        params.setdefault("filename", "fanno")
+        params.setdefault("title", "Fanno Section")
+        params.setdefault("wrap_in_card", False)
+        params.setdefault("columns_map", {
+            "gamma": "gamma",
+            "m": "Mach",
+            "prs": "P/P*",
+            "drs": "rho/rho*",
+            "trs": "T/T*",
+            "tprs": "P0/P0*",
+            "urs": "U/U*",
+            "fps": "4fL*/D",
+            "eps": "(s*-s)/R"
+        })
+        params.setdefault("internal_map", {
+            "total_pressure_sub": "tprs",
+            "total_pressure_super": "tprs",
+            "friction_sub": "fps",
+            "friction_super": "fps",
+            "entropy_sub": "eps",
+            "entropy_super": "eps"
+        })
+        super().__init__(**params)
+        self.compute()
+
+
+class FannoPage(FlowPage):
     input_parameter = param.Selector(
         label="Select parameter:",
         objects={
@@ -24,38 +58,13 @@ class FannoPage(Common, pn.viewable.Viewer):
         doc="The input parameter to be used in the fanno computation."
     )
 
-    _columns = {
-        "gamma": "gamma",
-        "m": "Mach",
-        "prs": "P/P*",
-        "drs": "rho/rho*",
-        "trs": "T/T*",
-        "tprs": "P0/P0*",
-        "urs": "U/U*",
-        "fps": "4fL*/D",
-        "eps": "(s*-s)/R"
-    }
-
-    _internal_map = {
-        "m": "m",
-        "pressure": "prs",
-        "density": "drs",
-        "temperature": "trs",
-        "total_pressure_sub": "tprs",
-        "total_pressure_super": "tprs",
-        "velocity": "urs",
-        "friction_sub": "fps",
-        "friction_super": "fps",
-        "entropy_sub": "eps",
-        "entropy_super": "eps"
-    }
-
     def __init__(self, **params):
-        params.setdefault("_filename", "fanno")
-        params.setdefault("_solver", fanno_solver)
-        params.setdefault("_diagram", FannoDiagram)
+        params.pop("_theme", "")
         params.setdefault("page_title", "Fanno")
         params.setdefault("page_description", "1D flow with friction.")
+        params.setdefault("sections", [
+            FannoSection(theme=self.theme)
+        ])
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)
@@ -64,7 +73,7 @@ class FannoPage(Common, pn.viewable.Viewer):
         # when user changes `input_parameter`
         if self.input_parameter == "m":
             self.input_value = "2"
-        if self.input_parameter == "pressure":
+        elif self.input_parameter == "pressure":
             self.input_value = "0.408248290463863"
         elif self.input_parameter ==  "density":
             self.input_value = "0.6123724356957945"
@@ -84,4 +93,10 @@ class FannoPage(Common, pn.viewable.Viewer):
         watch=True, on_init=True
     )
     def compute(self):
-        self._compute()
+        # update all parameters simoultaneously
+        new_params = dict(
+            gamma=_parse_input_string(self.gamma),
+            input_parameter=self.input_parameter,
+            input_value=_parse_input_string(self.input_value)
+        )
+        self.sections[0].param.update(**new_params)

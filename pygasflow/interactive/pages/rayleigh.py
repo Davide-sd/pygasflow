@@ -2,10 +2,47 @@ import param
 import panel as pn
 from pygasflow.solvers import rayleigh_solver
 from pygasflow.interactive.diagrams import RayleighDiagram
-from pygasflow.interactive.pages.base import Common
+from pygasflow.interactive.pages.base import (
+    FlowPage,
+    FlowSection,
+    _parse_input_string
+)
 
 
-class RayleighPage(Common, pn.viewable.Viewer):
+class RayleighSection(FlowSection):
+    def __init__(self, **params):
+        params.setdefault("solver", rayleigh_solver)
+        params.setdefault("diagram", RayleighDiagram)
+        params.setdefault("filename", "rayleigh")
+        params.setdefault("title", "Rayleigh Section")
+        params.setdefault("wrap_in_card", False)
+        params.setdefault("columns_map", {
+            "gamma": "gamma",
+            "m": "Mach",
+            "prs": "P/P*",
+            "drs": "rho/rho*",
+            "trs": "T/T*",
+            "tprs": "P0/P0*",
+            "ttrs": "T0/T0*",
+            "urs": "U/U*",
+            "eps": "(s*-s)/R"
+        })
+        params.setdefault("internal_map", {
+            "temperature_sub": "trs",
+            "temperature_super": "trs",
+            "total_pressure_sub": "tprs",
+            "total_pressure_super": "tprs",
+            "total_temperature_sub": "ttrs",
+            "total_temperature_super": "ttrs",
+            "entropy_sub": "eps",
+            "entropy_super": "eps"
+        })
+        super().__init__(**params)
+        self.compute()
+
+
+
+class RayleighPage(FlowPage):
     input_parameter = param.Selector(
         label="Select parameter:",
         objects={
@@ -25,39 +62,13 @@ class RayleighPage(Common, pn.viewable.Viewer):
         doc="The input parameter to be used in the rayleigh computation."
     )
 
-    _columns = {
-        "gamma": "gamma",
-        "m": "Mach",
-        "prs": "P/P*",
-        "drs": "rho/rho*",
-        "trs": "T/T*",
-        "tprs": "P0/P0*",
-        "ttrs": "T0/T0*",
-        "urs": "U/U*",
-        "eps": "(s*-s)/R"
-    }
-
-    _internal_map = {
-        "m": "m",
-        "pressure": "prs",
-        "density": "drs",
-        "temperature_sub": "trs",
-        "temperature_super": "trs",
-        "total_pressure_sub": "tprs",
-        "total_pressure_super": "tprs",
-        "total_temperature_sub": "ttrs",
-        "total_temperature_super": "ttrs",
-        "velocity": "urs",
-        "entropy_sub": "eps",
-        "entropy_super": "eps"
-    }
-
     def __init__(self, **params):
-        params.setdefault("_filename", "rayleigh")
-        params.setdefault("_solver", rayleigh_solver)
-        params.setdefault("_diagram", RayleighDiagram)
+        params.pop("_theme", "")
         params.setdefault("page_title", "Rayleigh")
         params.setdefault("page_description", "1D flow with heat addition.")
+        params.setdefault("sections", [
+            RayleighSection(theme=self.theme)
+        ])
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)
@@ -66,7 +77,7 @@ class RayleighPage(Common, pn.viewable.Viewer):
         # when user changes `input_parameter`
         if self.input_parameter == "m":
             self.input_value = "2"
-        if self.input_parameter == "pressure":
+        elif self.input_parameter == "pressure":
             self.input_value = "0.36363636363636365"
         elif self.input_parameter ==  "density":
             self.input_value = "0.6875"
@@ -86,4 +97,10 @@ class RayleighPage(Common, pn.viewable.Viewer):
         watch=True, on_init=True
     )
     def compute(self):
-        self._compute()
+        # update all parameters simoultaneously
+        new_params = dict(
+            gamma=_parse_input_string(self.gamma),
+            input_parameter=self.input_parameter,
+            input_value=_parse_input_string(self.input_value)
+        )
+        self.sections[0].param.update(**new_params)

@@ -1,10 +1,36 @@
 import param
 import panel as pn
+from pygasflow.solvers import normal_shockwave_solver
 from pygasflow.interactive.diagrams import NormalShockDiagram
-from pygasflow.interactive.pages.base import Common, stylesheet
+from pygasflow.interactive.pages.base import (
+    FlowPage,
+    FlowSection,
+    _parse_input_string
+)
 
 
-class NormalShockPage(Common, pn.viewable.Viewer):
+class NormalShockSection(FlowSection):
+    def __init__(self, **params):
+        params.setdefault("solver", normal_shockwave_solver)
+        params.setdefault("diagram", NormalShockDiagram)
+        params.setdefault("filename", "normal_shock")
+        params.setdefault("title", "Normal Shock Section")
+        params.setdefault("wrap_in_card", False)
+        params.setdefault("columns_map", {
+            "gamma": "gamma",
+            "m1": "Upstream Mach",
+            "m2": "Downstream Mach",
+            "pr": "P2/P1",
+            "dr": "rho2/rho1",
+            "tr": "T2/T1",
+            "tpr": "P02/P01"
+        })
+        params.setdefault("input_parameter", "m1")
+        super().__init__(**params)
+        self.compute()
+
+
+class NormalShockPage(FlowPage):
     input_parameter = param.Selector(
         label="Select parameter:",
         objects={
@@ -15,37 +41,18 @@ class NormalShockPage(Common, pn.viewable.Viewer):
             "Temperature Ratio T2/T1": "temperature",
             "Total Pressure Ratio P02/P01": "total_pressure"
         },
-        doc="Fisrt input parameter to be used in the shockwave computation."
+        doc="First input parameter to be used in the shockwave computation."
     )
 
-    _columns = {
-        "gamma": "gamma",
-        "m1": "Upstream Mach",
-        "m2": "Downstream Mach",
-        "pr": "P2/P1",
-        "dr": "rho2/rho1",
-        "tr": "T2/T1",
-        "tpr": "P02/P01"
-    }
-
-    _float_formatters_exclusion = ["Solution"]
-
-    _internal_map = {
-        "m1": "m1",
-        "m2": "m2",
-        "pressure": "pr",
-        "density": "dr",
-        "temperature": "tr",
-        "total_pressure": "tpr",
-    }
-
     def __init__(self, **params):
-        params.setdefault("_filename", "normal_shockwave")
-        params.setdefault("_diagram", NormalShockDiagram)
+        params.pop("_theme", "")
         params.setdefault("page_title", "Normal Shock")
         params.setdefault("page_description",
             "Change in properties caused by a shock wave perpendicular"
             " to a 1D flow.")
+        params.setdefault("sections", [
+            NormalShockSection(theme=self.theme)
+        ])
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)
@@ -54,9 +61,9 @@ class NormalShockPage(Common, pn.viewable.Viewer):
         # when user changes `input_parameter`
         if self.input_parameter == "m1":
             self.input_value = "2"
-        if self.input_parameter == "m2":
+        elif self.input_parameter == "m2":
             self.input_value = "0.5773502691896257"
-        if self.input_parameter == "pressure":
+        elif self.input_parameter == "pressure":
             self.input_value = "4.5"
         elif self.input_parameter ==  "density":
             self.input_value = "2.666666666666667"
@@ -65,12 +72,16 @@ class NormalShockPage(Common, pn.viewable.Viewer):
         elif self.input_parameter == "total_pressure":
             self.input_value = "0.7208738614847455"
 
-    def _create_sidebar_controls(self):
-        self.controls = pn.Column(
-            self.param.input_parameter,
-            self.param.input_value,
-            pn.layout.Divider(stylesheets=[stylesheet]),
-            self.param.gamma,
-            pn.layout.Divider(stylesheets=[stylesheet]),
-            self.param.num_decimal_places
+    @param.depends(
+        "input_parameter", "input_value", "gamma",
+        watch=True, on_init=True
+    )
+    def compute(self):
+        # update all parameters simoultaneously
+        new_params = dict(
+            gamma=_parse_input_string(self.gamma),
+            input_parameter=self.input_parameter,
+            input_value=_parse_input_string(self.input_value)
         )
+        self.sections[0].param.update(**new_params)
+

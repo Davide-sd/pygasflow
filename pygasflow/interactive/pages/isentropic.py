@@ -2,10 +2,43 @@ import param
 import panel as pn
 from pygasflow.solvers import isentropic_solver
 from pygasflow.interactive.diagrams import IsentropicDiagram
-from pygasflow.interactive.pages.base import Common
+from pygasflow.interactive.pages.base import (
+    FlowPage,
+    FlowSection,
+    _parse_input_string
+)
 
 
-class IsentropicPage(Common, pn.viewable.Viewer):
+class IsentropicSection(FlowSection):
+    def __init__(self, **params):
+        params.setdefault("solver", isentropic_solver)
+        params.setdefault("diagram", IsentropicDiagram)
+        params.setdefault("filename", "isentropic")
+        params.setdefault("title", "Isentropic Section")
+        params.setdefault("wrap_in_card", False)
+        params.setdefault("columns_map", {
+            "gamma": "gamma",
+            "m": "Mach",
+            "pr": "P/P0",
+            "dr": "rho/rho0",
+            "tr": "T/T0",
+            "prs": "P/P*",
+            "drs": "rho/rho*",
+            "trs": "T/T*",
+            "urs": "U/U*",
+            "ars": "A/A*",
+            "ma": "Mach Angle [deg]",
+            "pm": "Prandtl-Meyer Angle [deg]"
+        })
+        params.setdefault("internal_map", {
+            "crit_area_sub": "ars",
+            "crit_area_super": "ars",
+        })
+        super().__init__(**params)
+        self.compute()
+
+
+class IsentropicPage(FlowPage):
     input_parameter = param.Selector(
         label="Select parameter:",
         objects={
@@ -21,39 +54,14 @@ class IsentropicPage(Common, pn.viewable.Viewer):
         doc="The input parameter to be used in the isentropic computation."
     )
 
-    _columns = {
-        "gamma": "gamma",
-        "m": "Mach",
-        "pr": "P/P0",
-        "dr": "rho/rho0",
-        "tr": "T/T0",
-        "prs": "P/P*",
-        "drs": "rho/rho*",
-        "trs": "T/T*",
-        "urs": "U/U*",
-        "ars": "A/A*",
-        "ma": "Mach Angle [deg]",
-        "pm": "Prandtl-Meyer Angle [deg]"
-    }
-
-    _internal_map = {
-        "m": "m",
-        "pressure": "pr",
-        "density": "dr",
-        "temperature": "tr",
-        "crit_area_sub": "ars",
-        "crit_area_super": "ars",
-        "mach_angle": "ma",
-        "prandtl_meyer": "pm"
-    }
-
     def __init__(self, **params):
-        params.setdefault("_filename", "isentropic")
-        params.setdefault("_solver", isentropic_solver)
-        params.setdefault("_diagram", IsentropicDiagram)
+        params.pop("_theme", "")
         params.setdefault("page_title", "Isentropic")
         params.setdefault("page_description",
             "Adiabatic and reversible 1D flow.")
+        params.setdefault("sections", [
+            IsentropicSection(theme=self.theme)
+        ])
         super().__init__(**params)
 
     @param.depends("input_parameter", watch=True, on_init=True)
@@ -62,7 +70,7 @@ class IsentropicPage(Common, pn.viewable.Viewer):
         # when user changes `input_parameter`
         if self.input_parameter == "m":
             self.input_value = "2"
-        if self.input_parameter == "pressure":
+        elif self.input_parameter == "pressure":
             self.input_value = "0.12780452546295096"
         elif self.input_parameter ==  "density":
             self.input_value = "0.2300481458333117"
@@ -80,4 +88,10 @@ class IsentropicPage(Common, pn.viewable.Viewer):
         watch=True, on_init=True
     )
     def compute(self):
-        self._compute()
+        # update all parameters simoultaneously
+        new_params = dict(
+            gamma=_parse_input_string(self.gamma),
+            input_parameter=self.input_parameter,
+            input_value=_parse_input_string(self.input_value)
+        )
+        self.sections[0].param.update(**new_params)
