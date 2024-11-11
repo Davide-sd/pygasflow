@@ -10,3 +10,8 @@ from .de_laval import (
     De_Laval_Solver,
      find_shockwave_area_ratio
 )
+from .gas import (
+    gas_solver,
+    ideal_gas_solver,
+    sonic_condition,
+)
