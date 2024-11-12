@@ -5,6 +5,8 @@ from pygasflow.solvers import (
     rayleigh_solver,
     shockwave_solver,
     conical_shockwave_solver,
+    gas_solver,
+    ideal_gas_solver,
     De_Laval_Solver
 )
 
