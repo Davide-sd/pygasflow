@@ -159,7 +159,7 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=False):
 def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=False):
     """Solve for quantities of the ideal gas law: p/rho = R*T
 
-    Note: 3 numerical parameters are need to compute the wanted quantity.
+    Note: 3 numerical parameters are needed to compute the wanted quantity.
 
     Parameters
     ----------
