@@ -236,10 +236,11 @@ class FlowSection(TabulatorSection):
             list_of_results.append(results)
 
         results = _combine(list_of_results)
-        rows = [results[k] for k in self.columns_map]
-        data = np.vstack(rows).T
+        df = pd.DataFrame(data=results)
+        df.rename(columns=self.columns_map, inplace=True)
+        df = df.reindex(columns=self.columns_map.values())
+        self.results = df
         self.computation_info = "\n".join(info)
-        self.results = pd.DataFrame(data, columns=self.columns_map.values())
 
 
 class ShockSection(TabulatorSection):
@@ -324,19 +325,11 @@ class ShockSection(TabulatorSection):
                 list_of_results.append(results)
 
         results = _combine(list_of_results)
-        rows = [results[k] for k in self.columns_map]
-        data = np.vstack(rows).T
+        df = pd.DataFrame(data=results)
+        df.rename(columns=self.columns_map, inplace=True)
+        df = df.reindex(columns=self.columns_map.values())
+        self.results = df
         self.computation_info = "\n".join(info)
-        results = pd.DataFrame(
-            data, columns=self.columns_map.values()
-        )
-        # this step is necessary, otherwise all columns would be of dtype
-        # str, requiring more steps in testing
-        dtypes = {}
-        for c in results.columns:
-            dtypes[c] = np.float64 if c != "Solution" else str
-        results = results.astype(dtypes)
-        self.results = results
 
 
 class Common(param.Parameterized):
