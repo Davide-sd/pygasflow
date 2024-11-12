@@ -7,6 +7,7 @@ from pygasflow.interactive.diagrams import (
     NormalShockDiagram,
     ObliqueShockDiagram,
     ConicalShockDiagram,
+    GasDiagram
 )
 from pygasflow.interactive.pages import (
     IsentropicPage,
@@ -15,6 +16,7 @@ from pygasflow.interactive.pages import (
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
+    GasPage
 )
 from pygasflow.solvers import (
     isentropic_solver,
@@ -22,7 +24,9 @@ from pygasflow.solvers import (
     rayleigh_solver,
     normal_shockwave_solver,
     shockwave_solver,
-    conical_shockwave_solver
+    conical_shockwave_solver,
+    gas_solver,
+    ideal_gas_solver
 )
 from pygasflow.interactive.pages.isentropic import IsentropicSection
 from pygasflow.interactive.pages.fanno import FannoSection
@@ -30,6 +34,7 @@ from pygasflow.interactive.pages.rayleigh import RayleighSection
 from pygasflow.interactive.pages.normal_shock import NormalShockSection
 from pygasflow.interactive.pages.oblique_shock import ObliqueShockSection
 from pygasflow.interactive.pages.conical_shock import ConicalShockSection
+from pygasflow.interactive.pages.gas import GasSection, IdealGasSection
 import pytest
 
 
@@ -70,6 +75,12 @@ expected = {
         "num_sections": 1,
         "sections": (ConicalShockSection, ),
     },
+    GasPage: {
+        "page_title": "Gas",
+        "page_description": "Compute gas-related quantities.",
+        "num_sections": 2,
+        "sections": (GasSection, IdealGasSection, ),
+    },
 }
 
 expected_sections = {
@@ -109,6 +120,18 @@ expected_sections = {
         "diagram": ConicalShockDiagram,
         "solver": conical_shockwave_solver,
     },
+    GasSection: {
+        "title": "Gas",
+        "filename": "gas",
+        "diagram": GasDiagram,
+        "solver": gas_solver,
+    },
+    IdealGasSection: {
+        "title": "Ideal Gas",
+        "filename": "ideal_gas",
+        "diagram": None,
+        "solver": ideal_gas_solver,
+    },
 }
 
 
@@ -119,6 +142,8 @@ expected_sections = {
     NormalShockSection,
     ObliqueShockSection,
     ConicalShockSection,
+    GasSection,
+    IdealGasSection
 ])
 def test_sections_instantiation(SectionClass):
     s = SectionClass()
@@ -266,6 +291,29 @@ def test_update_oblique_shock_section_theta_beta():
         assert sol1 == sol2
 
 
+@pytest.mark.parametrize("SectionClass", [
+    IsentropicSection,
+    FannoSection,
+    RayleighSection,
+    NormalShockSection,
+    ObliqueShockSection,
+    ConicalShockSection,
+    GasSection,
+    IdealGasSection
+])
+def test_section_columns_names(SectionClass):
+    # verify that appropriate column names are used in the dataframe
+    s = SectionClass()
+    if SectionClass not in [ObliqueShockSection, ConicalShockSection]:
+        assert s.results.shape == (1, len(s.columns_map))
+    else:
+        assert s.results.shape == (2, len(s.columns_map))
+    assert len(set(s.columns_map.values()).difference(s.results.columns)) == 0
+    # verify the order is correct
+    for name1, name2 in zip(s.columns_map.values(), s.results.columns):
+        assert name1 == name2
+
+
 @pytest.mark.parametrize("PageClass", [
     IsentropicPage,
     FannoPage,
@@ -273,6 +321,7 @@ def test_update_oblique_shock_section_theta_beta():
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
+    GasPage
 ])
 def test_page_instantiation(PageClass):
     p = PageClass()
@@ -295,6 +344,7 @@ def test_page_instantiation(PageClass):
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
+    GasPage
 ])
 def test_page_content(PageClass):
     p = PageClass()
@@ -356,6 +406,28 @@ def test_conical_shock_related_page_ui_controls():
     assert isinstance(sidebar_controls.objects[6], pn.widgets.Select)
     assert isinstance(sidebar_controls.objects[7], pn.layout.Divider)
     assert isinstance(sidebar_controls.objects[8], pn.widgets.IntInput)
+
+
+def test_gas_page_ui_controls():
+    p = GasPage()
+    sidebar_controls = p.controls
+    assert isinstance(sidebar_controls, pn.Column)
+    assert len(sidebar_controls.objects) == 15
+    assert isinstance(sidebar_controls.objects[0], pn.pane.Markdown)
+    assert isinstance(sidebar_controls.objects[1], pn.widgets.MultiChoice)
+    assert isinstance(sidebar_controls.objects[2], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[3], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[4], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[5], pn.layout.Divider)
+    assert isinstance(sidebar_controls.objects[6], pn.pane.Markdown)
+    assert isinstance(sidebar_controls.objects[7], pn.widgets.Select)
+    assert isinstance(sidebar_controls.objects[8], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[9], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[10], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[11], pn.widgets.TextInput)
+    assert isinstance(sidebar_controls.objects[12], pn.layout.Divider)
+    assert isinstance(sidebar_controls.objects[13], pn.pane.Markdown)
+    assert isinstance(sidebar_controls.objects[14], pn.widgets.IntInput)
 
 
 @pytest.mark.parametrize("PageClass", [
@@ -442,3 +514,28 @@ def test_conical_shock_page_parameter_propagation():
     assert np.allclose(s.input_value_1, [5, 6])
     assert np.allclose(s.input_value_2, [10, 20, 30, 40])
     assert np.allclose(s.gamma, [1.1, 1.3, 1.5])
+
+
+def test_gas_page_parameter_propagation():
+    p = GasPage()
+    s1, s2 = p.sections
+    assert len(s1.results) == 1
+    assert len(s2.results) == 1
+
+    # gas section
+    p.input_value_1 = "1000, 2000"
+    p.input_value_2 = "500, 700, 900"
+    p.input_temperature = "298, 400"
+    assert len(s1.results) == 12
+
+    p.input_parameter_1 = ["cp", "cv"]
+    assert len(s1.results) == 2
+
+    p.input_value_3 = "100, 200"
+    p.input_value_4 = "1, 2, 3"
+    p.input_value_5 = "300, 400"
+    p.gamma = "1.1, 1.2"
+    assert len(s2.results) == 24
+
+    p.input_wanted = "rho"
+    assert len(s2.results) == 2

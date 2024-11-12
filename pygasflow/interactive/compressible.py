@@ -6,25 +6,27 @@ from pygasflow.interactive.pages import (
     RayleighPage,
     NormalShockPage,
     ObliqueShockPage,
-    ConicalShockPage
+    ConicalShockPage,
+    GasPage,
 )
 from pygasflow.interactive.pages.base import stylesheet
 
 
 class CompressibleFlow(pn.viewable.Viewer):
-    _theme = param.String("default", doc="""
+    theme = param.String("default", doc="""
         Theme used by this page. Useful to apply custom stylesheet
         to sub-components.""")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        pages = [T(_theme=self._theme) for T in [
+        pages = [T(theme=self.theme) for T in [
+                GasPage,
                 IsentropicPage,
                 FannoPage,
                 RayleighPage,
                 NormalShockPage,
                 ObliqueShockPage,
-                ConicalShockPage
+                ConicalShockPage,
             ]
         ]
         self.components = {p.page_title: p for p in pages}
@@ -53,7 +55,7 @@ def compressible_app(theme="default"):
     if theme not in allowed_themes:
         raise ValueError(f"`theme` must be one of {allowed_themes}.")
 
-    i = CompressibleFlow(_theme=theme)
+    i = CompressibleFlow(theme=theme)
 
     def update_sidebar(tab_idx):
         return list(i.components.values())[tab_idx].controls

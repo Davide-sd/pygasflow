@@ -7,6 +7,8 @@ from pygasflow.interactive.diagrams import (
     NormalShockDiagram,
     ObliqueShockDiagram,
     ConicalShockDiagram,
+    GasDiagram,
+    SonicDiagram
 )
 from pygasflow.interactive.diagrams.flow_base import BasePlot
 import pytest
@@ -63,34 +65,47 @@ expected = {
         "y_range": (0, 90),
         "size": (700, 400),
     },
+    GasDiagram: {
+        "title": "",
+        "x_label": "Mass-specific gas constant, R, [J / (Kg K)]",
+        "y_label": "Specific Heats",
+        "x_range": (1.05, 2),
+        "y_range": None,
+        "size": (800, 300),
+    },
+    SonicDiagram: {
+        "title": "Sonic condition",
+        "x_label": "Ratio of specific heats, γ",
+        "y_label": "Ratios",
+        "x_range": (1.05, 2),
+        "y_range": None,
+        "size": (800, 300),
+    },
 }
 
-
-def test_hierarchy():
-    diagrams = [
-        IsentropicDiagram,
-        FannoDiagram,
-        RayleighDiagram,
-        NormalShockDiagram,
-        ObliqueShockDiagram,
-        ConicalShockDiagram,
-    ]
-    for d in diagrams:
-        assert issubclass(d, BasePlot)
-        assert hasattr(d, "title")
-        assert hasattr(d, "x_range")
-        assert hasattr(d, "y_range")
-        assert hasattr(d, "x_label")
-        assert hasattr(d, "y_label")
-
-@pytest.mark.parametrize("DiagramClass", [
+diagrams = [
     IsentropicDiagram,
     FannoDiagram,
     RayleighDiagram,
     NormalShockDiagram,
     ObliqueShockDiagram,
     ConicalShockDiagram,
-])
+    GasDiagram,
+    SonicDiagram,
+]
+
+
+@pytest.mark.parametrize("DiagramClass", diagrams)
+def test_hierarchy(DiagramClass):
+    assert issubclass(DiagramClass, BasePlot)
+    assert hasattr(DiagramClass, "title")
+    assert hasattr(DiagramClass, "x_range")
+    assert hasattr(DiagramClass, "y_range")
+    assert hasattr(DiagramClass, "x_label")
+    assert hasattr(DiagramClass, "y_label")
+
+
+@pytest.mark.parametrize("DiagramClass", diagrams)
 def test_instantiation_no_params(DiagramClass):
     i1 = DiagramClass()
     assert isinstance(i1.figure, figure)
@@ -118,8 +133,10 @@ def test_instantiation_no_params(DiagramClass):
             equal_nan=True
         )
 
-    assert i1.y_range == expected[DiagramClass]["y_range"]
-    assert (i1.figure.y_range.start, i1.figure.y_range.end) == expected[DiagramClass]["y_range"]
+    if expected[DiagramClass]["y_range"] is not None:
+        assert i1.y_range == expected[DiagramClass]["y_range"]
+        assert (i1.figure.y_range.start, i1.figure.y_range.end) == expected[DiagramClass]["y_range"]
+
     assert i1.size == expected[DiagramClass]["size"]
     assert (i1.figure.width, i1.figure.height) == expected[DiagramClass]["size"]
 
@@ -137,6 +154,8 @@ def test_instantiation_no_params(DiagramClass):
     NormalShockDiagram,
     ObliqueShockDiagram,
     ConicalShockDiagram,
+    GasDiagram,
+    SonicDiagram
 ])
 def test_instantiation_with_params(DiagramClass):
     params = dict(
@@ -173,8 +192,11 @@ def test_instantiation_with_params(DiagramClass):
             (np.nan, np.nan),
             equal_nan=True
         )
-    assert i2.y_range == (3, 4)
-    assert (i2.figure.y_range.start, i2.figure.y_range.end) == (3, 4)
+
+    if expected[DiagramClass]["y_range"] is not None:
+        assert i2.y_range == (3, 4)
+        assert (i2.figure.y_range.start, i2.figure.y_range.end) == (3, 4)
+
     assert i2.size == (100, 200)
     assert (i2.figure.width, i2.figure.height) == (100, 200)
 
@@ -280,3 +302,61 @@ def test_update_shock_related_diagrams(DiagramClass):
     # hide region line
     i.show_region_line = False
     assert not i.figure.renderers[-1].visible
+
+
+def test_update_gas_diagram():
+    d = GasDiagram()
+
+    # we start with the R-Cp/Cv diagram
+    assert d.select == 1
+    assert d.figure.xaxis.axis_label == "Mass-specific gas constant, R, [J / (Kg K)]"
+    assert len(d.figure.renderers) == 2
+    old_data = d.figure.renderers[0].data_source.data.copy()
+
+    # update gamma
+    d.gamma = 1.6
+    new_data = d.figure.renderers[0].data_source.data.copy()
+    assert np.allclose(old_data["xs"], new_data["xs"])
+    assert not np.allclose(old_data["ys"], new_data["ys"])
+    assert len(old_data["xs"]) == len(new_data["xs"]) == 100
+    x_range = (new_data["xs"].min(), new_data["xs"].max())
+
+    d.R_range = (0, 4000)
+    new_data2 = d.figure.renderers[0].data_source.data.copy()
+    x_range2 = (new_data2["xs"].min(), new_data2["xs"].max())
+    assert x_range != x_range2
+
+    d.N = 10
+    new_data3 = d.figure.renderers[0].data_source.data.copy()
+    assert len(new_data3["xs"]) == 10
+
+    # move to the gamma-Cp/Cv diagram
+    d.select = 0
+    assert d.figure.xaxis.axis_label == "Ratio of specific heats, γ"
+    new_data4 = d.figure.renderers[0].data_source.data.copy()
+    assert len(new_data4["xs"]) == 10
+    assert not np.allclose(new_data4["xs"], new_data3["xs"])
+    x_range3 = (new_data4["xs"].min(), new_data4["xs"].max())
+    assert np.allclose(x_range3, (1.05, 2))
+
+    d.gamma_range = (1.5, 1.75)
+    new_data5 = d.figure.renderers[0].data_source.data.copy()
+    x_range4 = (new_data5["xs"].min(), new_data5["xs"].max())
+    assert x_range3 != x_range4
+
+
+def test_update_sonic_diagram():
+    d = SonicDiagram()
+    assert len(d.figure.renderers) == 4
+    old_data = d.figure.renderers[0].data_source.data.copy()
+    assert len(old_data["xs"]) == 100
+    x_range1 = (old_data["xs"].min(), old_data["xs"].max())
+
+    d.gamma_range = (1.5, 1.75)
+    new_data = d.figure.renderers[0].data_source.data.copy()
+    x_range2 = (new_data["xs"].min(), new_data["xs"].max())
+    assert x_range1 != x_range2
+
+    d.N = 10
+    new_data2 = d.figure.renderers[0].data_source.data.copy()
+    assert len(new_data2["xs"]) == 10

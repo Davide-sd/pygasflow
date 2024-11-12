@@ -5,6 +5,8 @@ from pygasflow.interactive.diagrams.rayleigh import RayleighDiagram
 from pygasflow.interactive.diagrams.normal_shock import NormalShockDiagram
 from pygasflow.interactive.diagrams.oblique_shock import ObliqueShockDiagram
 from pygasflow.interactive.diagrams.conical_shock import ConicalShockDiagram
+from pygasflow.interactive.diagrams.gas import GasDiagram, SonicDiagram
+
 
 def diagram(select="isentropic", interactive=False, **params):
     """Create the selected diagram.
@@ -13,7 +15,7 @@ def diagram(select="isentropic", interactive=False, **params):
     ----------
     select : str
         Available options are: isentropic, fanno, rayleigh, normal_shock,
-        oblique_shock, conical_shock
+        oblique_shock, conical_shock, gas, sonic
     interactive : bool
         If True, an Holoviz's panel object will be returned.
     **params :
@@ -39,6 +41,8 @@ def diagram(select="isentropic", interactive=False, **params):
         "normal_shock": NormalShockDiagram,
         "oblique_shock": ObliqueShockDiagram,
         "conical_shock": ConicalShockDiagram,
+        "gas": GasDiagram,
+        "sonic": SonicDiagram,
     }
     if not select in mapping:
         raise ValueError(
@@ -59,5 +63,7 @@ __all__ = [
     "NormalShockDiagram",
     "ObliqueShockDiagram",
     "ConicalShockDiagram",
-    "diagram"
+    "GasDiagram",
+    "SonicDiagram",
+    "diagram",
 ]
