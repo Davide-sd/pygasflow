@@ -186,3 +186,24 @@ def param_formatter(app, what, name, obj, options, lines):
                 ''
             ])
             lines.extend(p_lines)
+
+
+def _modify_example_compressible_app(code):
+    lines = code.split("\n")
+    if "show()" in lines[-1]:
+        lines[-1] = lines[-1].split(".")[0]
+    # I want to show the isentropic section, with a few numerical values
+    # in the tabulator
+    lines.insert(-1, "app.main[0].active = 1")
+    # mach numbers
+    lines.insert(-1, "app.sidebar[0].object.rx.value.objects[1].value = '2, 3, 4'")
+    # gamma
+    lines.insert(-1, "app.sidebar[0].object.rx.value.objects[3].value = '1.1, 1.2, 1.3, 1.4'")
+    new_code = "\n".join(lines)
+    return new_code
+
+
+def modify_panel_code(code):
+    if "compressible_app" in code:
+        return _modify_example_compressible_app(code)
+    return code

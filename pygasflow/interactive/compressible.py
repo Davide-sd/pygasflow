@@ -42,13 +42,42 @@ class CompressibleFlow(pn.viewable.Viewer):
 
 
 def compressible_app(theme="default"):
-    """Create the `CompressibleFlow` web application.
+    """Create the 'Compressible Flow Calculator' web application.
+
+    Note that while the application works on a browser, all the computation
+    is done with Python and the pygasflow module.
 
     Parameters
     ----------
     theme : str
         Can be ``"default"`` (light theme) or ``"dark"`` for using
         a dark theme.
+
+    Examples
+    --------
+
+    Launching a server from a command line. This is the content of
+    a user-created file, ``pygasflow_gui.py``:
+
+    .. code-block::
+
+        from pygasflow.interactive import compressible_app
+        compressible_app().servable()
+
+    Then, from the command line:
+
+    .. code-block::
+
+        panel serve pygasflow_gui.py
+
+    Launching a server from Jupyter Notebook:
+
+    .. panel-screenshot::
+
+        from pygasflow.interactive import compressible_app
+        app = compressible_app()
+        app.show()
+
     """
     if not isinstance(theme, str):
         raise TypeError("`theme` must be a string.")
@@ -75,5 +104,5 @@ def compressible_app(theme="default"):
         ".title {font-size: 1em; font-weight: bold;}",
         ".mdc-top-app-bar__row {min-height: 48px;height: 48px;}"
     ]
-    return template.servable()
+    return template
 

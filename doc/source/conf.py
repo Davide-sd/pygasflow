@@ -18,7 +18,7 @@ import os
 import sys
 import inspect
 import sphinx_rtd_theme
-from pygasflow.utils.doc_utils import param_formatter
+from pygasflow.utils.doc_utils import param_formatter, modify_panel_code
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -62,6 +62,7 @@ extensions = [
     'nbsphinx',
     'nbsphinx_link', # to link to ipynb files outside of the source folder
     "bokeh.sphinxext.bokeh_plot",
+    "sphinx_panel_screenshot",
 ]
 
 # hide the table inside classes autodoc
@@ -240,3 +241,31 @@ def replace(app, what, name, obj, options, lines):
 def setup(app):
     app.connect('autodoc-process-docstring', replace)
     app.connect("autodoc-process-docstring", param_formatter, priority=-100)
+
+
+# -- Options for sphinx_panel_screenshot --------------------------------------
+
+browser = "chrome"
+home_folder = os.path.expanduser("~")
+browser_path = os.path.join(home_folder, "selenium/chrome-linux/chrome")
+browser_driver_path = os.path.join(home_folder, "selenium/drivers/chromedriver")
+
+# browser = "firefox"
+# home_folder = os.path.expanduser("~")
+# browser_path = os.path.join(home_folder, "selenium/firefox/firefox")
+# browser_driver_path = os.path.join(home_folder, "selenium/drivers/geckodriver")
+
+
+driver_options = [
+    "--headless",
+    "--disable-dev-shm-usage",  # overcome limited resource problems
+    "--no-sandbox"              # Bypass OS security model
+]
+
+panel_screenshot_small_size = [800, 575]
+panel_screenshot_intercept_code = modify_panel_code
+panel_screenshot_browser = browser
+panel_screenshot_browser_path = browser_path
+panel_screenshot_driver_path = browser_driver_path
+panel_screenshot_driver_options = driver_options
+panel_screenshot_formats = ["large.png"]

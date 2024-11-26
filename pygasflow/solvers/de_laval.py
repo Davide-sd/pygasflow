@@ -125,7 +125,16 @@ class De_Laval_Solver(param.Parameterized):
 
     Visualize an interactive application:
 
-    >>> solver.plot(interactive=True)
+    .. panel-screenshot::
+
+        from pygasflow.nozzles import CD_Conical_Nozzle
+        from pygasflow.solvers import De_Laval_Solver
+        Ri, Rt, Re = 0.4, 0.2, 0.8  # Inlet Radius, Throat Radius, Exit Radius
+        nozzle = CD_Conical_Nozzle(Ri, Re, Rt)
+        solver = De_Laval_Solver(
+            gamma=1.4, R=287.05, T0=298, P0=101325,
+            geometry=nozzle, Pb_P0_ratio=0.25)
+        solver.plot()
 
     """
 
@@ -631,7 +640,7 @@ class De_Laval_Solver(param.Parameterized):
             **params
         )
         if interactive:
-            return d
+            return d.servable()
 
         from bokeh.plotting import show
         if show_nozzle_geometry:
