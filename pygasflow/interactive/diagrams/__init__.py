@@ -6,6 +6,8 @@ from pygasflow.interactive.diagrams.normal_shock import NormalShockDiagram
 from pygasflow.interactive.diagrams.oblique_shock import ObliqueShockDiagram
 from pygasflow.interactive.diagrams.conical_shock import ConicalShockDiagram
 from pygasflow.interactive.diagrams.gas import GasDiagram, SonicDiagram
+from pygasflow.interactive.diagrams.nozzle import NozzleDiagram
+from pygasflow.interactive.diagrams.de_laval import DeLavalDiagram
 
 
 def diagram(select="isentropic", interactive=False, **params):
@@ -65,5 +67,7 @@ __all__ = [
     "ConicalShockDiagram",
     "GasDiagram",
     "SonicDiagram",
+    "NozzleDiagram",
+    "DeLavalDiagram",
     "diagram",
 ]

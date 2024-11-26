@@ -104,11 +104,18 @@ class TabulatorSection(pn.viewable.Viewer):
         doc="File name for the CSV-file download.")
 
     diagram = param.Parameter(
-        doc="The class responsible to create a particular diagram.")
+        doc="The class responsible to create a particular diagram.",
+        allow_refs=False)
+
+    diagram_collapsed = param.Boolean(True,
+        doc="Wheter the diagram is hidden (True) or shown right away (False).")
 
     theme = param.String("default", doc="""
         Theme used by this page. Useful to choose which stylesheet
         to apply to sub-components.""")
+
+    save_index = param.Boolean(False, doc="""
+        Include dataframe index in the CSV file.""")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -116,7 +123,7 @@ class TabulatorSection(pn.viewable.Viewer):
 
     def _df_to_csv_callback(self):
         sio = StringIO()
-        self.results.copy().to_csv(sio, index=False)
+        self.results.copy().to_csv(sio, index=self.save_index)
         sio.seek(0)
         return sio
 
@@ -155,7 +162,7 @@ class TabulatorSection(pn.viewable.Viewer):
             if name not in self.float_formatters_exclusion
         }
 
-    def __panel__(self):
+    def _create_elements_for_ui(self):
         elements = []
         if self.diagram is not None:
             elements.append(
@@ -163,7 +170,7 @@ class TabulatorSection(pn.viewable.Viewer):
                     self.diagram(),
                     title="Diagram",
                     sizing_mode='stretch_width',
-                    collapsed=True
+                    collapsed=self.diagram_collapsed
                 )
             )
         elements.extend([
@@ -174,6 +181,10 @@ class TabulatorSection(pn.viewable.Viewer):
             ),
             self._tabulator
         ])
+        return elements
+
+    def __panel__(self):
+        elements = self._create_elements_for_ui()
         col = pn.Column(*elements)
         if self.wrap_in_card:
             return pn.Card(

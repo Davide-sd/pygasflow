@@ -1,4 +1,5 @@
 import numpy as np
+import param
 from bokeh.plotting import figure
 from pygasflow.interactive.diagrams import (
     IsentropicDiagram,
@@ -8,9 +9,17 @@ from pygasflow.interactive.diagrams import (
     ObliqueShockDiagram,
     ConicalShockDiagram,
     GasDiagram,
-    SonicDiagram
+    SonicDiagram,
+    NozzleDiagram,
+    DeLavalDiagram
 )
 from pygasflow.interactive.diagrams.flow_base import BasePlot
+from pygasflow.nozzles import (
+    CD_Conical_Nozzle,
+    CD_TOP_Nozzle,
+    CD_Min_Length_Nozzle
+)
+from pygasflow.solvers import De_Laval_Solver
 import pytest
 from matplotlib import colormaps
 from matplotlib.colors import to_hex
@@ -68,7 +77,7 @@ expected = {
     GasDiagram: {
         "title": "",
         "x_label": "Mass-specific gas constant, R, [J / (Kg K)]",
-        "y_label": "Specific Heats",
+        "y_label": "Specific Heats [J / K]",
         "x_range": (1.05, 2),
         "y_range": None,
         "size": (800, 300),
@@ -360,3 +369,155 @@ def test_update_sonic_diagram():
     d.N = 10
     new_data2 = d.figure.renderers[0].data_source.data.copy()
     assert len(new_data2["xs"]) == 10
+
+
+@pytest.mark.parametrize("NozzleClass", [
+    CD_Conical_Nozzle, CD_TOP_Nozzle, CD_Min_Length_Nozzle])
+def test_update_nozzle_diagram(NozzleClass):
+    nozzle = NozzleClass()
+    d = NozzleDiagram(nozzle=nozzle)
+    y_range1 = (d.figure.y_range.start, d.figure.y_range.end)
+    assert d.figure.xaxis.axis_label == "Length [m]"
+    assert d.figure.yaxis.axis_label == "radius [m]"
+    data1 = d.figure.renderers[0].data_source.data.copy()
+    idx = -4 if NozzleClass is CD_Min_Length_Nozzle else -2
+    data_sw1 = d.figure.renderers[idx].data_source.data.copy()
+    assert np.allclose(data_sw1["x"], [np.nan, np.nan], equal_nan=True)
+    assert np.allclose(data_sw1["y"], [np.nan, np.nan], equal_nan=True)
+
+    d.show_area_ratio = True
+    assert d.figure.yaxis.axis_label == "A/A*"
+    data2 = d.figure.renderers[0].data_source.data.copy()
+    assert np.allclose(data1["x"], data2["x"])
+    assert not np.allclose(data1["y"], data2["y"])
+
+    d.show_half_nozzle = False
+    y_range2 = (d.figure.y_range.start, d.figure.y_range.end)
+    assert not np.allclose(y_range1, y_range2)
+
+    # simulate a change in flow condition, such that a shockwave is present
+    # in the divergent
+    with param.edit_constant(nozzle):
+        nozzle.shockwave_location = (1, 0.25)
+    idx = -4 if NozzleClass is CD_Min_Length_Nozzle else -2
+    data_sw2 = d.figure.renderers[idx].data_source.data.copy()
+    assert not np.allclose(data_sw2["x"], [np.nan, np.nan], equal_nan=True)
+    assert not np.allclose(data_sw2["y"], [np.nan, np.nan], equal_nan=True)
+    x_range_old = (d.figure.x_range.start, d.figure.x_range.end)
+
+    # only show the divergent
+    d.show_divergent_only = True
+    x_range_new = (d.figure.x_range.start, d.figure.x_range.end)
+    assert not np.allclose(x_range_new, x_range_old)
+
+    if NozzleClass is CD_Min_Length_Nozzle:
+        assert d.figure.renderers[-1].visible is False
+        assert d.figure.renderers[-2].visible is False
+        assert d._cb.visible is False
+        d.show_characteristic_lines = True
+        assert d.figure.renderers[-1].visible is True
+        assert d.figure.renderers[-2].visible is True
+        assert d._cb.visible is True
+
+
+def test_update_nozzle_diagram_error_log():
+    # verify that NozzleDiagram is able to catch errors and show them on the
+    # error_log
+
+    # for non-interactive applications
+    n1 = CD_Conical_Nozzle(R0=0, Rj=0, Ri=0.4, Rt=0.2, Re=1.2)
+    assert not n1.is_interactive_app
+    assert n1.error_log == ""
+    with pytest.raises(ValueError):
+        n1.throat_radius = 1.5
+    assert len(n1.error_log) > 0
+
+    # for interactive applications
+    n2 = CD_Conical_Nozzle(R0=0, Rj=0, Ri=0.4, Rt=0.2, Re=1.2)
+    assert not n2.is_interactive_app
+    d = NozzleDiagram(nozzle=n2)
+    assert n2.is_interactive_app
+    assert n2.error_log == ""
+    # setting a value that forces an error
+    n2.throat_radius = 1.4
+    assert len(n2.error_log) > 0
+    # setting a new value where no errors are raised
+    n2.throat_radius = 0.4
+    assert n2.error_log == ""
+
+
+def test_update_de_laval_diagram():
+    nozzle = CD_Conical_Nozzle()
+    solver = De_Laval_Solver(
+        R=287, gamma=1.4, P0=101325, T0=288, geometry=nozzle, Pb_P0_ratio=0.1)
+    assert not nozzle.is_interactive_app
+    assert not solver.is_interactive_app
+    d = DeLavalDiagram(solver=solver)
+    assert nozzle.is_interactive_app
+    assert solver.is_interactive_app
+
+    x_range1 = (d.figure.x_range.start, d.figure.x_range.end)
+    y_range1 = (d.figure.y_range.start, d.figure.y_range.end)
+    assert d.figure.xaxis.axis_label == "Length [m]"
+    assert d.figure.yaxis.axis_label == ["Ratios", "Mach number"]
+    data1 = d.figure.renderers[0].data_source.data.copy()
+
+    solver.gamma = 1.2
+    data2 = d.figure.renderers[0].data_source.data.copy()
+    assert np.allclose(data1["x"], data2["x"])
+    assert not np.allclose(data1["y"], data2["y"])
+
+    solver.Pb_P0_ratio = 0.2
+    data3 = d.figure.renderers[0].data_source.data.copy()
+    assert np.allclose(data2["x"], data3["x"])
+    assert not np.allclose(data2["y"], data3["y"])
+
+    nozzle.outlet_radius = 2
+    x_range2 = (d.figure.x_range.start, d.figure.x_range.end)
+    data4 = d.figure.renderers[0].data_source.data.copy()
+    # by changing the radius at the exit while keeping fixed theta_N,
+    # the length of the divergent changes.
+    assert not np.allclose(data3["x"], data4["x"])
+    assert not np.allclose(data3["y"], data4["y"])
+    assert not np.allclose(x_range1, x_range2)
+
+    # changing solver will change the results shown on the diagram
+    new_nozzle = CD_TOP_Nozzle()
+    new_solver = De_Laval_Solver(
+        R=287, gamma=1.4, P0=101325, T0=288,
+        geometry=new_nozzle, Pb_P0_ratio=0.1)
+    d.solver = new_solver
+    data5 = d.figure.renderers[0].data_source.data.copy()
+    assert not np.allclose(data4["x"], data5["x"])
+    assert not np.allclose(data4["y"], data5["y"])
+    x_range_f1_old = (
+        d.nozzle_diagram.figure.x_range.start,
+        d.nozzle_diagram.figure.x_range.end
+    )
+    x_range_f2_old = (d.figure.x_range.start, d.figure.x_range.end)
+    assert np.allclose(x_range_f1_old, x_range_f2_old)
+
+    # verify that both figures share the same x-range
+    d.nozzle_diagram.show_divergent_only = True
+    x_range_f1_new = (
+        d.nozzle_diagram.figure.x_range.start,
+        d.nozzle_diagram.figure.x_range.end
+    )
+    x_range_f2_new = (d.figure.x_range.start, d.figure.x_range.end)
+    assert np.allclose(x_range_f1_new, x_range_f2_new)
+    assert not np.allclose(x_range_f1_old, x_range_f1_new)
+    assert not np.allclose(x_range_f2_old, x_range_f2_new)
+
+    # verify that it's possible to hide the nozzle geometry
+    assert d._nozzle_panel.visible
+    d.show_nozzle_geometry = False
+    assert not d._nozzle_panel.visible
+
+    # verify that all UI controls can be displayed
+    d1 = DeLavalDiagram(solver=solver)
+    d2 = DeLavalDiagram(solver=solver, _show_all_ui_controls=True)
+    # NOTE: do not use methods/attributes starting with '_' in production
+    # They are ment to stay private.
+    ui_basic = d1._plot_widgets()
+    ui_full = d2._plot_widgets()
+    assert len(ui_full.objects) == len(ui_basic.objects) + 3

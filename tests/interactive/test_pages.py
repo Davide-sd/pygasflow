@@ -16,7 +16,8 @@ from pygasflow.interactive.pages import (
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
-    GasPage
+    GasPage,
+    NozzlesPage
 )
 from pygasflow.solvers import (
     isentropic_solver,
@@ -35,6 +36,7 @@ from pygasflow.interactive.pages.normal_shock import NormalShockSection
 from pygasflow.interactive.pages.oblique_shock import ObliqueShockSection
 from pygasflow.interactive.pages.conical_shock import ConicalShockSection
 from pygasflow.interactive.pages.gas import GasSection, IdealGasSection
+from pygasflow.interactive.pages.de_laval import DeLavalSection
 import pytest
 
 
@@ -80,6 +82,12 @@ expected = {
         "page_description": "Compute gas-related quantities.",
         "num_sections": 2,
         "sections": (GasSection, IdealGasSection, ),
+    },
+    NozzlesPage: {
+        "page_title": "Nozzles",
+        "page_description": "Flow in a convergent-divergent nozzle.",
+        "num_sections": 1,
+        "sections": (DeLavalSection, ),
     },
 }
 
@@ -321,7 +329,8 @@ def test_section_columns_names(SectionClass):
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
-    GasPage
+    GasPage,
+    NozzlesPage
 ])
 def test_page_instantiation(PageClass):
     p = PageClass()
@@ -344,7 +353,8 @@ def test_page_instantiation(PageClass):
     NormalShockPage,
     ObliqueShockPage,
     ConicalShockPage,
-    GasPage
+    GasPage,
+    NozzlesPage
 ])
 def test_page_content(PageClass):
     p = PageClass()
@@ -539,3 +549,25 @@ def test_gas_page_parameter_propagation():
 
     p.input_wanted = "rho"
     assert len(s2.results) == 2
+
+
+def test_nozzles_page_ui_controls():
+    p = NozzlesPage()
+    sidebar_controls = p.controls
+    # assert isinstance(sidebar_controls, pn.Column)
+    # assert len(sidebar_controls.objects) == 15
+    # assert isinstance(sidebar_controls.objects[0], pn.pane.Markdown)
+    # assert isinstance(sidebar_controls.objects[1], pn.widgets.MultiChoice)
+    # assert isinstance(sidebar_controls.objects[2], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[3], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[4], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[5], pn.layout.Divider)
+    # assert isinstance(sidebar_controls.objects[6], pn.pane.Markdown)
+    # assert isinstance(sidebar_controls.objects[7], pn.widgets.Select)
+    # assert isinstance(sidebar_controls.objects[8], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[9], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[10], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[11], pn.widgets.TextInput)
+    # assert isinstance(sidebar_controls.objects[12], pn.layout.Divider)
+    # assert isinstance(sidebar_controls.objects[13], pn.pane.Markdown)
+    # assert isinstance(sidebar_controls.objects[14], pn.widgets.IntInput)

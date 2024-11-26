@@ -8,6 +8,7 @@ from pygasflow.interactive.pages import (
     ObliqueShockPage,
     ConicalShockPage,
     GasPage,
+    NozzlesPage
 )
 from pygasflow.interactive.pages.base import stylesheet
 
@@ -27,6 +28,7 @@ class CompressibleFlow(pn.viewable.Viewer):
                 NormalShockPage,
                 ObliqueShockPage,
                 ConicalShockPage,
+                NozzlesPage
             ]
         ]
         self.components = {p.page_title: p for p in pages}
