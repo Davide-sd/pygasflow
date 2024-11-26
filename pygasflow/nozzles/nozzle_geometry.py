@@ -1,15 +1,114 @@
 import numpy as np
+import param
 from scipy import interpolate
+import warnings
 
-class Nozzle_Geometry:
+
+class Nozzle_Geometry(param.Parameterized):
     """
-    Represents a nozzle geometry.
-    This is meant as a base class.
-
-    TODO: can I make it abstract?
+    Represents a nozzle geometry. This is meant as a base class.
     """
 
-    def __init__(self, Ri, Re, Rt, Lc, Ld, geometry_type="planar"):
+    # editable parameters
+    # I place all editable parameters in this base class in order to be
+    # able to access them from De_Laval_Solver, when using param.depends(...),
+    # or from NozzleDiagram, when updating the visualization.
+    # Not all nozzle geometries might use all these parameters.
+    inlet_radius = param.Number(
+        default=0.4, bounds=(0, None), softbounds=(0.01, 3),
+        step=0.01, label="Ri [m]", doc="Alias ``Ri`` in the constructor.")
+    outlet_radius = param.Number(
+        default=1.2, bounds=(0, None), softbounds=(0.01, 3),
+        step=0.01, label="Re [m]", doc="Alias ``Re`` in the constructor.")
+    throat_radius = param.Number(
+        default=0.2, bounds=(0, None), softbounds=(0.01, 3),
+        step=0.01, label="Rt [m]", doc="Alias ``Rt`` in the constructor.")
+    junction_radius_j = param.Number(
+        default=0.1, bounds=(0, None), softbounds=(0, 0.5), step=0.01,
+        label="Rj [m]",
+        doc="""
+            Radius of the junction between convergent and divergent.
+            Alias ``Rj`` in the constructor.""")
+    junction_radius_0 = param.Number(
+        default=0.1, bounds=(0, None), softbounds=(0, 0.5), step=0.01,
+        label="R0 [m]",
+        doc="""
+            Radius of the junction between combustion chamber and convergent.
+            Alias ``R0`` in the constructor.""")
+    theta_c = param.Number(
+        default=40, bounds=(0, 90), softbounds=(0.001, 90),
+        inclusive_bounds=(False, False),
+        label="Half angle [degrees] of the convergent",
+        doc="Half angle [degrees] of the convergent")
+    theta_N = param.Number(
+        default=15, bounds=(0, 90), softbounds=(0.001, 90),
+        inclusive_bounds=(False, False),
+        label="Half angle [degrees] of the conical divergent",
+        doc="Half angle [degrees] of the conical divergent")
+    theta_e = param.Number(
+        default=15,
+        constant=True,
+        label="Half angle [degrees] of the conical divergent at the exit section.",
+        doc="Half angle [degrees] of the conical divergent at the exit section.")
+    fractional_length = param.Number(
+        default=0.8, bounds=(0.6, 1), step=0.01,
+        label="Fractional Length, K", doc="""
+            Fractional Length of the nozzle with respect to a same exit
+            area ratio conical nozzle with 15 deg half-cone angle.
+            Alias ``K`` in the constructor.""")
+    geometry_type = param.Selector(
+        objects=["axisymmetric", "planar"],
+        default="axisymmetric",
+        label="Geometry:",
+        doc="""
+            Specify the geometry type of the nozzle:
+
+            * ``"planar"``: the radius indicates the distance from the line
+              of symmetry and the nozzle wall. The area is computed with
+              ``A = 2 * r``. Note the lack of depth in the formula: this is
+              because it simplifies.
+            * ``"axisymmetric"``: the area is computed with
+              ``A = pi * r**2``."""
+    )
+    N = param.Integer(
+        default=800, bounds=(10, 1000),
+        label="Number of points:",
+        doc="Number of discretization elements along the length of the nozzle.")
+    error_log = param.String("", doc="""
+        Visualize on the interactive application any error that raises
+        from the computation.""")
+    is_interactive_app = param.Boolean(False, doc="""
+        If True, exceptions are going to be intercepted and shown on
+        error_log, otherwise fall back to the standard behaviour.""")
+    title = param.String()
+
+    # for MOC nozzles
+    gamma = param.Number(1.4, bounds=(1, 2),
+        inclusive_bounds=(False, True),
+        step=0.05,
+        label="Ratio of specific heats, γ",
+        doc="Ratio of specific heats, γ = Cp / Cv"
+    )
+    n_lines = param.Integer(default=10, bounds=(3, None),
+        label="Number of characteristic lines:")
+
+    # read-only parameters
+    inlet_area = param.Number(bounds=(0, None), constant=True)
+    outlet_area = param.Number(bounds=(0, None), constant=True)
+    throat_area = param.Number(bounds=(0, None), constant=True)
+    length_convergent = param.Number(allow_None=True)
+    length_divergent = param.Number(allow_None=True)
+    length = param.Number(bounds=(0, None),
+        doc="Total length of the nozzle, convergent + divergent.")
+    length_array = param.Array(constant=True)
+    wall_radius_array = param.Array(constant=True)
+    area_ratio_array = param.Array(constant=True)
+    shockwave_location = param.Tuple(
+        default=(None, None),
+        constant=True,
+        doc="Location of the shockwave in the divergent: (loc, radius).")
+
+    def __init__(self, Ri, Re, Rt, R0=0.1, Rj=0.1, **params):
         """
         Parameters
         ----------
@@ -19,107 +118,86 @@ class Nozzle_Geometry:
             Exit (outlet) radius.
         Rt : float
             Throat radius.
-        Rj : float
-            Radius of the junction between convergent and divergent.
         R0 : float
             Radius of the junction between combustion chamber and convergent.
-        Lc : float
-            Length of the convergent.
-        Ld : float
-            Length of the divergent. Default to None. If None, theta_N will
-            be used to compute the divergent's length.
-        geometry_type : string
-            Specify the geometry type of the nozzle. Can be either
-            ``'axisymmetric'`` or ``'planar'``
+        Rj : float
+            Radius of the junction between convergent and divergent.
         """
-        geometry_type = geometry_type.lower()
-        if geometry_type not in ['axisymmetric', 'planar']:
-            raise ValueError("Geometry type can be 'axisymmetric' or 'planar'.")
-        self._geometry_type = geometry_type
+        if (Ri <= Rt) or (Re <= Rt):
+            raise ValueError("Must be Ai > At and Ae > At.")
+        # aliases for most important parameters
+        params.update({
+            "inlet_radius": Ri,
+            "outlet_radius": Re,
+            "throat_radius": Rt,
+            "junction_radius_j": Rj,
+            "junction_radius_0": R0,
+        })
+        super().__init__(**params)
 
-        self._Ri = Ri
-        self._Re = Re
-        self._Rt = Rt
-
-        # compute areas
+    def _compute_area(self, radius):
         # for planar case, the radius corresponds to half the height of
         # the nozzle. Width remain constant along nozzle's length, therefore
         # it simplifies, hence it is not considered in the planar case.
-        self._Ai = 2 * Ri
-        self._Ae = 2 * Re
-        self._At = 2 * Rt
-        if geometry_type == "axisymmetric":
-            self._Ai = np.pi * Ri**2
-            self._Ae = np.pi * Re**2
-            self._At = np.pi * Rt**2
+        if self.geometry_type == "axisymmetric":
+            return np.pi * radius**2
+        return 2 * radius
 
-        self._Lc = Lc
-        if Lc == None: self._Lc = 0
-        self._Ld = Ld
-        if Ld == None: self._Ld = 0
+    def _compute_area_ratio(self, radius):
+        area = self._compute_area(radius)
+        return area / self.throat_area
 
-        self._length_array = None
-        self._area_ratio_array = None
-        self._wall_radius_array = None
+    def _compute_radius(self, area):
+        if self.geometry_type == "axisymmetric":
+            return np.sqrt(area / np.pi)
+        return area / 2
 
-    @property
-    def inlet_radius(self):
-        return self._Ri
+    @param.depends(
+        "inlet_radius", "outlet_radius", "throat_radius", "geometry_type",
+        watch=True, on_init=True
+    )
+    def _update_areas(self):
+        with param.edit_constant(self):
+            self.param.update({
+                "inlet_area": self._compute_area(self.inlet_radius),
+                "outlet_area": self._compute_area(self.outlet_radius),
+                "throat_area": self._compute_area(self.throat_radius)
+            })
 
-    @property
-    def outlet_radius(self):
-        return self._Re
-
-    @property
-    def critical_radius(self):
-        return self._Rt
-
-    @property
-    def inlet_area(self):
-        return self._Ai
-
-    @property
-    def outlet_area(self):
-        return self._Ae
-
-    @property
-    def critical_area(self):
-        return self._At
-
-    @property
-    def length_convergent(self):
-        return self._Lc
-
-    @property
-    def length_divergent(self):
-        return self._Ld
-
-    @property
-    def length(self):
-        return self._Lc + self._Ld
-
-    @property
-    def length_array(self):
-        return self._length_array
-
-    @property
-    def wall_radius_array(self):
-        return self._wall_radius_array
-
-    @property
-    def area_ratio_array(self):
-        return self._area_ratio_array
+    @param.depends(
+        "inlet_radius", "outlet_radius", "throat_radius",
+        "geometry_type", "theta_N", "theta_c", "theta_e",
+        "N", "fractional_length", "junction_radius_0", "junction_radius_j",
+        watch=True, on_init=True
+    )
+    def _update_geometry(self):
+        try:
+            # compute the intersection points of the different curves
+            # composing the nozzle.
+            self._compute_intersection_points()
+            x, y = self.build_geometry()
+            with param.edit_constant(self):
+                self.param.update(dict(
+                    length_array=x,
+                    wall_radius_array=y,
+                    area_ratio_array=self._compute_area_ratio(y)
+                ))
+            self.error_log = ""
+        except ValueError as err:
+            self.error_log = f"ValueError: {err}"
+            if not self.is_interactive_app:
+                raise ValueError(f"{err}")
 
     def __str__(self):
         s = ""
         s += "Radius:\n"
-        s += "\tRi\t{}\n".format(self._Ri)
-        s += "\tRe\t{}\n".format(self._Re)
-        s += "\tRt\t{}\n".format(self._Rt)
+        s += "\tRi\t{}\n".format(self.inlet_radius)
+        s += "\tRe\t{}\n".format(self.outlet_radius)
+        s += "\tRt\t{}\n".format(self.throat_radius)
         s += "Areas:\n"
-        s += "\tAi\t{}\n".format(self._Ai)
-        s += "\tAe\t{}\n".format(self._Ae)
-        s += "\tAt\t{}\n".format(self._At)
+        s += "\tAi\t{}\n".format(self.inlet_area)
+        s += "\tAe\t{}\n".format(self.outlet_area)
+        s += "\tAt\t{}\n".format(self.throat_area)
         s += "Lengths:\n"
         s += "\tLc\t{}\n".format(self.length_convergent)
         s += "\tLd\t{}\n".format(self.length_divergent)
@@ -142,27 +220,51 @@ class Nozzle_Geometry:
 
         Returns
         -------
-            points_top : np.ndarray [Nx2]
-                Matrix representing the wall at the top of the nozzle.
-            points_mid : np.ndarray [Nx2]
-                Matrix representing the flow area.
-            points_bottom : np.ndarray [Nx2]
-                Matrix representing the wall at the bottom of the nozzle.
+        flow_area : np.ndarray [Nx2]
+            Matrix representing the flow area.
+        container : np.ndarray [Nx2]
+            Matrix representing the outer walls of the nozzle.
         """
-        L = np.copy(self._length_array)
-        r = np.copy(self._area_ratio_array)
+        L = np.copy(self.length_array)
+        r = np.copy(self.area_ratio_array)
         if not area_ratio:
-            r = np.sqrt(r * self._At / np.pi)
+            r *= self.throat_area
+            if self.geometry_type == "planar":
+                r = r / 2
+            else:
+                r = np.sqrt(r / np.pi)
 
         max_r = np.max(r)
-        container = np.ones_like(L) * offset * max_r
-        container = np.concatenate((container, -container[::-1]))
+        container = np.array([
+            [L.min(), -offset * max_r],
+            [L.max(), -offset * max_r],
+            [L.max(), offset * max_r],
+            [L.min(), offset * max_r],
+        ])
         L = np.concatenate((L, L[::-1]))
-        container = np.vstack((L, container)).T
-        nozzle = np.concatenate((r, -r[::-1]))
-        nozzle = np.vstack((L, nozzle)).T
+        flow_area = np.concatenate((r, -r[::-1]))
+        flow_area = np.vstack((L, flow_area)).T
 
-        return nozzle, container
+        return flow_area, container
+
+    def plot(self, interactive=True, **kwargs):
+        """
+        Parameters
+        ----------
+        interactive : bool
+            If False, shows and return a Bokeh figure. If True, returns a
+            servable object, which will be automatically rendered inside a
+            Jupyter Notebook. If any other interpreter is used, then
+            ``nozzle.plot(interactive=True).show()`` might be required in
+            order to visualize the interactive application.
+        """
+        from bokeh.plotting import show as bokeh_show
+        from pygasflow.interactive.diagrams.de_laval import NozzleDiagram
+        d = NozzleDiagram(nozzle=self, **kwargs)
+        if interactive:
+            return d.servable()
+        bokeh_show(d.figure)
+        return d.figure
 
     def location_divergent_from_area_ratio(self, A_ratio):
         """
@@ -176,25 +278,50 @@ class Nozzle_Geometry:
 
         Returns
         -------
-        x : float
-            x-coordinate along the divergent length.
+        x : float or None
+            x-coordinate along the divergent length. If A_ratio > Ae / At,
+            it returns None.
         """
-        A = A_ratio * self._At
+        def deal_with_error(msg, warns=False):
+            self.error_log = f"ValueError: {msg}"
+            if not self.is_interactive_app:
+                if warns:
+                    warnings.warn(msg, stacklevel=2)
+                else:
+                    raise ValueError(msg)
+
+        A = A_ratio * self.throat_area
         if A <= 0:
-            raise ValueError("The area ratio must be > 0.")
-        if A > self._Ae:
-            raise ValueError("The provided area ratio is located beyond the exit section.")
-        if A < self._At:
-            raise ValueError("The provided area ratio is located in the convergent.")
+            with param.edit_constant(self):
+                self.shockwave_location = (None, None)
+            deal_with_error("The area ratio must be > 0.")
+            return
+        if A > self.outlet_area:
+            with param.edit_constant(self):
+                self.shockwave_location = (None, None)
+            deal_with_error(
+                "The provided area ratio is located beyond the exit section.",
+                warns=True
+            )
+            return
+        if A < self.throat_area:
+            with param.edit_constant(self):
+                self.shockwave_location = (None, None)
+            deal_with_error(
+                "The provided area ratio is located in the convergent.")
+            return
 
         # compute the location of area ratio
         # https://stackoverflow.com/questions/1029207/interpolation-in-scipy-finding-x-that-produces-y
-        # x = self.Length_Array
-        length = self._length_array
-        area_ratios = self._area_ratio_array
+        length = self.length_array
+        area_ratios = self.area_ratio_array
         x = length[length >= 0]
         y = area_ratios[length >= 0]
         y_reduced = y - A_ratio
         f_reduced = interpolate.InterpolatedUnivariateSpline(x, y_reduced)
         # having limited myself to a monotonic curve, I only have one root
-        return f_reduced.roots()
+        location = f_reduced.roots()[0]
+        with param.edit_constant(self):
+            self.shockwave_location = (location, self._compute_radius(A))
+        return location
+
