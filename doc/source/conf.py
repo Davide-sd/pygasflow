@@ -18,6 +18,7 @@ import os
 import sys
 import inspect
 import sphinx_rtd_theme
+from pygasflow.utils.doc_utils import param_formatter
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -60,6 +61,7 @@ extensions = [
     'sphinx_rtd_theme',
     'nbsphinx',
     'nbsphinx_link', # to link to ipynb files outside of the source folder
+    "bokeh.sphinxext.bokeh_plot",
 ]
 
 # hide the table inside classes autodoc
@@ -223,6 +225,7 @@ replacements = {
     "(s2 - s1) / C_p": r"$\frac{s_{2} - s_{1}}{C_{p}}$",
     "Pt2 / P1": r"$\frac{P_{t2}}{P_{1}}$",
     "Ps / Pt2": r"$\frac{P_{s}}{P_{t2}}$",
+    "0 <= Pb_P0_ratio <= 1": r"$0 \le P_{b} / P_{0} \le 1$",
 }
 def replace(app, what, name, obj, options, lines):
     for i in range(len(lines)):
@@ -230,5 +233,10 @@ def replace(app, what, name, obj, options, lines):
             if k in lines[i]:
                 lines[i] = lines[i].replace(k, v)
 
+
+# -- param.Parameterized -----------------------------------------------------
+# Inspired by:
+# https://github.com/holoviz-dev/nbsite/blob/master/nbsite/paramdoc.py
 def setup(app):
-    app.connect('autodoc-process-docstring', replace);
+    app.connect('autodoc-process-docstring', replace)
+    app.connect("autodoc-process-docstring", param_formatter, priority=-100)

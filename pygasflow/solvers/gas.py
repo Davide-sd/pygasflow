@@ -263,6 +263,14 @@ def sonic_condition(gamma=1.4, to_dict=False):
         Sonic Temperature ratio a0/a*
     trs : float
         Sonic Temperature ratio T0/T*
+
+    Examples
+    --------
+
+    >>> from pygasflow.solvers import sonic_condition
+    >>> print(sonic_condition(1.4, to_dict=True))
+    {'drs': np.float64(1.5774409656148785), 'prs': np.float64(1.892929158737854), 'ars': np.float64(1.0954451150103321), 'trs': np.float64(1.2)}
+
     """
     drs = sonic_density_ratio.__no_check(gamma)
     prs = sonic_pressure_ratio.__no_check(gamma)
