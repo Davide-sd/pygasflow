@@ -51,12 +51,13 @@ def critical_pressure_ratio(M, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
+    ratio : ndarray
         Critical Pressure Ratio P/P*.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return (1 / M) * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2))
+    ratio = np.inf * np.ones_like(M)
+    idx = M != 0
+    ratio[idx] = (1 / M[idx]) * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M[idx]**2))
+    return ratio
 
 @check
 def critical_density_ratio(M, gamma=1.4):
@@ -73,14 +74,15 @@ def critical_density_ratio(M, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
+    ratio : ndarray
         Critical Density Ratio rho/rho*.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return (1 / M) * np.sqrt((2 + (gamma - 1) * M**2) / (gamma + 1))
+    ratio = np.inf * np.ones_like(M)
+    idx = M != 0
+    ratio[idx] = (1 / M[idx]) * np.sqrt((2 + (gamma - 1) * M[idx]**2) / (gamma + 1))
+    return ratio
 
-@check	
+@check
 def critical_total_pressure_ratio(M, gamma=1.4):
     """
     Compute the Fanno's Critical Total Pressure Ratio P0/P0*.
@@ -95,12 +97,13 @@ def critical_total_pressure_ratio(M, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
+    ratio : ndarray
         Critical Total Pressure Ratio P0/P0*.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
+    ratio = np.inf * np.ones_like(M)
+    idx = M != 0
+    ratio[idx] = (1 / M[idx]) * ((1 + ((gamma - 1) / 2) * M[idx]**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
+    return ratio
 
 @check
 def critical_velocity_ratio(M, gamma=1.4):
@@ -147,7 +150,7 @@ def critical_friction_parameter(M, gamma=1.4):
     f[M != 0] = ((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M[M != 0]**2 / (1 + ((gamma - 1) / 2) * M[M != 0]**2)) + (1 / gamma) * (1 / M[M != 0]**2 - 1)
     return f
 
-@check		
+@check
 def critical_entropy_parameter(M, gamma=1.4):
     """
     Compute the Fanno's Critical Entropy Parameter (s*-s)/R.
@@ -165,9 +168,10 @@ def critical_entropy_parameter(M, gamma=1.4):
     out : ndarray
         Critical Entropy Parameter (s*-s)/R.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
+    cep = np.inf * np.ones_like(M)
+    idx = M != 0
+    cep[idx] = np.log((1 / M[idx]) * ((1 + ((gamma - 1) / 2) * M[idx]**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
+    return cep
 
 @check
 def m_from_critical_temperature_ratio(ratio, gamma=1.4):

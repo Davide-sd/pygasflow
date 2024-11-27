@@ -221,7 +221,6 @@ def test_raise_error_shockwave():
     func(ValueError, sw.pressure_deflection, 2, N=1.2) # N is float
     func(ValueError, sw.pressure_deflection, 2, N=-1)  # N is integer < 1
     func(ValueError, sw.mach_from_nondimensional_velocity, -1) # V < 0
-    func(ValueError, sw.mach_from_nondimensional_velocity, 0) # V < 0
     func(ValueError, sw.mach_from_nondimensional_velocity, [2, -0.5]) # at least one V < 0
     func(ValueError, sw.mach_downstream, -1)    # M1 < 0
     func(ValueError, sw.mach_downstream, [-1, 1.5]) # at least one M1 < 0

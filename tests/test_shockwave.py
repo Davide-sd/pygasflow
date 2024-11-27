@@ -10,10 +10,11 @@
 # the result with known values.
 
 import numpy as np
-from pytest import raises
+import pytest
 from pygasflow.solvers.shockwave import (
     shockwave_solver as ss,
-    conical_shockwave_solver as css
+    conical_shockwave_solver as css,
+    normal_shockwave_solver as nss
 )
 from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
@@ -27,7 +28,7 @@ def check_val(v1, v2, tol=1e-05):
     assert abs(v1 - v2) < tol
 
 def func(err, fn, *args, **kwargs):
-    with raises(err):
+    with pytest.raises(err):
         fn(*args, **kwargs)
 
 def test_raises_error():
@@ -381,3 +382,28 @@ def test_beta_from_mach_max_theta():
         beta_from_mach_max_theta([2.5, 3.5], 1.4),
         [64.78216997, 65.68861403]
     )
+
+
+def test_error_for_multiple_gamma():
+    err_msg = "The specific heats ratio must be > 1."
+    with pytest.raises(ValueError, match=err_msg):
+        ss("m1", [2, 3], "beta", 80, gamma=[1.1, 2])
+
+    with pytest.raises(ValueError, match=err_msg):
+        nss("m1", [2, 3], gamma=[1.1, 2])
+
+    with pytest.raises(ValueError, match=err_msg):
+        css([2.5, 5], "mc", 1.5, gamma=[1.1, 2])
+
+
+@pytest.mark.parametrize("g", [0.9, 1])
+def test_error_gamma_less_equal_than_one(g):
+    err_msg = "The specific heats ratio must be > 1."
+    with pytest.raises(ValueError, match=err_msg):
+        ss("m1", [2, 3], "beta", 80, gamma=g)
+
+    with pytest.raises(ValueError, match=err_msg):
+        nss("m1", [2, 3], gamma=g)
+
+    with pytest.raises(ValueError, match=err_msg):
+        css([2.5, 5], "mc", 1.5, gamma=g)

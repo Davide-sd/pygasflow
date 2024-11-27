@@ -133,6 +133,8 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
     """
 
+    if not isinstance(gamma, Number):
+        raise ValueError("The specific heats ratio must be > 1.")
     beta, theta = None, None
     MN1, M1 = None, None
 
@@ -420,6 +422,9 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     [ 3.42459174 18.60172442]
 
     """
+    if not isinstance(gamma, Number):
+        raise ValueError("The specific heats ratio must be > 1.")
+
     param_name = param_name.lower()
     if param_name not in ["mc", "beta", "theta_c"]:
         raise ValueError(

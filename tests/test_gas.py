@@ -197,3 +197,12 @@ def test_sonic_condition():
     assert np.allclose(res["drs"], expected_drs)
     assert np.allclose(res["prs"], expected_prs)
     assert np.allclose(res["trs"], expected_trs)
+
+    assert np.allclose(sonic_condition(0.9, to_dict=False), [np.nan] * 4,
+        equal_nan=True)
+    res = sonic_condition([0.9] + gammas, to_dict=True)
+    assert all(np.isnan(v[0]) for v in res.values())
+    assert np.allclose(res["ars"][1:], expected_ars)
+    assert np.allclose(res["drs"][1:], expected_drs)
+    assert np.allclose(res["prs"][1:], expected_prs)
+    assert np.allclose(res["trs"][1:], expected_trs)

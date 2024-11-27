@@ -240,7 +240,7 @@ def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=False):
     return p, rho, R, T
 
 
-@check([0])
+@check([0], skip_gamma_check=True)
 def sonic_condition(gamma=1.4, to_dict=False):
     """Compute the sonic condition for a gas.
 

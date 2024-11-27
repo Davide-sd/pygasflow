@@ -2,6 +2,8 @@ import numpy as np
 import pygasflow.fanno as fanno
 from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.decorators import check
+from numbers import Number
+
 
 @check([1])
 def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
@@ -96,6 +98,8 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
     available_pnames = ['m', 'pressure', 'density', 'temperature', 'total_pressure_sub', 'total_pressure_super', 'velocity', 'friction_sub', 'friction_super', 'entropy_sub', 'entropy_super']
     if param_name not in available_pnames:
         raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
+    if not isinstance(gamma, Number):
+        raise ValueError("The specific heats ratio must be > 1.")
 
     M = None
     if param_name == "m":
@@ -128,6 +132,7 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
         M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
+    M = np.atleast_1d(M)
     prs, drs, trs, tprs, urs, fps, eps = fanno.get_ratios_from_mach.__no_check(M, gamma)
 
     if to_dict:

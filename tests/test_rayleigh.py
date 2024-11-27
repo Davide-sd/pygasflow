@@ -17,6 +17,7 @@
 
 import numpy as np
 from pygasflow.solvers.rayleigh import rayleigh_solver
+from pytest import raises
 
 # TODO: test for critical density ratio
 
@@ -186,3 +187,12 @@ def test_to_dict():
     check_val(r2["ttrs"], r1[5], tol)
     check_val(r2["urs"], r1[6], tol)
     check_val(r2["eps"], r1[7], tol)
+
+
+def test_error_for_multiple_gamma():
+    error_msg = "The specific heats ratio must be > 1."
+    with raises(ValueError, match=error_msg):
+        rayleigh_solver("m", [2, 4, 6], gamma=np.array([1.2, 1.3]))
+
+    with raises(ValueError, match=error_msg):
+        rayleigh_solver("m", [2, 4, 6], gamma=[1.2, 1.3])

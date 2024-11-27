@@ -7,6 +7,7 @@ from pygasflow.utils.roots import apply_bisection
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.utils.decorators import check_shockwave, check
 import warnings
+from numbers import Number
 
 # NOTE:
 # In the following module:
@@ -663,12 +664,11 @@ def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
     mn2 : array_like
         Normal Mach number dowstream of the shock wave.
     """
-    # TODO: use __no_check
-    pr = pressure_ratio(Mn, gamma)
-    dr = density_ratio(Mn, gamma)
-    tr = temperature_ratio(Mn, gamma)
-    tpr = total_pressure_ratio(Mn, gamma)
-    mn2 = mach_downstream(Mn, gamma)
+    pr = pressure_ratio.__no_check(Mn, gamma)
+    dr = density_ratio.__no_check(Mn, gamma)
+    tr = temperature_ratio.__no_check(Mn, gamma)
+    tpr = total_pressure_ratio.__no_check(Mn, gamma)
+    mn2 = mach_downstream.__no_check(Mn, gamma)
 
     return pr, dr, tr, tpr, mn2
 
@@ -756,7 +756,14 @@ def max_theta_from_mach(M1, gamma=1.4):
 
     def function(M):
         # Right hand side function of beta
-        func = lambda beta: np.tan(beta) * ((M**2 * (gamma + 1)) / (2 * (M**2 * np.sin(beta)**2 - 1)) - 1)
+        def func(beta):
+            num = (M**2 * (gamma + 1))
+            den = (2 * (M**2 * np.sin(beta)**2 - 1))
+            if np.isclose(den, 0):
+                # avoid raising warnings about division by 0
+                return np.inf
+            return np.tan(beta) * (num / den - 1)
+
         # bound a correspond to the discontinuity of func
         a = np.arcsin(1 / M)
         b = np.pi / 2
@@ -1095,10 +1102,18 @@ def mach_from_nondimensional_velocity(V, gamma=1.4):
     M : array_like
         Mach number
     """
-    if np.any(V <= 0):
-        raise ValueError("Nondimensional velocity must be V > 0.")
+    if np.any(V < 0) or np.any(V > 1):
+        raise ValueError("Nondimensional velocity must be 0 <= V <= 1.")
+    # TODO: can I modify check_shockwave to perform the conversion for V?
+    is_scalar = isinstance(V, Number)
+    V = np.atleast_1d(V)
+    M = np.inf * np.ones_like(V)
+    idx = ~np.isclose(V, 1)
     # inverse Anderson's equation 10.16
-    return np.sqrt(2 * V**2 / ((gamma - 1) * (1 - V**2)))
+    M[idx] = np.sqrt(2 * V[idx]**2 / ((gamma - 1) * (1 - V[idx]**2)))
+    if is_scalar:
+        return M[0]
+    return M
 
 # @check
 def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
@@ -1138,7 +1153,6 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     # check for detachment
     if delta < 0 or np.isnan(delta):
-        print(delta)
         raise ValueError("Detachment detected for the following conical flow condition:\n" +
             "M = {}\n".format(M) +
             "beta = {}\n".format(beta) +

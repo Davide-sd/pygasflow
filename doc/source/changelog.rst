@@ -30,7 +30,8 @@ future
     forever. On the other hand, this sub-module is part of pygasflow, and it
     will always be readily available should the user needs it.
 
-
+* Fixed functions that raised *RuntimeWarning: divide by zero encountered
+  in divide*.
 
 
 v1.2.0
