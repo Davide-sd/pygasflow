@@ -202,7 +202,7 @@ class Test_De_Laval_Solver:
         # automatically compute new results
         solver = self.create_solver()
         assert isinstance(solver.geometry, CD_Conical_Nozzle)
-        solver.geometry = CD_TOP_Nozzle(Ri=2*Rt, Rt=Rt, Re=3*Rt)
+        solver.geometry = CD_TOP_Nozzle(Ri=2*Rt, Rt=Rt)
         assert isinstance(solver.geometry, CD_TOP_Nozzle)
         assert solver.current_flow_condition == "Shock in Nozzle"
         assert not np.allclose(

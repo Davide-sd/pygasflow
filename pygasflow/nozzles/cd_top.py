@@ -92,8 +92,9 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
     def __init__(self, Ri=0.4, Rt=0.2, R0=0.1, theta_c=40, K=0.8, **params):
         params.setdefault("title", "TOP Nozzle")
+        Re = params.pop("Re", 6*Rt)
         super().__init__(
-            Ri, Rt*6, Rt, R0, theta_c=theta_c, fractional_length=K, **params
+            Ri, Re, Rt, R0, theta_c=theta_c, fractional_length=K, **params
         )
 
     @param.depends(
