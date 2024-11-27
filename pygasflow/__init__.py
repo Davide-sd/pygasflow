@@ -4,6 +4,7 @@ from pygasflow.solvers import (
     fanno_solver,
     rayleigh_solver,
     shockwave_solver,
+    normal_shockwave_solver,
     conical_shockwave_solver,
     gas_solver,
     ideal_gas_solver,
