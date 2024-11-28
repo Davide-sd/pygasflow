@@ -216,7 +216,11 @@ class De_Laval_Solver(param.Parameterized):
         error_log, otherwise fall back to the standard behaviour.""")
 
     def __init__(self, **params):
-        params.setdefault("geometry", CD_Conical_Nozzle(Rj=0, R0=0))
+        params.setdefault(
+            "geometry",
+            CD_Conical_Nozzle(Rj=0, R0=0,
+                is_interactive_app=params.get("is_interactive_app", False))
+        )
         super().__init__(**params)
 
     def _set_upstream_density(self):

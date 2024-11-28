@@ -283,7 +283,9 @@ class Nozzle_Geometry(param.Parameterized):
             it returns None.
         """
         def deal_with_error(msg, warns=False):
-            self.error_log = f"ValueError: {msg}"
+            # NOTE: I'm not going to add it in the error log because it
+            # shouldn't be relevant when using DeLavalSection
+            # self.error_log += f"\nValueError: {msg}"
             if not self.is_interactive_app:
                 if warns:
                     warnings.warn(msg, stacklevel=2)
