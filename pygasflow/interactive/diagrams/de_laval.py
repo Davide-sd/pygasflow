@@ -172,7 +172,7 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
         return pn.Column(
             *sw, *pw[:idx],
             pn.Card(
-                *pw[idx+1:],
+                *pw[idx:],
                 sizing_mode='stretch_width',
                 title="Geometry:",
                 collapsed=True

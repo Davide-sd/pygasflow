@@ -291,9 +291,13 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
     @param.depends("nozzle")
     def __panel__(self):
         return pn.Column(
-            pn.Row(pn.pane.Str(self.nozzle.param.error_log)),
+            pn.Row(pn.pane.Str(self.param.error_log)),
             pn.FlexBox(
                 pn.GridBox(*self._plot_widgets(), ncols=1),
                 pn.pane.Bokeh(self.figure)
             )
         )
+
+    @param.depends("nozzle.error_log", watch=True)
+    def _update_error_log(self):
+        self.error_log = self.nozzle.error_log
