@@ -222,10 +222,8 @@ def convergent(theta, Ri, R0, Rt, factor):
     # must obey this condition
     if x1 < x0:
         raise ValueError(
-            "The provided combination of theta, R0, factor, Rt is not allowed,"
-            "\nbecause the x-coordinate of the tangent point on the circle at"
-            "\nthroat section is less than the x-coordinate of the tangent"
-            "\npoint on the circle at the combustion chamber section.")
+            "The provided combination of 'theta, Ri, Rt, R0, factor' is"
+            " geometrically unfeasible.")
 
     return x0, y0, x1, y1, xc, yc
 
