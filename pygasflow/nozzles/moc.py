@@ -370,6 +370,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         n_lines=10, gamma=1.4, **params
     ):
         params.setdefault("title", "MOC Nozzle")
+        params["geometry_type"] = "planar"
         super().__init__(
             Ri, Re, Rt, theta_c=theta_c, n_lines=n_lines,
             gamma=gamma, **params

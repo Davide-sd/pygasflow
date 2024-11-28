@@ -186,11 +186,18 @@ def test_min_length_supersonic_nozzle_moc():
     (CD_Min_Length_Nozzle, False, "planar"),
 ])
 def test_get_points(NozzleClass, show_area_ratio, geom):
-    # only test the first y-value of the nozzle coordinates to save coding time
-    n = NozzleClass(Ri=0.4, Rt=0.2, geometry_type=geom)
+    # only test the first y-value (inlet) and the max y-values (outlet)
+    # of the nozzle coordinates to save coding time
+    n = NozzleClass(Ri=0.4, Rt=0.2, Re=1.2, geometry_type=geom)
     nozzle, container = n.get_points(show_area_ratio)
     if geom == "axisymmetric":
-        expected_val = 4 if show_area_ratio else 0.4
+        expected_first_val = 4 if show_area_ratio else 0.4
+        expected_last_val = 36 if show_area_ratio else 1.2
     else:
-        expected_val = 2 if show_area_ratio else 0.4
-    assert np.isclose(nozzle[:, 1][0], expected_val)
+        expected_first_val = 2 if show_area_ratio else 0.4
+        expected_last_val = 6 if show_area_ratio else 1.2
+    assert np.isclose(nozzle[:, 1][0], expected_first_val)
+    if NozzleClass is not CD_TOP_Nozzle:
+        assert np.isclose(max(nozzle[:, 1]), expected_last_val)
+
+
