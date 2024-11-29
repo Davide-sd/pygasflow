@@ -121,7 +121,7 @@ def check_shockwave(var=None):
                 _check_mach_number(all_param["MN1"], 0)
                 # TODO: should I check that MN1 <= M1?
             if "gamma" in all_param.keys():
-                _check_specific_heat_ratio(all_param["gamma"])
+                _check_specific_heat_ratio(all_param["gamma"], False)
             if "beta" in all_param.keys():
                 _check_angle(["shock wave angle", "beta"], all_param["beta"])
             if "theta" in all_param.keys():
