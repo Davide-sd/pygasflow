@@ -464,12 +464,13 @@ def test_update_de_laval_diagram():
 
     solver.gamma = 1.2
     data2 = d.figure.renderers[0].data_source.data.copy()
-    assert np.allclose(data1["x"], data2["x"])
+    # x-coordinates not equal because the position of the shockwave changes
+    assert not np.allclose(data1["x"], data2["x"])
     assert not np.allclose(data1["y"], data2["y"])
 
     solver.Pb_P0_ratio = 0.2
     data3 = d.figure.renderers[0].data_source.data.copy()
-    assert np.allclose(data2["x"], data3["x"])
+    assert not np.allclose(data2["x"], data3["x"])
     assert not np.allclose(data2["y"], data3["y"])
 
     nozzle.outlet_radius = 2

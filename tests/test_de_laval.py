@@ -57,7 +57,7 @@ class Test_De_Laval_Solver:
         gamma = 1.4
         R = 287
         solver = De_Laval_Solver(
-            geometry=n, P0=P0, Pb_P0_ratio=Pb/P0, T0=T0,
+            nozzle=n, P0=P0, Pb_P0_ratio=Pb/P0, T0=T0,
             gamma=gamma, R=R
         )
         return solver
@@ -177,7 +177,7 @@ class Test_De_Laval_Solver:
 
     def test_update_nozzle(self):
         solver = self.create_solver()
-        solver.geometry.throat_radius = Rt * 1.2
+        solver.nozzle.throat_radius = Rt * 1.2
         assert solver.current_flow_condition == "Overexpanded Flow"
         assert not np.allclose(
             solver.flow_conditions["Chocked"].values,
@@ -201,9 +201,9 @@ class Test_De_Laval_Solver:
         # verify that it's possible to change the nozzle. Solver will
         # automatically compute new results
         solver = self.create_solver()
-        assert isinstance(solver.geometry, CD_Conical_Nozzle)
-        solver.geometry = CD_TOP_Nozzle(Ri=2*Rt, Rt=Rt)
-        assert isinstance(solver.geometry, CD_TOP_Nozzle)
+        assert isinstance(solver.nozzle, CD_Conical_Nozzle)
+        solver.nozzle = CD_TOP_Nozzle(Ri=2*Rt, Rt=Rt)
+        assert isinstance(solver.nozzle, CD_TOP_Nozzle)
         assert solver.current_flow_condition == "Shock in Nozzle"
         assert not np.allclose(
             solver.flow_conditions["Chocked"].values,

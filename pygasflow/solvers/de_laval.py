@@ -65,6 +65,13 @@ class De_Laval_Solver(param.Parameterized):
     Solve a De Laval Nozzle (Convergent-Divergent nozzle), starting from
     stagnation conditions and the nozzle type.
 
+    Notes
+    -----
+
+    This is a reactive component. Once a ``De_Laval_Solver`` solver has been
+    created, by updating one of its parameters everything else will be
+    automatically recomputed.
+
     Examples
     --------
 
@@ -424,6 +431,24 @@ class De_Laval_Solver(param.Parameterized):
             # total pressure ratio across the shock wave
             P02_P0_ratio = shockwave.total_pressure_ratio(Mup_sw)
 
+            # NOTE: in order to display a good jump while keeping the number
+            # of discretization points relatively low, here I insert two points
+            # at the location of the shockwave.
+            sw_loc_in_div = self.nozzle.shockwave_location[0]
+            if sw_loc_in_div not in L:
+                idx = np.where(L < Lc + sw_loc_in_div)[0][-1]
+                L = np.concatenate(
+                    [L[:idx+1], [Lc + sw_loc_in_div] * 2, L[idx+1:]])
+
+                # slightly bigger area ratio, to allow selective indexing below
+                Asw_As_ratio_plus_eps = (Asw_As_ratio
+                    + abs(area_ratios[idx+1] - Asw_As_ratio) / 1000)
+                area_ratios = np.concatenate(
+                    [area_ratios[:idx+1],
+                    [Asw_As_ratio, Asw_As_ratio_plus_eps],
+                    area_ratios[idx+1:]])
+                M = np.zeros_like(L)
+
             # find indeces before and after the shock wave in the divergent
             idx_before_sw = np.bitwise_and(L > Lc, area_ratios <= Asw_As_ratio)
             idx_after_sw = np.bitwise_and(L > Lc, area_ratios > Asw_As_ratio)
@@ -502,9 +527,11 @@ class De_Laval_Solver(param.Parameterized):
                     self.gamma, self.R, self.T0, self.P0,
                     self.nozzle.throat_area)
             ))
+        self._update_flow_conditions()
 
-    @param.depends("limit_pressure_ratios", watch=True)
     def _update_flow_conditions(self):
+        # TODO: it should be possible to perform the task of this method inside
+        # _update_logic, thus reducing code repetition
         P0, T0, rho0, gamma, R = self.P0, self.T0, self.rho0, self.gamma, self.R
         Ae = self.nozzle.outlet_area
         At = self.nozzle.throat_area

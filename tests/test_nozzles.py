@@ -33,7 +33,7 @@ def test_defaults(NozzleClass, Lc, Ld):
         assert np.isclose(n.theta_e, 8.66843931)
     assert np.isclose(n.fractional_length, 0.8)
     assert n.geometry_type == "axisymmetric"
-    assert n.N == 800
+    assert n.N == 200
 
     assert np.isclose(n.length_convergent, Lc)
     assert np.isclose(n.length_divergent, Ld)

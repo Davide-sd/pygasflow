@@ -71,7 +71,7 @@ class Nozzle_Geometry(param.Parameterized):
               ``A = pi * r**2``."""
     )
     N = param.Integer(
-        default=800, bounds=(10, 1000),
+        default=200, bounds=(10, 1000),
         label="Number of points:",
         doc="Number of discretization elements along the length of the nozzle.")
     error_log = param.String("", doc="""
