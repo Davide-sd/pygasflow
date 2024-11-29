@@ -19,26 +19,31 @@ class ConicalShockSection(ShockSection):
 
     def __init__(self, **params):
         params.setdefault("solver", conical_shockwave_solver)
-        params.setdefault("diagram", ConicalShockDiagram)
-        params.setdefault("filename", "conical_shock")
         params.setdefault("title", "Conical Shock Wave Section")
+        params.setdefault("diagrams", [ConicalShockDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="conical_shock",
+                columns_map={
+                    "gamma": "gamma",
+                    "m1": "Upstream Mach",
+                    "mc": "M_c",
+                    "theta_c": "θ_c [deg]",
+                    "beta": "β [deg]",
+                    "delta": "δ [deg]",
+                    "Solution": "Solution",
+                    "pr": "P2/P1",
+                    "dr": "rho2/rho1",
+                    "tr": "T2/T1",
+                    "tpr": "P02/P01",
+                    "pc_p1": "P_c/P1",
+                    "rhoc_rho1": "rho_c/rho_1",
+                    "Tc_T1": "T_c/T1"
+                },
+                float_formatters_exclusion=["Solution"]
+            ),
+        ])
         params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m1": "Upstream Mach",
-            "mc": "M_c",
-            "theta_c": "θ_c [deg]",
-            "beta": "β [deg]",
-            "delta": "δ [deg]",
-            "Solution": "Solution",
-            "pr": "P2/P1",
-            "dr": "rho2/rho1",
-            "tr": "T2/T1",
-            "tpr": "P02/P01",
-            "rhoc_rho1": "rho_c/rho_1",
-            "Tc_T1": "T_c/T1"
-        })
-        params.setdefault("float_formatters_exclusion", ["Solution"])
         params.setdefault("input_parameter_2", "theta_c")
         super().__init__(**params)
 

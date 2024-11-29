@@ -4,8 +4,8 @@ import panel as pn
 import param
 from pygasflow.interactive.diagrams import GasDiagram, SonicDiagram
 from pygasflow.interactive.pages.base import (
-    Common,
-    TabulatorSection,
+    BasePage,
+    BaseSection,
     _combine,
     stylesheet,
     _parse_input_string
@@ -19,7 +19,7 @@ from pygasflow.common import sound_speed
 from itertools import product
 
 
-class GasSection(TabulatorSection):
+class GasSection(BaseSection):
     input_parameter_1 = param.String("cp")
 
     input_value_1 = param.Array(np.array([1004.675]))
@@ -32,22 +32,26 @@ class GasSection(TabulatorSection):
 
     def __init__(self, **params):
         params.setdefault("solver", gas_solver)
-        params.setdefault("diagram", GasDiagram)
-        params.setdefault("filename", "gas")
         params.setdefault("title", "Gas")
+        params.setdefault("diagrams", [GasDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="gas",
+                columns_map={
+                    "gamma": "gamma",
+                    "r": "R",
+                    "Cp": "Cp",
+                    "Cv": "Cv",
+                    "drs": "rho0 / rho*",
+                    "prs": "p0 / p*",
+                    "ars": "a0 / a*",
+                    "trs": "T0 / T*",
+                    "T": "T [K]",
+                    "a": "Sound Speed [m/s]",
+                },
+            ),
+        ])
         params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "r": "R",
-            "Cp": "Cp",
-            "Cv": "Cv",
-            "drs": "rho0 / rho*",
-            "prs": "p0 / p*",
-            "ars": "a0 / a*",
-            "trs": "T0 / T*",
-            "T": "T [K]",
-            "a": "Sound Speed [m/s]",
-        })
         super().__init__(**params)
         self.compute()
 
@@ -90,14 +94,18 @@ class GasSection(TabulatorSection):
             list_of_results.append(results)
 
         results = _combine(list_of_results)
-        self.computation_info = "\n".join(info)
+        self.error_log = "\n".join(info)
         df = pd.DataFrame( results )
-        df.rename(columns=self.columns_map, inplace=True)
-        df = df.reindex(columns=self.columns_map.values())
+        df.rename(columns=self.tabulators[0].columns_map, inplace=True)
+        df = df.reindex(columns=self.tabulators[0].columns_map.values())
         self.results = df
 
+    @param.depends("results", watch=True, on_init=True)
+    def update_dataframe(self):
+        self.tabulators[0].results = self.results
 
-class IdealGasSection(TabulatorSection):
+
+class IdealGasSection(BaseSection):
     input_wanted = param.String("p")
 
     input_value_1 = param.Array(np.array([1.2259]))
@@ -111,21 +119,25 @@ class IdealGasSection(TabulatorSection):
 
     def __init__(self, **params):
         params.setdefault("solver", ideal_gas_solver)
-        params.setdefault("filename", "ideal_gas")
         params.setdefault("title", "Ideal Gas")
+        params.setdefault("tabulators", [
+            dict(
+                filename="ideal_gas",
+                columns_map={
+                    "gamma": "gamma",
+                    "p": "P [Pa]",
+                    "rho": "rho [Kg / m^3]",
+                    "R": "R [J / (Kg K)]",
+                    "drs": "rho0/rho*",
+                    "prs": "P0/P*",
+                    "ars": "a0/a*",
+                    "trs": "T0/T*",
+                    "T": "T [K]",
+                    "a": "Sound Speed [m/s]",
+                },
+            ),
+        ])
         params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "p": "P [Pa]",
-            "rho": "rho [Kg / m^3]",
-            "R": "R [J / (Kg K)]",
-            "drs": "rho0/rho*",
-            "prs": "P0/P*",
-            "ars": "a0/a*",
-            "trs": "T0/T*",
-            "T": "T [K]",
-            "a": "Sound Speed [m/s]",
-        })
         super().__init__(**params)
         self.compute()
 
@@ -177,14 +189,18 @@ class IdealGasSection(TabulatorSection):
             list_of_results.append(results)
 
         results = _combine(list_of_results)
-        self.computation_info = "\n".join(info)
+        self.error_log = "\n".join(info)
         df = pd.DataFrame( results )
-        df.rename(columns=self.columns_map, inplace=True)
-        df = df.reindex(columns=self.columns_map.values())
+        df.rename(columns=self.tabulators[0].columns_map, inplace=True)
+        df = df.reindex(columns=self.tabulators[0].columns_map.values())
         self.results = df
 
+    @param.depends("results", watch=True, on_init=True)
+    def update_dataframe(self):
+        self.tabulators[0].results = self.results
 
-class GasPage(Common, pn.viewable.Viewer):
+
+class GasPage(BasePage, pn.viewable.Viewer):
     input_parameter_1 = param.ListSelector(
         label="Select input parameters:",
         objects={

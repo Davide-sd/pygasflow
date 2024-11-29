@@ -12,21 +12,24 @@ from pygasflow.interactive.pages.base import (
 class RayleighSection(FlowSection):
     def __init__(self, **params):
         params.setdefault("solver", rayleigh_solver)
-        params.setdefault("diagram", RayleighDiagram)
-        params.setdefault("filename", "rayleigh")
         params.setdefault("title", "Rayleigh Section")
-        params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m": "Mach",
-            "prs": "P/P*",
-            "drs": "rho/rho*",
-            "trs": "T/T*",
-            "tprs": "P0/P0*",
-            "ttrs": "T0/T0*",
-            "urs": "U/U*",
-            "eps": "(s*-s)/R"
-        })
+        params.setdefault("diagrams", [RayleighDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="rayleigh",
+                columns_map={
+                    "gamma": "gamma",
+                    "m": "Mach",
+                    "prs": "P/P*",
+                    "drs": "rho/rho*",
+                    "trs": "T/T*",
+                    "tprs": "P0/P0*",
+                    "ttrs": "T0/T0*",
+                    "urs": "U/U*",
+                    "eps": "(s*-s)/R"
+                },
+            ),
+        ])
         params.setdefault("internal_map", {
             "temperature_sub": "trs",
             "temperature_super": "trs",
@@ -37,6 +40,7 @@ class RayleighSection(FlowSection):
             "entropy_sub": "eps",
             "entropy_super": "eps"
         })
+        params.setdefault("wrap_in_card", False)
         super().__init__(**params)
         self.compute()
 

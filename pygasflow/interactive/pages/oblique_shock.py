@@ -19,25 +19,29 @@ class ObliqueShockSection(ShockSection):
 
     def __init__(self, **params):
         params.setdefault("solver", shockwave_solver)
-        params.setdefault("diagram", ObliqueShockDiagram)
-        params.setdefault("filename", "oblique_shock")
         params.setdefault("title", "Oblique Shock Wave Section")
+        params.setdefault("diagrams", [ObliqueShockDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="oblique_shock",
+                columns_map={
+                    "gamma": "gamma",
+                    "m1": "Upstream Mach",
+                    "mn1": "Upstream normal Mach",
+                    "m2": "Downstream Mach",
+                    "mn2": "Downstream normal Mach",
+                    "beta": "β [deg]",
+                    "theta": "θ [deg]",
+                    "Solution": "Solution",
+                    "pr": "P2/P1",
+                    "dr": "rho2/rho1",
+                    "tr": "T2/T1",
+                    "tpr": "P02/P01"
+                },
+                float_formatters_exclusion=["Solution"],
+            ),
+        ])
         params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m1": "Upstream Mach",
-            "mn1": "Upstream normal Mach",
-            "m2": "Downstream Mach",
-            "mn2": "Downstream normal Mach",
-            "beta": "β [deg]",
-            "theta": "θ [deg]",
-            "Solution": "Solution",
-            "pr": "P2/P1",
-            "dr": "rho2/rho1",
-            "tr": "T2/T1",
-            "tpr": "P02/P01"
-        })
-        params.setdefault("float_formatters_exclusion", ["Solution"])
         super().__init__(**params)
 
     def run_solver(self, v1, v2, gamma, flag):

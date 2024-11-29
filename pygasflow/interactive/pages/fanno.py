@@ -12,21 +12,24 @@ from pygasflow.interactive.pages.base import (
 class FannoSection(FlowSection):
     def __init__(self, **params):
         params.setdefault("solver", fanno_solver)
-        params.setdefault("diagram", FannoDiagram)
-        params.setdefault("filename", "fanno")
         params.setdefault("title", "Fanno Section")
-        params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m": "Mach",
-            "prs": "P/P*",
-            "drs": "rho/rho*",
-            "trs": "T/T*",
-            "tprs": "P0/P0*",
-            "urs": "U/U*",
-            "fps": "4fL*/D",
-            "eps": "(s*-s)/R"
-        })
+        params.setdefault("diagrams", [FannoDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="fanno",
+                columns_map={
+                    "gamma": "gamma",
+                    "m": "Mach",
+                    "prs": "P/P*",
+                    "drs": "rho/rho*",
+                    "trs": "T/T*",
+                    "tprs": "P0/P0*",
+                    "urs": "U/U*",
+                    "fps": "4fL*/D",
+                    "eps": "(s*-s)/R"
+                },
+            ),
+        ])
         params.setdefault("internal_map", {
             "total_pressure_sub": "tprs",
             "total_pressure_super": "tprs",
@@ -35,6 +38,7 @@ class FannoSection(FlowSection):
             "entropy_sub": "eps",
             "entropy_super": "eps"
         })
+        params.setdefault("wrap_in_card", False)
         super().__init__(**params)
         self.compute()
 

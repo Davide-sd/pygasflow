@@ -56,14 +56,12 @@ stylesheet = """
 """
 
 
-class TabulatorSection(pn.viewable.Viewer):
-    """Base class for sections to be shown inside a page.
+
+class Tabulator(pn.viewable.Viewer):
+    """Display a pn.widgets.Tabulator associated to some dataframe.
     """
 
-    title = param.String(doc="Title for this section.")
-
-    computation_info = param.String(default="", doc="""
-        Visualize errors occuring during computation.""")
+    title = param.String(doc="Title for this tabulator.")
 
     num_decimal_places = param.Integer(
         4, bounds=(2, None), label="Number of decimal places:",
@@ -77,24 +75,9 @@ class TabulatorSection(pn.viewable.Viewer):
         maps the names returned by the results of the computation, to column
         names to be used in the dataframe.""")
 
-    internal_map = param.Dict({}, doc="""
-        Dropdown selection are used to chose the parameter to be sent
-        to the solver. Often, the same quantity may have multiple meanings.
-        For example, the value of the critical area ratio in isentropic flow
-        can be used to compute solutions both for subsonic and supersonic case.
-        This dictionary maps the value used in the dropdown selection
-        to a key name used in the `results` dictionary returned by
-        the solver.""")
-
     float_formatters_exclusion = param.List(
         doc="List of column names to be excluded by float formatter."
     )
-
-    wrap_in_card = param.Boolean(True,
-        doc="Wrap the tabulator into a collapsible card.")
-
-    solver = param.Callable(doc="""
-        Solver to be used to compute numerical results.""")
 
     results = param.DataFrame(doc="""
         Stores the results of the computation which will be shown
@@ -103,13 +86,6 @@ class TabulatorSection(pn.viewable.Viewer):
     filename = param.String("",
         doc="File name for the CSV-file download.")
 
-    diagram = param.Parameter(
-        doc="The class responsible to create a particular diagram.",
-        allow_refs=False)
-
-    diagram_collapsed = param.Boolean(True,
-        doc="Wheter the diagram is hidden (True) or shown right away (False).")
-
     theme = param.String("default", doc="""
         Theme used by this page. Useful to choose which stylesheet
         to apply to sub-components.""")
@@ -117,8 +93,8 @@ class TabulatorSection(pn.viewable.Viewer):
     save_index = param.Boolean(False, doc="""
         Include dataframe index in the CSV file.""")
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **params):
+        super().__init__(**params)
         self._create_tabulator()
 
     def _df_to_csv_callback(self):
@@ -162,25 +138,90 @@ class TabulatorSection(pn.viewable.Viewer):
             if name not in self.float_formatters_exclusion
         }
 
-    def _create_elements_for_ui(self):
-        elements = []
-        if self.diagram is not None:
-            elements.append(
-                pn.Card(
-                    self.diagram(),
-                    title="Diagram",
-                    sizing_mode='stretch_width',
-                    collapsed=self.diagram_collapsed
-                )
-            )
-        elements.extend([
-            pn.pane.Str(self.param.computation_info),
+    def __panel__(self):
+        return pn.Column(
             pn.widgets.FileDownload(
                 callback=self._df_to_csv_callback,
                 filename=self.filename + ".csv"
             ),
             self._tabulator
-        ])
+        )
+
+
+class BaseSection(pn.viewable.Viewer):
+    """Base class for sections to be shown inside a page.
+    """
+
+    title = param.String(doc="Title for this section.")
+
+    error_log = param.String(default="", doc="""
+        Visualize errors occuring during computation.""")
+
+    num_decimal_places = param.Integer(
+        4, bounds=(2, None), label="Number of decimal places:",
+        doc="Controls the number of decimal places shown on the tabulator."
+    )
+
+    internal_map = param.Dict({}, doc="""
+        Dropdown selection are used to chose the parameter to be sent
+        to the solver. Often, the same quantity may have multiple meanings.
+        For example, the value of the critical area ratio in isentropic flow
+        can be used to compute solutions both for subsonic and supersonic case.
+        This dictionary maps the value used in the dropdown selection
+        to a key name used in the `results` dictionary returned by
+        the solver.""")
+
+    wrap_in_card = param.Boolean(True,
+        doc="Wrap the tabulator into a collapsible card.")
+
+    solver = param.Callable(doc="""
+        Solver to be used to compute numerical results.""")
+
+    results = param.DataFrame(doc="""
+        Stores the results of the computation which will be shown
+        on the tabulator.""")
+
+    diagram_collapsed = param.Boolean(True,
+        doc="Wheter the diagram is hidden (True) or shown right away (False).")
+
+    theme = param.String("default", doc="""
+        Theme used by this page. Useful to choose which stylesheet
+        to apply to sub-components.""")
+
+    tabulators = param.List(item_type=Tabulator, doc="""
+        A section can contain zero or more tabulators to show
+        different results.""")
+
+    diagrams = param.List(doc="""
+        A section can contain zero or more diagrams to show
+        different results. Each element must be a callable (either a
+        function or a class), returning an instance of BasePlot.""")
+
+    def __init__(self, **params):
+        tabulators = []
+        for t in params.pop("tabulators", []):
+            tabulators.append(Tabulator(**t))
+        params["tabulators"] = tabulators
+        super().__init__(**params)
+
+    @param.depends("num_decimal_places", watch=True)
+    def _update_formatters(self):
+        for tab in self.tabulators:
+            tab.num_decimal_places = self.num_decimal_places
+
+    def _create_elements_for_ui(self):
+        elements = []
+        for diagram in self.diagrams:
+            elements.append(
+                pn.Card(
+                    diagram,
+                    title="Diagram",
+                    sizing_mode='stretch_width',
+                    collapsed=self.diagram_collapsed
+                )
+            )
+        elements.append(pn.pane.Str(self.param.error_log))
+        elements.append(pn.FlexBox(*self.tabulators))
         return elements
 
     def __panel__(self):
@@ -196,7 +237,7 @@ class TabulatorSection(pn.viewable.Viewer):
         return col
 
 
-class FlowSection(TabulatorSection):
+class FlowSection(BaseSection):
     """Base class for sections contained in the following pages:
 
     * IsentropicPage
@@ -205,6 +246,12 @@ class FlowSection(TabulatorSection):
     * NormalShockPagePage
 
     """
+    # NOTE: I could create widgets here, and then collect them on the page to
+    # be shown on the sidebar. Instead, here I chose to create parameters that
+    # will be fed directly to the solver, and create the widgets on the page,
+    # because it gives me a little bit more flexibility in that I can also use
+    # a *Section class in non-GUI applications (should I need it).
+
     gamma = param.Array(np.array([1.4]))
 
     input_parameter = param.String("m")
@@ -232,7 +279,7 @@ class FlowSection(TabulatorSection):
                 results = self.solver(
                     self.input_parameter, v, gamma=g, to_dict=True)
             except ValueError as err:
-                results = {k: np.nan for k in self.columns_map}
+                results = {k: np.nan for k in self.tabulators[0].columns_map}
                 current_key = self.internal_map.get(
                     self.input_parameter,
                     self.input_parameter,
@@ -248,13 +295,17 @@ class FlowSection(TabulatorSection):
 
         results = _combine(list_of_results)
         df = pd.DataFrame(data=results)
-        df.rename(columns=self.columns_map, inplace=True)
-        df = df.reindex(columns=self.columns_map.values())
+        df.rename(columns=self.tabulators[0].columns_map, inplace=True)
+        df = df.reindex(columns=self.tabulators[0].columns_map.values())
         self.results = df
-        self.computation_info = "\n".join(info)
+        self.error_log = "\n".join(info)
+
+    @param.depends("results", watch=True, on_init=True)
+    def update_dataframe(self):
+        self.tabulators[0].results = self.results
 
 
-class ShockSection(TabulatorSection):
+class ShockSection(BaseSection):
     """Base class for sections contained in the following pages:
 
     * ObliqueShockPage
@@ -316,7 +367,7 @@ class ShockSection(TabulatorSection):
                         sol = "weak" if results["beta"] <= beta_crit else "strong"
                         results["Solution"] = [sol]
                 except ValueError as err:
-                    results = {k: np.nan for k in self.columns_map}
+                    results = {k: np.nan for k in self.tabulators[0].columns_map}
                     current_key_1 = self.internal_map.get(
                         self.input_parameter_1,
                         self.input_parameter_1,
@@ -337,13 +388,17 @@ class ShockSection(TabulatorSection):
 
         results = _combine(list_of_results)
         df = pd.DataFrame(data=results)
-        df.rename(columns=self.columns_map, inplace=True)
-        df = df.reindex(columns=self.columns_map.values())
+        df.rename(columns=self.tabulators[0].columns_map, inplace=True)
+        df = df.reindex(columns=self.tabulators[0].columns_map.values())
         self.results = df
-        self.computation_info = "\n".join(info)
+        self.error_log = "\n".join(info)
+
+    @param.depends("results", watch=True, on_init=True)
+    def update_dataframe(self):
+        self.tabulators[0].results = self.results
 
 
-class Common(param.Parameterized):
+class BasePage(param.Parameterized):
     """Base class for pages.
     """
 
@@ -371,7 +426,7 @@ class Common(param.Parameterized):
             s.num_decimal_places = self.num_decimal_places
 
 
-class FlowPage(Common, pn.viewable.Viewer):
+class FlowPage(BasePage, pn.viewable.Viewer):
     """Base class for the following pages:
 
     * IsentropicPage
@@ -417,7 +472,7 @@ class FlowPage(Common, pn.viewable.Viewer):
         )
 
 
-class ShockPage(Common, pn.viewable.Viewer):
+class ShockPage(BasePage, pn.viewable.Viewer):
     """Base class for the following pages:
 
     * ObliqueShockPage

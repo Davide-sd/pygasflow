@@ -12,19 +12,23 @@ from pygasflow.interactive.pages.base import (
 class NormalShockSection(FlowSection):
     def __init__(self, **params):
         params.setdefault("solver", normal_shockwave_solver)
-        params.setdefault("diagram", NormalShockDiagram)
-        params.setdefault("filename", "normal_shock")
         params.setdefault("title", "Normal Shock Section")
+        params.setdefault("diagrams", [NormalShockDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="normal_shock",
+                columns_map={
+                    "gamma": "gamma",
+                    "m1": "Upstream Mach",
+                    "m2": "Downstream Mach",
+                    "pr": "P2/P1",
+                    "dr": "rho2/rho1",
+                    "tr": "T2/T1",
+                    "tpr": "P02/P01"
+                },
+            ),
+        ])
         params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m1": "Upstream Mach",
-            "m2": "Downstream Mach",
-            "pr": "P2/P1",
-            "dr": "rho2/rho1",
-            "tr": "T2/T1",
-            "tpr": "P02/P01"
-        })
         params.setdefault("input_parameter", "m1")
         super().__init__(**params)
         self.compute()

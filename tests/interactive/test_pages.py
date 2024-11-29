@@ -159,11 +159,11 @@ expected_sections = {
 def test_sections_instantiation(SectionClass):
     s = SectionClass()
     assert s.title == expected_sections[SectionClass]["title"]
-    assert s._tabulators[0].filename == expected_sections[SectionClass]["filename"]
+    assert s.tabulators[0].filename == expected_sections[SectionClass]["filename"]
     if expected_sections[SectionClass]["diagram"] is not None:
-        assert s._diagrams[0] is expected_sections[SectionClass]["diagram"]
+        assert s.diagrams[0] is expected_sections[SectionClass]["diagram"]
     else:
-        assert len(s._diagrams) == 0
+        assert len(s.diagrams) == 0
     assert s.solver is expected_sections[SectionClass]["solver"]
 
 
@@ -346,14 +346,14 @@ def test_section_columns_names(SectionClass):
     # verify that appropriate column names are used in the dataframe
     s = SectionClass()
     if SectionClass not in [ObliqueShockSection, ConicalShockSection]:
-        assert s.results.shape == (1, len(s._tabulators[0].columns_map))
+        assert s.results.shape == (1, len(s.tabulators[0].columns_map))
     else:
-        assert s.results.shape == (2, len(s._tabulators[0].columns_map))
-    assert len(set(s._tabulators[0].columns_map.values()).difference(
+        assert s.results.shape == (2, len(s.tabulators[0].columns_map))
+    assert len(set(s.tabulators[0].columns_map.values()).difference(
         s.results.columns)) == 0
     # verify the order is correct
     for name1, name2 in zip(
-        s._tabulators[0].columns_map.values(), s.results.columns):
+        s.tabulators[0].columns_map.values(), s.results.columns):
         assert name1 == name2
 
 
@@ -362,9 +362,9 @@ def test_de_laval_section_errors():
     solver = De_Laval_Solver(R=287.05, gamma=1.4, P0=101325, T0=298,
         Pb_P0_ratio=0.1, geometry=n)
     s = DeLavalSection(solver=solver)
-    assert len(s._tabulators) == 2
-    assert len(s._diagrams) == 1
-    assert isinstance(s._diagrams[0](), DeLavalDiagram)
+    assert len(s.tabulators) == 2
+    assert len(s.diagrams) == 1
+    assert isinstance(s.diagrams[0](), DeLavalDiagram)
     assert isinstance(s.solver.geometry, CD_Conical_Nozzle)
     assert s.error_log == ""
     n.throat_radius = 0.7

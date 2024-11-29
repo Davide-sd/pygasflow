@@ -12,28 +12,32 @@ from pygasflow.interactive.pages.base import (
 class IsentropicSection(FlowSection):
     def __init__(self, **params):
         params.setdefault("solver", isentropic_solver)
-        params.setdefault("diagram", IsentropicDiagram)
-        params.setdefault("filename", "isentropic")
         params.setdefault("title", "Isentropic Section")
-        params.setdefault("wrap_in_card", False)
-        params.setdefault("columns_map", {
-            "gamma": "gamma",
-            "m": "Mach",
-            "pr": "P/P0",
-            "dr": "rho/rho0",
-            "tr": "T/T0",
-            "prs": "P/P*",
-            "drs": "rho/rho*",
-            "trs": "T/T*",
-            "urs": "U/U*",
-            "ars": "A/A*",
-            "ma": "Mach Angle [deg]",
-            "pm": "Prandtl-Meyer Angle [deg]"
-        })
+        params.setdefault("diagrams", [IsentropicDiagram])
+        params.setdefault("tabulators", [
+            dict(
+                filename="isentropic",
+                columns_map={
+                    "gamma": "gamma",
+                    "m": "Mach",
+                    "pr": "P/P0",
+                    "dr": "rho/rho0",
+                    "tr": "T/T0",
+                    "prs": "P/P*",
+                    "drs": "rho/rho*",
+                    "trs": "T/T*",
+                    "urs": "U/U*",
+                    "ars": "A/A*",
+                    "ma": "Mach Angle [deg]",
+                    "pm": "Prandtl-Meyer Angle [deg]"
+                },
+            ),
+        ])
         params.setdefault("internal_map", {
             "crit_area_sub": "ars",
             "crit_area_super": "ars",
         })
+        params.setdefault("wrap_in_card", False)
         super().__init__(**params)
         self.compute()
 
