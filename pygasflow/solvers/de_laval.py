@@ -63,7 +63,7 @@ def nozzle_mass_flow_rate(gamma, R, T0, P0, As):
 class De_Laval_Solver(param.Parameterized):
     """
     Solve a De Laval Nozzle (Convergent-Divergent nozzle), starting from
-    stagnation conditions and the geometry type.
+    stagnation conditions and the nozzle type.
 
     Examples
     --------
@@ -77,7 +77,7 @@ class De_Laval_Solver(param.Parameterized):
     >>> nozzle = CD_Conical_Nozzle(Ri, Re, Rt)
     >>> solver = De_Laval_Solver(
     ...     gamma=1.4, R=287.05, T0=298, P0=101325,
-    ...     geometry=nozzle, Pb_P0_ratio=0.1)
+    ...     nozzle=nozzle, Pb_P0_ratio=0.1)
     >>> solver.mass_flow_rate
     np.float64(29.809853965846262)
     >>> solver.current_flow_condition
@@ -116,7 +116,7 @@ class De_Laval_Solver(param.Parameterized):
 
     Get the location of the shockwave along the divergent (loc, radius):
 
-    >>> solver.geometry.shockwave_location
+    >>> solver.nozzle.shockwave_location
     (np.float64(2.0387300135132285), np.float64(0.7427484426649532))
 
     Visualize the results at the current Pb/P0 value:
@@ -133,7 +133,7 @@ class De_Laval_Solver(param.Parameterized):
         nozzle = CD_Conical_Nozzle(Ri, Re, Rt)
         solver = De_Laval_Solver(
             gamma=1.4, R=287.05, T0=298, P0=101325,
-            geometry=nozzle, Pb_P0_ratio=0.25)
+            nozzle=nozzle, Pb_P0_ratio=0.25)
         solver.plot()
 
     """
@@ -154,9 +154,9 @@ class De_Laval_Solver(param.Parameterized):
     P0 = param.Number(8*101325, bounds=(0, 300*101325),
         label="Total pressure, P0 [Pa]",
         doc="Total pressure, P0 [Pa]")
-    geometry = param.ClassSelector(
+    nozzle = param.ClassSelector(
         class_=Nozzle_Geometry,
-        doc="The geometry of the nozzle.")
+        doc="The convergent-divergent nozzle type.")
     Pb_P0_ratio = param.Number(
         default=0.1, bounds=(0, 1), step=0.001,
         label="Pb / P0",
@@ -217,7 +217,7 @@ class De_Laval_Solver(param.Parameterized):
 
     def __init__(self, **params):
         params.setdefault(
-            "geometry",
+            "nozzle",
             CD_Conical_Nozzle(Rj=0, R0=0,
                 is_interactive_app=params.get("is_interactive_app", False))
         )
@@ -237,17 +237,17 @@ class De_Laval_Solver(param.Parameterized):
 
     @param.depends(
         "T0", "P0", "R", "gamma", "Pb_P0_ratio",
-        "geometry",
-        "geometry.inlet_radius",
-        "geometry.outlet_radius",
-        "geometry.throat_radius",
-        "geometry.junction_radius_j",
-        "geometry.junction_radius_0",
-        "geometry.theta_c",
-        "geometry.theta_N",
-        "geometry.theta_e",
-        "geometry.fractional_length",
-        "geometry.N",
+        "nozzle",
+        "nozzle.inlet_radius",
+        "nozzle.outlet_radius",
+        "nozzle.throat_radius",
+        "nozzle.junction_radius_j",
+        "nozzle.junction_radius_0",
+        "nozzle.theta_c",
+        "nozzle.theta_N",
+        "nozzle.theta_e",
+        "nozzle.fractional_length",
+        "nozzle.N",
         watch=True, on_init=True
     )
     def update(self):
@@ -263,8 +263,8 @@ class De_Laval_Solver(param.Parameterized):
         self._set_upstream_density()
         T0, P0, rho0 = self.T0, self.P0, self.rho0
         gamma, R = self.gamma, self.R
-        Ae = self.geometry.outlet_area
-        At = self.geometry.throat_area
+        Ae = self.nozzle.outlet_area
+        At = self.nozzle.throat_area
 
         # STEP 1: compute limit pressure ratios that will help determine
         # the kind of flow in the nozzle.
@@ -303,13 +303,13 @@ class De_Laval_Solver(param.Parameterized):
         # STEP 2: analyze the flow in the nozzle, compute the important
         # quantities and find if and where a shockwave is present
 
-        Lc = self.geometry.length_convergent
-        Ld = self.geometry.length_divergent
+        Lc = self.nozzle.length_convergent
+        Ld = self.nozzle.length_divergent
 
-        # copy the arrays: we do not want to modify the original geometry in
+        # copy the arrays: we do not want to modify the original nozzle in
         # case of shock wave at the exit plane
-        area_ratios = np.copy(self.geometry.area_ratio_array)
-        L = np.copy(self.geometry.length_array) + Lc
+        area_ratios = np.copy(self.nozzle.area_ratio_array)
+        L = np.copy(self.nozzle.length_array) + Lc
 
         M = np.zeros_like(area_ratios)
         P_ratios = np.zeros_like(area_ratios)
@@ -322,8 +322,8 @@ class De_Laval_Solver(param.Parameterized):
             P_ratios += 1
             T_ratios += 1
             rho_ratios += 1
-            # force the geometry to set to None the location of the SW
-            self.geometry.location_divergent_from_area_ratio(Ae / At + 1)
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
         # fully subsonic flow
         elif Pe_P0_ratio >= r1:
@@ -331,8 +331,8 @@ class De_Laval_Solver(param.Parameterized):
             P_ratios = pressure_ratio(M, self.gamma)
             rho_ratios = density_ratio(M, self.gamma)
             T_ratios = temperature_ratio(M, self.gamma)
-            # force the geometry to set to None the location of the SW
-            self.geometry.location_divergent_from_area_ratio(Ae / At + 1)
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
         # fully supersonic flow in the divergent
         elif Pe_P0_ratio < r2:
@@ -344,14 +344,14 @@ class De_Laval_Solver(param.Parameterized):
             P_ratios = pressure_ratio(M, self.gamma)
             rho_ratios = density_ratio(M, self.gamma)
             T_ratios = temperature_ratio(M, self.gamma)
-            # force the geometry to set to None the location of the SW
-            self.geometry.location_divergent_from_area_ratio(Ae / At + 1)
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
         # shock wave at the exit plane
         elif np.isclose(Pe_P0_ratio, r2):
             # upstream area ratio where the shockwave happens
             Ae_At_ratio = Ae / At
-            self.geometry.location_divergent_from_area_ratio(Ae_At_ratio)
+            self.nozzle.location_divergent_from_area_ratio(Ae_At_ratio)
             # Supersonic Mach number at the exit section just upstream of
             # the shock wave
             Meup_sw = m_from_critical_area_ratio(
@@ -408,7 +408,7 @@ class De_Laval_Solver(param.Parameterized):
             # area ratio of the shock wave
             Asw_As_ratio = find_shockwave_area_ratio(
                 Ae_At_ratio, Pe_P0_ratio, self.R, self.gamma)
-            self.geometry.location_divergent_from_area_ratio(Asw_As_ratio)
+            self.nozzle.location_divergent_from_area_ratio(Asw_As_ratio)
             # Mach number at the exit section given the exit pressure ratio
             # Pe_P0_ratio
             Me = m_from_critical_area_ratio_and_pressure_ratio(
@@ -500,14 +500,14 @@ class De_Laval_Solver(param.Parameterized):
                 flow_results=[L, M,  P_ratios, rho_ratios, T_ratios],
                 mass_flow_rate=nozzle_mass_flow_rate(
                     self.gamma, self.R, self.T0, self.P0,
-                    self.geometry.throat_area)
+                    self.nozzle.throat_area)
             ))
 
     @param.depends("limit_pressure_ratios", watch=True)
     def _update_flow_conditions(self):
         P0, T0, rho0, gamma, R = self.P0, self.T0, self.rho0, self.gamma, self.R
-        Ae = self.geometry.outlet_area
-        At = self.geometry.throat_area
+        Ae = self.nozzle.outlet_area
+        At = self.nozzle.throat_area
         r1, r2, r3 = self.limit_pressure_ratios
         flow_conditions = {}
 
@@ -575,21 +575,21 @@ class De_Laval_Solver(param.Parameterized):
     @property
     def critical_area(self):
         """Returns the critical area"""
-        return self.geometry.throat_area
+        return self.nozzle.throat_area
 
     @property
     def inlet_area(self):
         """Returns the inlet area"""
-        return self.geometry.inlet_area
+        return self.nozzle.inlet_area
 
     @property
     def outlet_area(self):
         """Returns the outlet area"""
-        return self.geometry.outlet_area
+        return self.nozzle.outlet_area
 
     def __str__(self):
         s = "De Laval nozzle characteristics:\n"
-        s += "Geometry: " + self.geometry.__str__()
+        s += "Geometry: " + self.nozzle.__str__()
         s += "Critical Quantities:\n"
         s += "\tT*\t{}\n".format(self.critical_temperature)
         s += "\tP*\t{}\n".format(self.critical_pressure)
@@ -616,7 +616,7 @@ class De_Laval_Solver(param.Parameterized):
                 self.flow_states_labels, values)]) + "\n"
         return s
 
-    def plot(self, interactive=True, show_nozzle_geometry=True, **params):
+    def plot(self, interactive=True, show_nozzle=True, **params):
         """Visualize the results.
 
         Parameters
@@ -628,7 +628,7 @@ class De_Laval_Solver(param.Parameterized):
             ``solver.plot(interactive=True).show()`` might be requires in
             order to visualize the application on a browser.
             If False, a Bokeh figure will be shown on the screen.
-        show_nozzle_geometry : bool
+        show_nozzle : bool
         **params :
             Keyword arguments sent to ``DeLavalDiagram``.
 
@@ -640,14 +640,14 @@ class De_Laval_Solver(param.Parameterized):
         from pygasflow.interactive.diagrams import DeLavalDiagram
         d = DeLavalDiagram(
             solver=self,
-            show_nozzle_geometry=show_nozzle_geometry,
+            show_nozzle=show_nozzle,
             **params
         )
         if interactive:
             return d.servable()
 
         from bokeh.plotting import show
-        if show_nozzle_geometry:
+        if show_nozzle:
             from bokeh.layouts import column
             c = column(d.nozzle_diagram.figure, d.figure)
             show(c)

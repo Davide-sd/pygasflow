@@ -360,12 +360,12 @@ def test_section_columns_names(SectionClass):
 def test_de_laval_section_errors():
     n = CD_Conical_Nozzle(R0=0, Rj=0, Ri=0.4, Rt=0.2, Re=0.6)
     solver = De_Laval_Solver(R=287.05, gamma=1.4, P0=101325, T0=298,
-        Pb_P0_ratio=0.1, geometry=n)
+        Pb_P0_ratio=0.1, nozzle=n)
     s = DeLavalSection(solver=solver)
     assert len(s.tabulators) == 2
     assert len(s.diagrams) == 1
     assert isinstance(s.diagrams[0](), DeLavalDiagram)
-    assert isinstance(s.solver.geometry, CD_Conical_Nozzle)
+    assert isinstance(s.solver.nozzle, CD_Conical_Nozzle)
     assert s.error_log == ""
     n.throat_radius = 0.7
     assert s.error_log != ""

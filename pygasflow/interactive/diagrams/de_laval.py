@@ -26,7 +26,7 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
 
     labels = param.List([], doc="Labels to be used on the legend.")
 
-    show_nozzle_geometry = param.Boolean(
+    show_nozzle = param.Boolean(
         default=True,
         label="Show nozzle geometry")
 
@@ -54,20 +54,20 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
         params.setdefault(
             "solver", De_Laval_Solver(is_interactive_app=True))
         params.setdefault("nozzle_diagram", NozzleDiagram(
-            nozzle=params["solver"].geometry,
+            nozzle=params["solver"].nozzle,
             size=params["size"])
         )
         super().__init__(**params)
         # catch exceptions and show them on the error_log
         self.solver.is_interactive_app = True
-        self.solver.geometry.is_interactive_app = True
+        self.solver.nozzle.is_interactive_app = True
         # NOTE: I need this in order to change its visibility
         self._nozzle_panel = pn.pane.Bokeh(self.nozzle_diagram.figure)
         self._update_nozzle_diagram_visibility()
 
-    @param.depends("show_nozzle_geometry", watch=True)
+    @param.depends("show_nozzle", watch=True)
     def _update_nozzle_diagram_visibility(self):
-        self._nozzle_panel.visible = self.show_nozzle_geometry
+        self._nozzle_panel.visible = self.show_nozzle
 
     @param.depends("nozzle_diagram.show_divergent_only", watch=True)
     def _update_show_divergent_only(self):
@@ -84,9 +84,9 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
         else:
             self._update_figure()
 
-    @param.depends("solver", "solver.geometry", watch=True)
+    @param.depends("solver", "solver.nozzle", watch=True)
     def _update_nozzle_diagram(self):
-        self.nozzle_diagram.nozzle = self.solver.geometry
+        self.nozzle_diagram.nozzle = self.solver.nozzle
 
     @param.depends("solver.error_log", "nozzle_diagram.error_log", watch=True)
     def _update_error_log(self):
@@ -177,9 +177,9 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
                 title="Geometry:",
                 collapsed=True
             ),
-            self.param.show_nozzle_geometry,
+            self.param.show_nozzle,
             self.nozzle_diagram.param.show_divergent_only,
-            self.solver.geometry.param.N
+            self.solver.nozzle.param.N
         )
 
     @param.depends("solver.current_flow_condition", watch=True, on_init=True)
@@ -187,7 +187,7 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
         new_title = "Flow Condition: " + self.solver.current_flow_condition
         self.nozzle_diagram.title = new_title
 
-    @param.depends("solver", "solver.geometry")
+    @param.depends("solver", "solver.nozzle")
     def __panel__(self):
         return pn.Column(
             pn.Row(pn.pane.Str(self.param.error_log)),

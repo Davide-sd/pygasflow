@@ -449,7 +449,7 @@ def test_update_nozzle_diagram_error_log():
 def test_update_de_laval_diagram():
     nozzle = CD_Conical_Nozzle()
     solver = De_Laval_Solver(
-        R=287, gamma=1.4, P0=101325, T0=288, geometry=nozzle, Pb_P0_ratio=0.1)
+        R=287, gamma=1.4, P0=101325, T0=288, nozzle=nozzle, Pb_P0_ratio=0.1)
     assert not nozzle.is_interactive_app
     assert not solver.is_interactive_app
     d = DeLavalDiagram(solver=solver)
@@ -485,7 +485,7 @@ def test_update_de_laval_diagram():
     new_nozzle = CD_TOP_Nozzle()
     new_solver = De_Laval_Solver(
         R=287, gamma=1.4, P0=101325, T0=288,
-        geometry=new_nozzle, Pb_P0_ratio=0.1)
+        nozzle=new_nozzle, Pb_P0_ratio=0.1)
     d.solver = new_solver
     data5 = d.figure.renderers[0].data_source.data.copy()
     assert not np.allclose(data4["x"], data5["x"])
@@ -510,7 +510,7 @@ def test_update_de_laval_diagram():
 
     # verify that it's possible to hide the nozzle geometry
     assert d._nozzle_panel.visible
-    d.show_nozzle_geometry = False
+    d.show_nozzle = False
     assert not d._nozzle_panel.visible
 
     # verify that all UI controls can be displayed

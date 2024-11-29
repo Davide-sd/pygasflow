@@ -33,7 +33,7 @@ class DeLavalSection(BaseSection):
     def __init__(self, **params):
         solver = params.pop("solver", De_Laval_Solver(
             P0=8*101325, T0=303.15, R=287.05, gamma=1.4,
-            geometry=CD_Min_Length_Nozzle(R0=0, is_interactive_app=True)
+            nozzle=CD_Min_Length_Nozzle(R0=0, is_interactive_app=True)
         ))
         diagram = DeLavalDiagram(solver=solver, _show_all_ui_controls=True)
         params.setdefault("solver", solver)
@@ -86,11 +86,11 @@ class DeLavalSection(BaseSection):
 
     @param.depends(
         "solver.error_log",
-        "solver.geometry.error_log",
+        "solver.nozzle.error_log",
         watch=True
     )
     def _update_error_log(self):
-        msg = self.solver.error_log + "\n" + self.solver.geometry.error_log
+        msg = self.solver.error_log + "\n" + self.solver.nozzle.error_log
         self.error_log = msg
 
 
@@ -119,8 +119,8 @@ class NozzlesPage(BasePage, pn.viewable.Viewer):
         super().__init__(**params)
 
     @param.depends("nozzle_select", watch=True)
-    def _update_geometry(self):
-        self.sections[0].solver.geometry = self.nozzle_list[self.nozzle_select]
+    def _update_nozzle(self):
+        self.sections[0].solver.nozzle = self.nozzle_list[self.nozzle_select]
 
     def _create_sidebar_controls(self):
         self.controls = pn.Column(
