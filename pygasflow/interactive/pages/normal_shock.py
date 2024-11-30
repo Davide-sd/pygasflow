@@ -55,7 +55,7 @@ class NormalShockPage(FlowPage):
             "Change in properties caused by a shock wave perpendicular"
             " to a 1D flow.")
         params.setdefault("sections", [
-            NormalShockSection(theme=self.theme)
+            NormalShockSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

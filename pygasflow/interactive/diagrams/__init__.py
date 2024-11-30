@@ -26,7 +26,8 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
         shown on the screen.
     **params :
         Keyword arguments passed to the diagram component for further
-        customization.
+        customization, like ``title``, ``x_label``, ``y_label``,
+        ``x_range``, ``y_range``, ``size``.
 
     Returns
     -------

@@ -89,7 +89,7 @@ class ConicalShockPage(ShockPage):
             "Change in properties of an axisymmetric supersonic flow"
             " over a sharp cone at zero angle of attack to the free stream.")
         params.setdefault("sections", [
-            ConicalShockSection(theme=self.theme)
+            ConicalShockSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

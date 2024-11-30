@@ -99,7 +99,7 @@ class ObliqueShockPage(ShockPage):
             " oblique shock wave. The streamlines experience some"
             " deflection angle, θ, at the shock.")
         params.setdefault("sections", [
-            ObliqueShockSection(theme=self.theme)
+            ObliqueShockSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

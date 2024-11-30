@@ -122,6 +122,7 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             "height": self.size[1],
         })
         colors = itertools.cycle(self.colors)
+        ann_color = "#000000" if self._theme == "default" else "#ffffff"
 
         # plot the Mach curves
         max_theta = 0
@@ -149,12 +150,12 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y="ys",
             source=source,
             line_dash="dotted",
-            line_color="#000000",
+            line_color=ann_color,
             line_width=1,
             visible=self.show_sonic_line
         )
 
-        vh = VeeHead(size=6, fill_color="#000000")
+        vh = VeeHead(size=6, fill_color=ann_color, line_color=ann_color)
         idx = self.results[-3]
         a1 = Arrow(
             end=vh,
@@ -162,7 +163,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
             x_end=source["xs"][idx],
             y_end=source["ys"][idx] + self._ann_arrow_length,
-            visible=self.show_sonic_line
+            visible=self.show_sonic_line,
+            line_color=ann_color
         )
         a2 = Arrow(
             end=vh,
@@ -170,7 +172,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
             x_end=source["xs"][idx],
             y_end=source["ys"][idx] - self._ann_arrow_length,
-            visible=self.show_sonic_line
+            visible=self.show_sonic_line,
+            line_color=ann_color
         )
         labels_source = ColumnDataSource(data={
             "xs": [source["xs"][idx], source["xs"][idx]],
@@ -184,7 +187,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             x="xs", y="ys", text="labels",
             x_offset="x_offset", y_offset="y_offset", source=labels_source,
             text_baseline="middle", text_align="center",
-            text_color="#000000", text_font_size="12px",
+            text_color=ann_color,
+            text_font_size="12px",
             visible=self.show_sonic_line
         )
         self.figure.add_layout(a1)
@@ -198,7 +202,7 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y="ys",
             source=source,
             line_dash="dashed",
-            line_color="#000000",
+            line_color=ann_color,
             line_width=1,
             visible=self.show_region_line
         )
@@ -210,7 +214,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
             x_end=source["xs"][idx],
             y_end=source["ys"][idx] + self._ann_arrow_length,
-            visible=self.show_region_line
+            visible=self.show_region_line,
+            line_color=ann_color
         )
         a4 = Arrow(
             end=vh,
@@ -218,7 +223,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
             x_end=source["xs"][idx],
             y_end=source["ys"][idx] - self._ann_arrow_length,
-            visible=self.show_region_line
+            visible=self.show_region_line,
+            line_color=ann_color
         )
         labels_source = ColumnDataSource(data={
             "xs": [source["xs"][idx], source["xs"][idx]],
@@ -232,7 +238,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             x="xs", y="ys", text="labels",
             x_offset="x_offset", y_offset="y_offset", source=labels_source,
             text_baseline="middle", text_align="center",
-            text_color="#000000", text_font_size="12px",
+            text_color=ann_color,
+            text_font_size="12px",
             visible=self.show_region_line
         )
         self.figure.add_layout(a3)

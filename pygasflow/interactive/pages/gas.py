@@ -272,8 +272,10 @@ class GasPage(BasePage, pn.viewable.Viewer):
         params.setdefault("page_title", "Gas")
         params.setdefault("page_description", "Compute gas-related quantities.")
         params.setdefault("sections", [
-            GasSection(wrap_in_card=True),
-            IdealGasSection(wrap_in_card=True),
+            GasSection(
+                wrap_in_card=True, theme=params.get("theme", "default")),
+            IdealGasSection(
+                wrap_in_card=True, theme=params.get("theme", "default")),
         ])
         super().__init__(**params)
 

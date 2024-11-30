@@ -26,6 +26,10 @@ class BasePlot(param.Parameterized):
     colors = param.Tuple(Category10[10], length=10,
         doc="List of categorical colors.")
 
+    _theme = param.String("default", doc="""
+        Theme used by the overall application. Useful to choose which
+        color to apply to elements of the plot.""")
+
     _legend = param.ClassSelector(class_=Legend,
         doc="The legend, placed outside of the plotting area.")
 

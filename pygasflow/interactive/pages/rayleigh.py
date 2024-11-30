@@ -71,7 +71,7 @@ class RayleighPage(FlowPage):
         params.setdefault("page_title", "Rayleigh")
         params.setdefault("page_description", "1D flow with heat addition.")
         params.setdefault("sections", [
-            RayleighSection(theme=self.theme)
+            RayleighSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

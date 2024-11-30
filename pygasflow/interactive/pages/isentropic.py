@@ -64,7 +64,7 @@ class IsentropicPage(FlowPage):
         params.setdefault("page_description",
             "Adiabatic and reversible 1D flow.")
         params.setdefault("sections", [
-            IsentropicSection(theme=self.theme)
+            IsentropicSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

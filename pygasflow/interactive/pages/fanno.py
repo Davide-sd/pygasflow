@@ -67,7 +67,7 @@ class FannoPage(FlowPage):
         params.setdefault("page_title", "Fanno")
         params.setdefault("page_description", "1D flow with friction.")
         params.setdefault("sections", [
-            FannoSection(theme=self.theme)
+            FannoSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 

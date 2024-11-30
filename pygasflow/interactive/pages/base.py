@@ -214,7 +214,7 @@ class BaseSection(pn.viewable.Viewer):
         for diagram in self.diagrams:
             elements.append(
                 pn.Card(
-                    diagram,
+                    diagram(_theme=self.theme),
                     title="Diagram",
                     sizing_mode='stretch_width',
                     collapsed=self.diagram_collapsed

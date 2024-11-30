@@ -114,7 +114,7 @@ class NozzlesPage(BasePage, pn.viewable.Viewer):
         params.setdefault("page_description",
             "Flow in a convergent-divergent nozzle.")
         params.setdefault("sections", [
-            DeLavalSection(theme=self.theme)
+            DeLavalSection(theme=params.get("theme", "default"))
         ])
         super().__init__(**params)
 
