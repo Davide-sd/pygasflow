@@ -10,6 +10,7 @@
 # the result with known values.
 
 import numpy as np
+import os
 import pytest
 from pygasflow.solvers.shockwave import (
     shockwave_solver as ss,
@@ -25,9 +26,12 @@ from pygasflow.shockwave import (
     load_data,
     create_mach_beta_theta_c_csv_file
 )
+from tempfile import TemporaryDirectory
+
 
 def check_val(v1, v2, tol=1e-05):
     assert abs(v1 - v2) < tol
+
 
 def func(err, fn, *args, **kwargs):
     with pytest.raises(err):
@@ -442,3 +446,33 @@ def test_load_data(gamma, raise_error):
     else:
         with pytest.raises(FileNotFoundError):
             load_data(gamma)
+
+
+def test_create_mach_beta_theta_c_csv_file():
+    with pytest.raises(TypeError):
+        # gamma is not iterable
+        create_mach_beta_theta_c_csv_file([1, 1.1], 1.4)
+    with pytest.raises(TypeError):
+        # M1 is not iterable
+        create_mach_beta_theta_c_csv_file(2, [1.1, 1.4])
+    with pytest.raises(TypeError):
+        # both M1 and gamma are not iterables
+        create_mach_beta_theta_c_csv_file(2, 1.4)
+    with TemporaryDirectory(prefix="pygasflow_") as tmpdir:
+        create_mach_beta_theta_c_csv_file(
+            [1, 1.05], [1.35, 1.4], folder=tmpdir)
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "m-beta-theta_c-g1.35.csv.zip"
+        ))
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "m-beta-theta_c-g1.4.csv.zip"
+        ))
+    with TemporaryDirectory(prefix="pygasflow_") as tmpdir:
+        create_mach_beta_theta_c_csv_file(
+            [1.05], [1.35], folder=tmpdir, filename="test%s.csv.zip")
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "test1.35.csv.zip"
+        ))
