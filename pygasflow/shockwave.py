@@ -1458,51 +1458,61 @@ def load_data(gamma=1.4):
     if gamma <= 1:
         raise ValueError("The specific heat ratio must be gamma > 1")
 
-    import csv
+    import pandas as pd
     import os
     # path of the folder containing this file
     current_dir = os.path.dirname(os.path.realpath(__file__))
     # path of the folder containing the data of the plot
     data_dir = os.path.join(current_dir, "data")
-    filename = os.path.join(data_dir, "m-beta-theta_c-g" + str(gamma) + ".csv")
+    filename = os.path.join(data_dir, "m-beta-theta_c-g" + str(gamma) + ".csv.zip")
     if not os.path.exists(filename):
         files = [f for f in os.listdir(data_dir) if os.path.isfile(os.path.join(data_dir, f))]
         raise FileNotFoundError("Could not find the file: {}\n".format(filename) +
         "The following files are available: {}\n".format(files) +
         "Insert the interested specific heat ratio!")
-    mach, beta, theta_c = [], [], []
-    with open(filename, mode='r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        count = 0
-        for row in csv_reader:
-            if count > 0:
-                mach.append(float(row["M1"]))
-                beta.append(float(row["beta"]))
-                theta_c.append(float(row["theta_c"]))
-            count += 1
+    df = pd.read_csv(filename)
+    mach = df["M1"].values
+    beta = df["beta"].values
+    theta_c = df["theta_c"].values
 
     return mach, beta, theta_c
 
-if __name__ == "__main__":
-    # print(np.rad2deg(np.arcsin(1 / 1.1)))
-    # print(mach_cone_angle_from_shock_angle(1.1, 65.3800226713429))
-    # print(beta_theta_c_for_unit_mach_downstream(2))
-    # print(max_theta_c_from_mach(2))
-    # print(mach_cone_angle_from_shock_angle(1.05, ))
-    # M1 = np.logspace(0, 1, 50)
-    # print(M1)
 
-    # print(load_data())
+def create_mach_beta_theta_c_csv_file(
+    M, gamma, folder="", filename="m-beta-theta_c-g%s.csv.zip"
+):
+    """Create a csv file for each value of gamma containing data for the
+    upstream Mach, beta, theta_c where the downstream Mach number is sonic.
+    This is useful to speed up the generation of the Mach-beta-theta_c diagram.
 
-    # print(normal_mach_upstream(2, theta=30))
-    print(mach_from_theta_beta(45, 50))
+    Parameters
+    ----------
+    M : list or np.array
+        Values of upstream Mach numbers where to compute beta, theta_c.
+    gamma : list
+        Values of the specific heat ratio.
+    folder : str
+    filename : str
+        A formatted string accepting one argument, the gamma value.
+    """
+    if any(not hasattr(v, "__iter__") for v in [M, gamma]):
+        raise TypeError(
+            "`M` and `gamma` must be iterables (list, tuple, arrays).")
 
+    import os
+    import pandas as pd
 
-    # M1 = np.logspace(0, 1, 50) / 100 + 0.99
-    # M1 = [1.1, 1.12, 1.14, 1.16, 1.18, 1.20, 1.23, 1.26, 1.29, 1.32, 1.35, 1.38,
-    #     1.41, 1.44, 1.47, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10,
-    #     100, 10000]
-    # for i, m in enumerate(M1):
-    #     # if i > 1:
-    #     b, t = beta_theta_c_for_unit_mach_downstream(m)
-    #     print(i, m, b, t)
+    for g in gamma:
+        print("Processing gamma = ", g)
+        beta = np.zeros_like(M)
+        theta_c = np.zeros_like(M)
+        for i, m in enumerate(M):
+            try:
+                beta[i], theta_c[i] = beta_theta_c_for_unit_mach_downstream(m, g)
+            except ValueError:
+                beta[i], theta_c[i] = np.nan, np.nan
+        df = pd.DataFrame.from_dict({
+            "M1": M, "beta": beta, "theta_c": theta_c
+        })
+        filepath = os.path.join(folder, filename % g)
+        df.to_csv(filepath, index=False, compression="zip")

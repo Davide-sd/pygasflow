@@ -21,7 +21,9 @@ from pygasflow.shockwave import (
     mach_cone_angle_from_shock_angle,
     mach_downstream,
     oblique_mach_downstream,
-    beta_from_mach_max_theta
+    beta_from_mach_max_theta,
+    load_data,
+    create_mach_beta_theta_c_csv_file
 )
 
 def check_val(v1, v2, tol=1e-05):
@@ -407,3 +409,36 @@ def test_error_gamma_less_equal_than_one(g):
 
     with pytest.raises(ValueError, match=err_msg):
         css([2.5, 5], "mc", 1.5, gamma=g)
+
+
+@pytest.mark.parametrize("gamma, raise_error", [
+    (1.05, False),
+    (1.1, False),
+    (1.15, False),
+    (1.2, False),
+    (1.25, False),
+    (1.3, False),
+    (1.35, False),
+    (1.4, False),
+    (1.45, False),
+    (1.5, False),
+    (1.55, False),
+    (1.6, False),
+    (1.65, False),
+    (1.7, False),
+    (1.75, False),
+    (1.8, False),
+    (1.85, False),
+    (1.9, False),
+    (1.95, False),
+    (2, False),
+    (2.05, True)
+])
+def test_load_data(gamma, raise_error):
+    if not raise_error:
+        data = load_data(gamma)
+        assert len(data) == 3
+        assert all(isinstance(d, np.ndarray) for d in data)
+    else:
+        with pytest.raises(FileNotFoundError):
+            load_data(gamma)
