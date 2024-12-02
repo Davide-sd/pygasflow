@@ -30,6 +30,10 @@ class DeLavalSection(BaseSection):
         I need this to update the error_log of DeLavalSection when
         an error occurs in the diagram.""")
 
+    _pointer_to_mass_flow_rate = param.String(doc="""
+        This parameter will be used to show the mass flow rate inside
+        the current section.""")
+
     def __init__(self, **params):
         solver = params.pop("solver", De_Laval_Solver(
             P0=8*101325, T0=303.15, R=287.05, gamma=1.4,
@@ -80,6 +84,10 @@ class DeLavalSection(BaseSection):
                     collapsed=self.diagram_collapsed
                 )
             )
+        elements.append(pn.pane.Markdown(
+            self.param._pointer_to_mass_flow_rate,
+            styles={"font-size": "16px"}
+        )),
         elements.append(pn.pane.Str(self.param.error_log))
         elements.append(pn.FlexBox(*self.tabulators))
         return elements
@@ -92,6 +100,15 @@ class DeLavalSection(BaseSection):
     def _update_error_log(self):
         msg = self.solver.error_log + "\n" + self.solver.nozzle.error_log
         self.error_log = msg
+
+    @param.depends(
+        "solver.mass_flow_rate",
+        "num_decimal_places",
+        watch=True, on_init=True
+    )
+    def _update_mass_flow_rate(self):
+        self._pointer_to_mass_flow_rate = "Mass flow rate [kg/s]: " + str(round(
+            self.solver.mass_flow_rate, self.num_decimal_places))
 
 
 class NozzlesPage(BasePage, pn.viewable.Viewer):
