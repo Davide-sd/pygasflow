@@ -35,6 +35,9 @@ setup(
         'pygasflow.nozzles',
         'pygasflow.solvers',
         'pygasflow.utils',
+        'pygasflow.interactive',
+        'pygasflow.interactive.diagrams',
+        'pygasflow.interactive.pages',
     ],
     include_package_data=True,
     zip_safe = False,
@@ -42,7 +45,9 @@ setup(
         "numpy",
         "scipy",
         "matplotlib",
-        "pandas"
+        "pandas",
+        "bokeh",
+        "panel",
         # "cantera"
     ]
 )
