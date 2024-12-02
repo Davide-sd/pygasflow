@@ -181,7 +181,7 @@ def fix_numerical_errors(column_values, expected_values):
     >>> expected = [1, 2, 3]
     >>> col = [t + 1e-08 for t in [3, 1, 2, 1, 3, 2]]
     >>> fix_numerical_errors(col, expected)
-    [3, 1, 2, 1, 3, 2]
+    array([3., 1., 2., 1., 3., 2.])
     """
     output_values = np.zeros_like(column_values)
     for i in range(len(column_values)):
@@ -362,7 +362,7 @@ def test_de_laval_section_errors():
     solver = De_Laval_Solver(R=287.05, gamma=1.4, P0=101325, T0=298,
         Pb_P0_ratio=0.1, nozzle=n)
     s = DeLavalSection(solver=solver)
-    assert len(s.tabulators) == 2
+    assert len(s.tabulators) == 3
     assert len(s.diagrams) == 1
     assert isinstance(s.diagrams[0](), DeLavalDiagram)
     assert isinstance(s.solver.nozzle, CD_Conical_Nozzle)

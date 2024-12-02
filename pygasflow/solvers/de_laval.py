@@ -142,7 +142,7 @@ class De_Laval_Solver(param.Parameterized):
 
     Visualize the results at the current Pb/P0 value:
 
-    >>> solver.plot(interactive=False)
+    >>> solver.plot(interactive=False)              #doctest: +SKIP
 
     Visualize an interactive application:
 

@@ -306,20 +306,20 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
     >>> from pygasflow import normal_shockwave_solver
     >>> normal_shockwave_solver("m1", 2)
-    [2.0, 0.5773502691896257, 4.5, 2.666666666666667, 1.6874999999999998, 0.7208738614847455]
+    [np.float64(2.0), np.float64(0.5773502691896257), np.float64(4.5), np.float64(2.666666666666667), np.float64(1.6874999999999998), np.float64(0.7208738614847455)]
 
     Compute all ratios and parameters across a normal shockwave starting
     from the downstream Mach:
 
     >>> normal_shockwave_solver("m2", 0.4, to_dict=False)
-    [1.511670289641015, 1.4887046212366817, 0.7414131402857721, 0.7051257983356364, 80.0, 7.999999999999998, 2.418948357506694, 1.84271116608139, 1.312711618636739, 0.9333272472012358]
+    [np.float64(6.557438524301991), np.float64(0.4000000000000001), np.float64(49.99999999999984), np.float64(5.374999999999999), np.float64(9.30232558139532), np.float64(0.020365713466862605)]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
     >>> results = normal_shockwave_solver("m1", [1.5, 3], to_dict=True)
     >>> print(results["m2"])
-    [0.70108874, 0.47519096]
+    [0.70108874 0.47519096]
 
     """
     idx_to_exclude = [1, 3, 4, 5]

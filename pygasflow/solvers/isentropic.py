@@ -67,7 +67,7 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
     >>> from pygasflow import isentropic_solver
     >>> isentropic_solver("m", 2)
-    [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.2300481458333117), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(2.3515101530718505), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
+    [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.23004814583331168), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(2.3515101530718505), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
 
     Compute all parameters starting from the pressure ratio:
 

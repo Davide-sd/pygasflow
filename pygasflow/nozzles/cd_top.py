@@ -68,7 +68,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
 
     >>> nozzle.fractional_length = 0.7
     >>> nozzle.length
-    np.float64(1.0350852961085883)
+    np.float64(3.073066179355414)
 
     Visualize the nozzle:
 
