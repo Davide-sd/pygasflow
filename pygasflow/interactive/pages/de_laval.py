@@ -45,6 +45,15 @@ class DeLavalSection(BaseSection):
         params.setdefault("diagram_collapsed", False)
         params.setdefault("tabulators", [
             dict(
+                filename="nozzle_flow_summary",
+                save_index=True,
+                columns_map={
+                    "Flow Type": "Flow Type",
+                    "Condition": "Condition",
+                },
+                float_formatters_exclusion=["Condition"]
+            ),
+            dict(
                 filename="nozzle_flow_conditions",
                 save_index=True,
                 columns_map={
@@ -68,10 +77,13 @@ class DeLavalSection(BaseSection):
         params.setdefault("wrap_in_card", False)
         super().__init__(**params)
 
-    @param.depends("solver.flow_states", watch=True, on_init=True)
+    @param.depends(
+        "solver.flow_states", "solver.flow_condition_summary",
+        watch=True, on_init=True)
     def update_dataframe(self):
-        self.tabulators[0].results = self.solver.flow_conditions
-        self.tabulators[1].results = self.solver.flow_states
+        self.tabulators[0].results = self.solver.flow_condition_summary
+        self.tabulators[1].results = self.solver.flow_conditions
+        self.tabulators[2].results = self.solver.flow_states
 
     def _create_elements_for_ui(self):
         elements = []
@@ -109,6 +121,7 @@ class DeLavalSection(BaseSection):
     def _update_mass_flow_rate(self):
         self._pointer_to_mass_flow_rate = "Mass flow rate [kg/s]: " + str(round(
             self.solver.mass_flow_rate, self.num_decimal_places))
+        self.solver._num_decimal_places = self.num_decimal_places
 
 
 class NozzlesPage(BasePage, pn.viewable.Viewer):

@@ -196,6 +196,12 @@ class De_Laval_Solver(param.Parameterized):
         doc="""
             Store the results of the flow at the exit section for well known
             conditions, like choked, shock at exit and supercritical.""")
+    flow_condition_summary = param.DataFrame(
+        constant=True,
+        doc="""
+            A table summarizing the different flow conditions the nozzle can
+            have based on the nozzle pressure ratio (back-to-stagnation
+            pressure ratio).""")
     flow_results = param.List(item_type=np.ndarray, constant=True,
         doc="Store the results of the flow analysis.")
     flow_states = param.DataFrame(
@@ -221,6 +227,12 @@ class De_Laval_Solver(param.Parameterized):
     is_interactive_app = param.Boolean(False, doc="""
         If True, exceptions are going to be intercepted and shown on
         error_log, otherwise fall back to the standard behaviour.""")
+    _num_decimal_places = param.Integer(doc="""
+        Set the number of decimal places to be shown in the
+        `flow_condition_summary` dataframe. While other dataframes can
+        be formatted from the Tabulators inside the interactive
+        applications, this dataframe cannot because it contains
+        string-formatted numbers. They must be formatted inside this class.""")
 
     def __init__(self, **params):
         params.setdefault(
@@ -528,6 +540,7 @@ class De_Laval_Solver(param.Parameterized):
                     self.nozzle.throat_area)
             ))
         self._update_flow_conditions()
+        self._update_flow_condition_summary()
 
     def _update_flow_conditions(self):
         # TODO: it should be possible to perform the task of this method inside
@@ -576,11 +589,37 @@ class De_Laval_Solver(param.Parameterized):
                 index=labels
             )
 
+    @param.depends("_num_decimal_places", watch=True, on_init=True)
+    def _update_flow_condition_summary(self):
+        def to_string(n):
+            if self._num_decimal_places:
+                return str(round(n, self._num_decimal_places))
+            return str(n)
+
+        r1s, r2s, r3s = [to_string(n) for n in self.limit_pressure_ratios]
+        data = {
+            "No flow": "Pb / P0 = 1",
+            "Subsonic": f"Pb / P0 > {r1s}",
+            "Chocked": f"Pb / P0 = {r1s}",
+            "Shock in Nozzle": f"{r2s} < Pb / P0 < {r1s}",
+            "Shock at Exit": f"Pb / P0 = {r2s}",
+            "Overexpanded": f"{r3s} < Pb / P0 < {r2s}",
+            "Supercritical": f"Pb / P0 = {r3s}",
+            "Underexpanded": f"Pb / P0 < {r3s}",
+        }
+        df = pd.DataFrame(
+            data={"Condition": list(data.values())},
+            index=list(data.keys())
+        )
+        with param.edit_constant(self):
+            self.flow_condition_summary = df
+
     @param.depends(
         "limit_pressure_ratios", "Pb_P0_ratio", watch=True, on_init=True
     )
     def _update_flow_condition(self):
         r1, r2, r3 = self.limit_pressure_ratios
+
         if self.Pb_P0_ratio == None:
             fc = "Undefined"
         if np.isclose(self.Pb_P0_ratio, 1):
@@ -593,6 +632,8 @@ class De_Laval_Solver(param.Parameterized):
             fc = "Overexpanded Flow"
         elif self.Pb_P0_ratio >= r2 and self.Pb_P0_ratio < r1:
             fc = "Shock in Nozzle"
+        elif np.isclose(self.Pb_P0_ratio, r1):
+            fc = "Chocked"
         else:
             fc = "Subsonic Flow"
 
