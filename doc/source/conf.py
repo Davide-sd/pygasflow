@@ -61,6 +61,7 @@ extensions = [
     'sphinx_rtd_theme',
     'nbsphinx',
     'nbsphinx_link', # to link to ipynb files outside of the source folder
+    "sphinx_design",
     "bokeh.sphinxext.bokeh_plot",
     "sphinx_panel_screenshot",
 ]
