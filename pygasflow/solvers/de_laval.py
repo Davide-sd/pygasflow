@@ -1,4 +1,7 @@
 import numpy as np
+import pandas as pd
+import param
+from numbers import Number
 from scipy.optimize import bisect
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -8,477 +11,731 @@ from pygasflow.isentropic import (
     temperature_ratio,
     pressure_ratio,
     density_ratio,
-    temperature_ratio,
     m_from_critical_area_ratio,
     m_from_critical_area_ratio_and_pressure_ratio,
     critical_area_ratio,
 )
 from pygasflow.generic import sound_speed
-from pygasflow.utils.common import Flow_State, Ideal_Gas
+from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
+from pygasflow.nozzles import CD_Conical_Nozzle
 
-from pygasflow.nozzles import (
-    CD_Conical_Nozzle,
-    CD_TOP_Nozzle
-)
 
-class De_Laval_Solver(object):
+def _create_section(gamma, R, M, T0, P0, rho0, tr, pr, dr, area_ratio, As):
+    T = tr * T0
+    a = sound_speed(gamma, R, T)
+    return [
+        M,
+        T,
+        pr * P0,
+        dr * rho0,
+        T0,
+        P0,
+        a,
+        a * M,
+        area_ratio,
+        As
+    ]
+
+
+def nozzle_mass_flow_rate(gamma, R, T0, P0, As):
+    """Compute the mass flow rate through the nozzle.
+
+    Parameters
+    ----------
+    gamma : float
+    R : float
+    T0 : float
+    P0 : float
+    As : float
+        Critical area (throat area).
+
+    Return
+    ------
+    m_dot : float
+    """
+    a = P0 * As / np.sqrt(T0)
+    e = (gamma + 1) / (gamma - 1)
+    b = np.sqrt(gamma / R * (2 / (gamma + 1))**e)
+    m_dot = a * b
+    return m_dot
+
+
+class De_Laval_Solver(param.Parameterized):
     """
     Solve a De Laval Nozzle (Convergent-Divergent nozzle), starting from
-    stagnation conditions and the geometry type.
+    stagnation conditions and the nozzle type.
+
+    Notes
+    -----
+
+    This is a reactive component. Once a ``De_Laval_Solver`` solver has been
+    created, by updating one of its parameters everything else will be
+    automatically recomputed.
 
     Examples
     --------
 
-    Visualize all the quantities along the length of a TOP nozzle using air
-    and a back-to-stagnation pressure ratio of 0.12.
+    Visualize all the quantities along the length of a conical nozzle using air
+    and a back-to-stagnation pressure ratio of 0.1.
 
-    .. plot::
-       :context: reset
-       :format: python
-       :include-source: True
-
-       from pygasflow.nozzles import CD_TOP_Nozzle
-       from pygasflow.solvers import De_Laval_Solver
-       from pygasflow.utils import Ideal_Gas, Flow_State
-       # Set air as the gas to use in the nozzle
-       gas = Ideal_Gas(287, 1.4)
-       # stagnation condition
-       upstream_state = Flow_State(p0=8 * 101325, t0 = 303.15)
-       Ri = 0.4            # Inlet Radius
-       Rt = 0.2            # Throat Radius
-       Re = 1.2            # Exit (outlet) Radius
-       theta_c = 40        # half cone angle of the divergent
-       theta_N = 15        # half cone angle of the convergent
-       Rbt = 0.75 * Rt     # Junction radius between the convergent and divergent
-       Rbc = 1.5 * Rt      # Junction radius between the "combustion chamber" and convergent
-       K = 0.8             # Fractional Length of the TOP nozzle
-       geom_type = "axisymmetric"  # geometry type
-       geom_top = CD_TOP_Nozzle(Ri, Re, Rt, Rbc, theta_c, K, geom_type, 1000)
-       nozzle_top = De_Laval_Solver(gas, geom_top, upstream_state)
-       nozzle_top.plot(0.12)
-
-    Compute the critical area ratio where the shockwave is located:
-
-    >>> from pygasflow.nozzles import CD_TOP_Nozzle
+    >>> from pygasflow.nozzles import CD_Conical_Nozzle
     >>> from pygasflow.solvers import De_Laval_Solver
-    >>> from pygasflow.utils import Ideal_Gas, Flow_State
-    >>> gas = Ideal_Gas(287, 1.4) # Set air as the gas to use in the nozzle
-    >>> upstream_state = Flow_State(p0=8 * 101325, t0 = 303.15) # stagnation condition
-    >>> Ri, Rt, Re = 0.4, 0.2, 1.2
-    >>> theta_c, theta_N = 40, 15
-    >>> Rbt, Rbc = 0.75 * Rt, 1.5 * Rt
-    >>> geom_top = CD_TOP_Nozzle(Ri, Re, Rt, Rbc, theta_c, 0.8, "axisymmetric")
-    >>> nozzle_top = De_Laval_Solver(gas, geom_top, upstream_state)
-    >>> results = nozzle_top.compute(0.12)
-    >>> print(results[-1])
-    12.329635184167444
+    >>> Ri, Rt, Re = 0.4, 0.2, 0.8  # Inlet Radius, Throat Radius, Exit Radius
+    >>> nozzle = CD_Conical_Nozzle(Ri, Re, Rt)
+    >>> solver = De_Laval_Solver(
+    ...     gamma=1.4, R=287.05, T0=298, P0=101325,
+    ...     nozzle=nozzle, Pb_P0_ratio=0.1)
+    >>> solver.mass_flow_rate
+    np.float64(29.809853965846262)
+    >>> solver.current_flow_condition
+    'Shock in Nozzle'
+
+    Show ratios at current Pb/P0 value, at known states:
+
+    >>> solver.flow_states
+                              Throat    Upstream SW  Downstream SW          Exit
+    Mach number             1.000000       4.286437       0.427968      0.357162
+    Temperature           248.333333      63.747285     287.469587    290.586275
+    Pressure            53528.152140     458.749502    9757.205237   1106.651037
+    Density                 0.750913       0.025070       1.082635      0.121474
+    Total Temperature     298.000000     298.000000     298.000000    298.000000
+    Total Pressure     101325.000000  101325.000000   11066.510374  11066.510374
+    Speed of sound        315.907766     160.056619     339.890281    341.727825
+    Flow velocity         315.907766     686.072659     145.462314    122.052320
+    A / A*                  1.000000      16.000000       1.747487      1.747487
+    A*                      0.125664       0.125664       1.150577      1.150577
+
+    Show the possible flow conditions, depending on the back-to-stagnation
+    pressure ration:
+
+    >>> solver.flow_condition_summary
+                                                             Condition
+    No flow                                                Pb / P0 = 1
+    Subsonic                              Pb / P0 > 0.9990833631058978
+    Chocked                               Pb / P0 = 0.9990833631058978
+    Shock in Nozzle  0.08373983107077117 < Pb / P0 < 0.999083363105...
+    Shock at Exit                        Pb / P0 = 0.08373983107077117
+    Overexpanded     0.003635619912775599 < Pb / P0 < 0.08373983107...
+    Supercritical                       Pb / P0 = 0.003635619912775599
+    Underexpanded                       Pb / P0 < 0.003635619912775599
+
+    Show ratios at known flow conditions:
+
+    >>> solver.flow_conditions
+                             Chocked  Shock at Exit  Supercritical
+    Pb / P0                 0.999083       0.083740       0.003636
+    Mach number             0.036197       0.424347       4.459324
+    Temperature           297.921929     287.640869      59.874057
+    Pressure           101232.121767    8484.938383     368.379188
+    Density                 1.183745       0.102764       0.021434
+    Total Temperature     298.000000     298.000000     298.000000
+    Total Pressure     101325.000000    9603.477943  101325.000000
+    Speed of sound        346.014285     339.991524     155.117978
+    Flow velocity          12.524826     144.274458     691.721305
+    A / A*                 16.000000       1.516463      16.000000
+    A*                      0.125664       1.325861       0.125664
+
+    Get the location of the shockwave along the divergent (loc, radius):
+
+    >>> solver.nozzle.shockwave_location
+    (np.float64(2.0387300135132285), np.float64(0.7427484426649532))
+
+    Visualize the results at the current Pb/P0 value:
+
+    >>> solver.plot(interactive=False)
+
+    Visualize an interactive application:
+
+    .. panel-screenshot::
+
+        from pygasflow.nozzles import CD_Conical_Nozzle
+        from pygasflow.solvers import De_Laval_Solver
+        Ri, Rt, Re = 0.4, 0.2, 0.8  # Inlet Radius, Throat Radius, Exit Radius
+        nozzle = CD_Conical_Nozzle(Ri, Re, Rt)
+        solver = De_Laval_Solver(
+            gamma=1.4, R=287.05, T0=298, P0=101325,
+            nozzle=nozzle, Pb_P0_ratio=0.25)
+        solver.plot()
 
     """
 
-    def __init__(self, gas, geometry, input_state, Pb_P0_ratio=None):
-        """
-        Parameters
-        ----------
-        gas : Ideal_Gas
-            Gas used in the nozzle.
-        geometry : Nozzle_Geometry
-            Nozzle geometry (lengths, areas, ...)
-        input_state : Flow_State
-            Represents the stagnation flow state.
-        Pb_P0_ratio : float, optional
-            Back to Stagnation pressure ratio. Default to None.
-        """
-        self._gas = gas
-        self._geometry = geometry
-        self._input_state = input_state
+    # editable parameters
+    R = param.Number(287.05, bounds=(0, 5000),
+        step=0.05,
+        label="Specific gas constant, R, [J / (Kg K)]",
+        doc="Specific gas constant, R, [J / (Kg K)]")
+    gamma = param.Number(1.4, bounds=(1, 2),
+        inclusive_bounds=(False, True),
+        step=0.01,
+        label="Ratio of specific heats, γ",
+        doc="Ratio of specific heats, γ")
+    T0 = param.Number(303.15, bounds=(0, 4000), step=0.05,
+        doc="Total temperature, T0 [K]",
+        label="Total temperature, T0 [K]")
+    P0 = param.Number(8*101325, bounds=(0, 300*101325),
+        label="Total pressure, P0 [Pa]",
+        doc="Total pressure, P0 [Pa]")
+    nozzle = param.ClassSelector(
+        class_=Nozzle_Geometry,
+        doc="The convergent-divergent nozzle type.")
+    Pb_P0_ratio = param.Number(
+        default=0.1, bounds=(0, 1), step=0.001,
+        label="Pb / P0",
+        doc="Back to Stagnation pressure ratio, Pb / P0.")
 
-        R = gas.R
-        gamma = gas.gamma
-        T0 = input_state.total_temperature
-        P0 = input_state.total_pressure
-        rho0 = gas.solve(p=P0, t=T0)
+    # read-only parameters
+    rho0 = param.Number(constant=True, doc="Upstream density.")
+    critical_temperature = param.Number(constant=True)
+    critical_pressure = param.Number(constant=True)
+    critical_density = param.Number(constant=True)
+    critical_velocity = param.Number(constant=True)
+    limit_pressure_ratios = param.List(
+        [0, 0, 0], item_type=Number, bounds=(3, 3), constant=True, doc="""
+        List of 3 pressure ratios, [r1, r2, r3], where:
 
-        Ae_As_ratio = geometry.outlet_area / geometry.critical_area
+        * r1: Exit pressure ratio corresponding to fully subsonic flow in the
+          divergent (when M=1 in A*).
+        * r2: Exit pressure ratio corresponding to a normal shock wave at the
+          exit section of the divergent.
+        * r3: Exit pressure ratio corresponding to fully supersonic flow in
+          the divergent and Pe = Pb (pressure at back). Design condition.""")
+    current_flow_condition = param.String(
+        default="",
+        constant=True,
+        doc="""
+            Store the current flow condition (fully subsonic, fully supersonic,
+            shock at exit, chocked, etc.)""")
+    flow_conditions = param.DataFrame(
+        constant=True,
+        doc="""
+            Store the results of the flow at the exit section for well known
+            conditions, like choked, shock at exit and supercritical.""")
+    flow_condition_summary = param.DataFrame(
+        constant=True,
+        doc="""
+            A table summarizing the different flow conditions the nozzle can
+            have based on the nozzle pressure ratio (back-to-stagnation
+            pressure ratio).""")
+    flow_results = param.List(item_type=np.ndarray, constant=True,
+        doc="Store the results of the flow analysis.")
+    flow_states = param.DataFrame(
+        constant=True,
+        doc="""
+            Store the state of the flow at interesting nozzle locations,
+            like in the throat, exit section, upstream and downstream of a
+            shockwave.""")
+    flow_states_labels = param.List([
+            "Mach number", "Temperature", "Pressure", "Density",
+            "Total Temperature", "Total Pressure",
+            "Speed of sound", "Flow velocity", "A / A*", "A*"
+        ],
+        constant=True,
+        doc="Labels for each one of the values of a `flow_states` entry.")
+    mass_flow_rate = param.Number(0, constant=True,
+        doc="Mass flow rate through the nozzle.")
 
-        self._critical_temperature = temperature_ratio(1, gamma) * T0
-        self._critical_pressure = pressure_ratio(1, gamma) * P0
-        self._critical_density = density_ratio(1, gamma) * rho0
-        self._critical_velocity = sound_speed(self._critical_temperature, R, gamma)
+    # for interactive applications only
+    error_log = param.String("", doc="""
+        Visualize on the interactive application any error that raises
+        from the computation.""")
+    is_interactive_app = param.Boolean(False, doc="""
+        If True, exceptions are going to be intercepted and shown on
+        error_log, otherwise fall back to the standard behaviour.""")
+    _num_decimal_places = param.Integer(doc="""
+        Set the number of decimal places to be shown in the
+        `flow_condition_summary` dataframe. While other dataframes can
+        be formatted from the Tabulators inside the interactive
+        applications, this dataframe cannot because it contains
+        string-formatted numbers. They must be formatted inside this class.""")
 
+    def __init__(self, **params):
+        params.setdefault(
+            "nozzle",
+            CD_Conical_Nozzle(Rj=0, R0=0,
+                is_interactive_app=params.get("is_interactive_app", False))
+        )
+        super().__init__(**params)
+
+    def _set_upstream_density(self):
+        from pygasflow.solvers import ideal_gas_solver
+        rho0 = ideal_gas_solver(
+            "rho", p=self.P0, T=self.T0, R=self.R, to_dict=True)["rho"]
+        with param.edit_constant(self):
+            self.rho0 = rho0
+            self.input_state = {
+                "P0": self.P0,
+                "T0": self.T0,
+                "rho": rho0,
+            }
+
+    @param.depends(
+        "T0", "P0", "R", "gamma", "Pb_P0_ratio",
+        "nozzle",
+        "nozzle.inlet_radius",
+        "nozzle.outlet_radius",
+        "nozzle.throat_radius",
+        "nozzle.junction_radius_j",
+        "nozzle.junction_radius_0",
+        "nozzle.theta_c",
+        "nozzle.theta_N",
+        "nozzle.theta_e",
+        "nozzle.fractional_length",
+        "nozzle.N",
+        watch=True, on_init=True
+    )
+    def update(self):
+        try:
+            self._update_logic()
+            self.error_log = ""
+        except ValueError as err:
+            self.error_log = f"ValueError: {err}"
+            if not self.is_interactive_app:
+                raise ValueError(f"{err}")
+
+    def _update_logic(self):
+        self._set_upstream_density()
+        T0, P0, rho0 = self.T0, self.P0, self.rho0
+        gamma, R = self.gamma, self.R
+        Ae = self.nozzle.outlet_area
+        At = self.nozzle.throat_area
+
+        # STEP 1: compute limit pressure ratios that will help determine
+        # the kind of flow in the nozzle.
+
+        ct = temperature_ratio(1, gamma) * T0
+        cp = pressure_ratio(1, gamma) * P0
+        cr = density_ratio(1, gamma) * rho0
+        cv = sound_speed(ct, R, gamma)
+
+        Ae_As_ratio = Ae / At
         M2_sub = m_from_critical_area_ratio(Ae_As_ratio, "sub", gamma)
         M2_sup = m_from_critical_area_ratio(Ae_As_ratio, "super", gamma)
 
-        # exit pressure ratio corresponding to fully subsonic flow in the divergent (when M=1 in A*)
+        # exit pressure ratio corresponding to fully subsonic flow in the
+        # divergent (when M=1 in A*)
         r1 = pressure_ratio(M2_sub, gamma)
-        # exit pressure ratio corresponding to fully supersonic flow in the divergent
-        # and Pe = Pb (pressure at back). Design condition.
+        # exit pressure ratio corresponding to fully supersonic flow in the
+        # divergent and Pe = Pb (pressure at back). Design condition.
         r3 = pressure_ratio(M2_sup, gamma)
 
         # isentropic pressure at the exit section of the divergent
         p_exit = r3 * P0
 
-        # pressure downstream of the normal shock wave at the exit section of the divergent
+        # pressure downstream of the normal shock wave at the exit section of
+        # the divergent
         p2 = shockwave.pressure_ratio(M2_sup, gamma) * p_exit
-        # exit pressure ratio corresponding to a normal shock wave at the exit section of the divergent
+        # exit pressure ratio corresponding to a normal shock wave at the
+        # exit section of the divergent
         r2 = p2 / P0
 
-        self._r1 = r1
-        self._r2 = r2
-        self._r3 = r3
+        states = {
+            "Throat": _create_section(
+                gamma, R, 1, T0, P0, rho0, ct / T0, cp / P0, cr / rho0, 1, At)
+        }
 
-        self._flow_condition = self.flow_condition(self._gas, self._input_state, Pb_P0_ratio)
-        self._output_state = None
+        # STEP 2: analyze the flow in the nozzle, compute the important
+        # quantities and find if and where a shockwave is present
 
-        self._Pb_P0_ratio = Pb_P0_ratio
-        if self._Pb_P0_ratio:
-            # compute output state
-            _, _, M, pr, rhor, tr, _, _ = self.compute(self._Pb_P0_ratio)
+        Lc = self.nozzle.length_convergent
+        Ld = self.nozzle.length_divergent
 
-            self._output_state = Flow_State(
-                m = M[-1],
-                p = pr[-1] * P0,
-                rho = rhor[-1] * rho0,
-                t = tr[-1] * T0,
-                p0 = self._Pb_P0_ratio * P0,
-                t0 = T0
-            )
-
-    def flow_condition(self, gas, upstream_state, Pb_P0_ratio):
-        """
-        Return the flow condition inside the nozzle given the Back to Stagnation pressure ratio.
-
-        Parameters
-        ----------
-        Pb_P0_ratio : float
-            Back to Stagnation pressure ratio.
-
-        Returns
-        -------
-        Flow_Condition : str
-        """
-        if Pb_P0_ratio == None:
-            return "Undefined"
-        if Pb_P0_ratio == 1:
-            return "No flow"
-        if Pb_P0_ratio < self._r3:
-            return "Underexpanded Flow"
-        elif Pb_P0_ratio == self._r3:
-            return "Design Condition"
-        elif Pb_P0_ratio < self._r2:
-            return "Overexpanded Flow"
-        elif Pb_P0_ratio >= self._r2 and Pb_P0_ratio < self._r1:
-            return "Shock in Nozzle"
-        else:
-            return "Subsonic Flow"
-
-    def compute(self, Pe_P0_ratio):
-        """
-        Compute the flow quantities along the nozzle geometry.
-
-        Parameters
-        ----------
-        Pe_P0_ratio : float
-            Back to Stagnation pressure ratio. The pressure at the
-            exit plane coincide with the back pressure.
-
-        Returns
-        -------
-        L : np.ndarray
-            Lengths along the stream flow.
-        area_ratios : np.ndarray
-            Area ratios along the stream flow.
-        M : np.ndarray
-            Mach numbers.
-        P_ratios : np.ndarray
-            Pressure ratios.
-        rho_ratios : np.ndarray
-            Density ratios.
-        T_ratios : np.ndarray
-            Temperature ratios.
-        flow_condition : string
-            The flow condition given the input pressure ratio.
-        Asw_At_ratio : float
-            Area ratio of the shock wave location if present, otherwise
-            return None.
-        """
-        self._flow_condition = self.flow_condition(self._gas, self._input_state, Pe_P0_ratio)
-
-        Ae = self._geometry.outlet_area
-        At = self._geometry.critical_area
-        Lc = self._geometry.length_convergent
-        # copy the arrays: we do not want to modify the original geometry in case of
-        # shock wave at the exit plane
-        area_ratios = np.copy(self._geometry.area_ratio_array)
-        L = np.copy(self._geometry.length_array) + Lc
+        # copy the arrays: we do not want to modify the original nozzle in
+        # case of shock wave at the exit plane
+        area_ratios = np.copy(self.nozzle.area_ratio_array)
+        L = np.copy(self.nozzle.length_array) + Lc
 
         M = np.zeros_like(area_ratios)
         P_ratios = np.zeros_like(area_ratios)
         rho_ratios = np.zeros_like(area_ratios)
         T_ratios = np.zeros_like(area_ratios)
-        flow_condition = self.flow_condition(self._gas, self._input_state, Pe_P0_ratio)
-        Asw_At_ratio = None
+        Asw_As_ratio = None
+        Pe_P0_ratio = self.Pb_P0_ratio
 
-        if Pe_P0_ratio > 1:
-            raise ValueError("The back to reservoir pressure ratio must be Pe/P0 <= 1.")
-
-        elif Pe_P0_ratio == 1:  # no flow
+        if np.isclose(Pe_P0_ratio, 1):  # no flow
             P_ratios += 1
             T_ratios += 1
             rho_ratios += 1
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
-        elif Pe_P0_ratio >= self._r1:  # fully subsonic flow
-            M = m_from_critical_area_ratio(area_ratios, "sub", self._gas.gamma)
-            P_ratios = pressure_ratio(M, self._gas.gamma)
-            rho_ratios = density_ratio(M, self._gas.gamma)
-            T_ratios = temperature_ratio(M, self._gas.gamma)
+        # fully subsonic flow
+        elif Pe_P0_ratio >= r1:
+            M = m_from_critical_area_ratio(area_ratios, "sub", self.gamma)
+            P_ratios = pressure_ratio(M, self.gamma)
+            rho_ratios = density_ratio(M, self.gamma)
+            T_ratios = temperature_ratio(M, self.gamma)
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
-        elif Pe_P0_ratio < self._r2: # fully supersonic flow in the divergent
-            M[L < Lc] = m_from_critical_area_ratio(area_ratios[L < Lc], "sub", self._gas.gamma)
+        # fully supersonic flow in the divergent
+        elif Pe_P0_ratio < r2:
+            M[L < Lc] = m_from_critical_area_ratio(
+                area_ratios[L < Lc], "sub", self.gamma)
             M[L == Lc] = 1
-            M[L > Lc] = m_from_critical_area_ratio(area_ratios[L > Lc], "super", self._gas.gamma)
-            P_ratios = pressure_ratio(M, self._gas.gamma)
-            rho_ratios = density_ratio(M, self._gas.gamma)
-            T_ratios = temperature_ratio(M, self._gas.gamma)
+            M[L > Lc] = m_from_critical_area_ratio(
+                area_ratios[L > Lc], "super", self.gamma)
+            P_ratios = pressure_ratio(M, self.gamma)
+            rho_ratios = density_ratio(M, self.gamma)
+            T_ratios = temperature_ratio(M, self.gamma)
+            # force the nozzle to set to None the location of the SW
+            self.nozzle.location_divergent_from_area_ratio(Ae / At + 1)
 
-        elif Pe_P0_ratio == self._r2:    # shock wave at the exit plane
+        # shock wave at the exit plane
+        elif np.isclose(Pe_P0_ratio, r2):
+            # upstream area ratio where the shockwave happens
             Ae_At_ratio = Ae / At
-            Asw_At_ratio = Ae_At_ratio
-            # Supersonic Mach number at the exit section just upstream of the shock wave
-            Meup_sw = m_from_critical_area_ratio(Ae_At_ratio, "super", self._gas.gamma)
-            # Subsonic Mach number at the exit section just downstream of the shock wave
-            Medw_sw = shockwave.mach_downstream(Meup_sw, self._gas.gamma)
-            # downstream of the shock wave there is a new isentropic critical area ratio
-            Ae_A2s_ratio = critical_area_ratio(Medw_sw, self._gas.gamma)
+            self.nozzle.location_divergent_from_area_ratio(Ae_At_ratio)
+            # Supersonic Mach number at the exit section just upstream of
+            # the shock wave
+            Meup_sw = m_from_critical_area_ratio(
+                Ae_At_ratio, "super", self.gamma)
+            # Subsonic Mach number at the exit section just downstream of
+            # the shock wave
+            Medw_sw = shockwave.mach_downstream(Meup_sw, self.gamma)
+            # downstream of the shock wave there is a new isentropic critical
+            # area ratio
+            Ae_A2s_ratio = critical_area_ratio(Medw_sw, self.gamma)
             # total pressure ratio across the shock wave
             P02_P0_ratio = shockwave.total_pressure_ratio(Meup_sw)
 
-            M[L < Lc] = m_from_critical_area_ratio(area_ratios[L < Lc], "sub", self._gas.gamma)
+            M[L < Lc] = m_from_critical_area_ratio(
+                area_ratios[L < Lc], "sub", self.gamma)
             M[L == Lc] = 1
-            M[L > Lc] = m_from_critical_area_ratio(area_ratios[L > Lc], "super", self._gas.gamma)
+            M[L > Lc] = m_from_critical_area_ratio(
+                area_ratios[L > Lc], "super", self.gamma)
 
             # append the last subsonic point at the exit
-            M = np.append(M, m_from_critical_area_ratio(Ae_A2s_ratio, "sub", self._gas.gamma))
-            P_ratios = pressure_ratio(M, self._gas.gamma)
-            # For idx_after_sw (downstream of the shock wave), I've been returned P/P02.
-            # Need to compute the ratio P/P0.
+            M = np.append(M, m_from_critical_area_ratio(
+                Ae_A2s_ratio, "sub", self.gamma))
+            P_ratios = pressure_ratio(M, self.gamma)
+            # For idx_after_sw (downstream of the shock wave), I've been
+            # returned P/P02. Need to compute the ratio P/P0.
             P_ratios[-1] *= P02_P0_ratio
 
-            rho_ratios = density_ratio(M, self._gas.gamma)
+            rho_ratios = density_ratio(M, self.gamma)
             # P02 = rho02 * R * T02
             # P01 = rho01 * R * T01
-            # Taking the ratios, and knowing that T01 = T02 across the shock wave, leads to:
+            # Taking the ratios, and knowing that T01 = T02 across the
+            # shock wave, leads to:
             # P02 / P01 = rho02 / rho01
             # Need to compute the ratio rho/rho0 after the shock wave
             rho_ratios[-1] *= P02_P0_ratio
 
-            T_ratios = temperature_ratio(M, self._gas.gamma)
+            T_ratios = temperature_ratio(M, self.gamma)
             L = np.append(L, L[-1])
             area_ratios = np.append(area_ratios, Ae_At_ratio)
-        else:   # shock into the divergent
+
+            states["Upstream SW"] = _create_section(
+                gamma, R, M[-2], T0, P0, rho0, T_ratios[-2], P_ratios[-2],
+                rho_ratios[-2], Ae_At_ratio, At)
+            sec = _create_section(
+                gamma, R, M[-1], T0, P02_P0_ratio * P0, rho0,
+                T_ratios[-1], P_ratios[-1],
+                rho_ratios[-1], Ae_A2s_ratio, At)
+            states["Downstream SW"] = sec
+            states["Exit"] = sec
+
+        # shock into the divergent
+        else:
             Ae_At_ratio = Ae / At
             # area ratio of the shock wave
-            Asw_At_ratio = find_shockwave_area_ratio(Ae_At_ratio, Pe_P0_ratio, self._gas.R, self._gas.gamma)
-            # Mach number at the exit section given the exit pressure ratio Pe_P0_ratio
-            Me = m_from_critical_area_ratio_and_pressure_ratio(Ae_At_ratio, Pe_P0_ratio, self._gas.gamma)
-            # downstream of the shock wave there is a new isentropic critical area ratio
-            Ae_A2s_ratio = critical_area_ratio(Me, self._gas.gamma)
+            Asw_As_ratio = find_shockwave_area_ratio(
+                Ae_At_ratio, Pe_P0_ratio, self.R, self.gamma)
+            self.nozzle.location_divergent_from_area_ratio(Asw_As_ratio)
+            # Mach number at the exit section given the exit pressure ratio
+            # Pe_P0_ratio
+            Me = m_from_critical_area_ratio_and_pressure_ratio(
+                Ae_At_ratio, Pe_P0_ratio, self.gamma)
+            # downstream of the shock wave there is a new isentropic critical
+            # area ratio
+            Ae_A2s_ratio = critical_area_ratio(Me, self.gamma)
             # critical area downstream of the shock wave
             A2s = Ae / Ae_A2s_ratio
             # Mach number just upstream of the shock wave
-            Mup_sw = m_from_critical_area_ratio(Asw_At_ratio, "super", self._gas.gamma)
+            Mup_sw = m_from_critical_area_ratio(
+                Asw_As_ratio, "super", self.gamma)
             # total pressure ratio across the shock wave
             P02_P0_ratio = shockwave.total_pressure_ratio(Mup_sw)
 
-            # find indeces before and after the shock wave in the divergent
-            idx_before_sw = np.bitwise_and(L > Lc, area_ratios <= Asw_At_ratio)
-            idx_after_sw = np.bitwise_and(L > Lc, area_ratios > Asw_At_ratio)
+            # NOTE: in order to display a good jump while keeping the number
+            # of discretization points relatively low, here I insert two points
+            # at the location of the shockwave.
+            sw_loc_in_div = self.nozzle.shockwave_location[0]
+            if sw_loc_in_div not in L:
+                idx = np.where(L < Lc + sw_loc_in_div)[0][-1]
+                L = np.concatenate(
+                    [L[:idx+1], [Lc + sw_loc_in_div] * 2, L[idx+1:]])
 
-            # adjust the area ratios to use the new A2s downstream of the shock wave
+                # slightly bigger area ratio, to allow selective indexing below
+                Asw_As_ratio_plus_eps = (Asw_As_ratio
+                    + abs(area_ratios[idx+1] - Asw_As_ratio) / 1000)
+                area_ratios = np.concatenate(
+                    [area_ratios[:idx+1],
+                    [Asw_As_ratio, Asw_As_ratio_plus_eps],
+                    area_ratios[idx+1:]])
+                M = np.zeros_like(L)
+
+            # find indeces before and after the shock wave in the divergent
+            idx_before_sw = np.bitwise_and(L > Lc, area_ratios <= Asw_As_ratio)
+            idx_after_sw = np.bitwise_and(L > Lc, area_ratios > Asw_As_ratio)
+
+            # adjust the area ratios to use the new A2s downstream of the
+            # shock wave
             area_ratios[idx_after_sw] = area_ratios[idx_after_sw] * At / A2s
 
             # mach number in the convergent
-            M[L < Lc] = m_from_critical_area_ratio(area_ratios[L < Lc], "sub", self._gas.gamma)
+            M[L < Lc] = m_from_critical_area_ratio(
+                area_ratios[L < Lc], "sub", self.gamma)
             M[L == Lc] = 1
             # supersonic mach number
-            M[idx_before_sw] = m_from_critical_area_ratio(area_ratios[idx_before_sw], "super", self._gas.gamma)
+            M[idx_before_sw] = m_from_critical_area_ratio(
+                area_ratios[idx_before_sw], "super", self.gamma)
             # subsonic mach number
-            M[idx_after_sw] = m_from_critical_area_ratio(area_ratios[idx_after_sw], "sub", self._gas.gamma)
+            M[idx_after_sw] = m_from_critical_area_ratio(
+                area_ratios[idx_after_sw], "sub", self.gamma)
 
-            P_ratios = pressure_ratio(M, self._gas.gamma)
-            # For idx_after_sw (downstream of the shock wave), I've been returned P/P02.
-            # Need to compute the ratio P/P0.
+            P_ratios = pressure_ratio(M, self.gamma)
+            # For idx_after_sw (downstream of the shock wave), I've been
+            # returned P/P02. Need to compute the ratio P/P0.
             P_ratios[idx_after_sw] *= P02_P0_ratio
 
-            rho_ratios = density_ratio(M, self._gas.gamma)
+            rho_ratios = density_ratio(M, self.gamma)
             # P02 = rho02 * R * T02
             # P01 = rho01 * R * T01
-            # Taking the ratios, and knowing that T01 = T02 across the shock wave, leads to:
+            # Taking the ratios, and knowing that T01 = T02 across the
+            # shock wave, leads to:
             # P02 / P01 = rho02 / rho01
             # Need to compute the ratio rho/rho0 after the shock wave
             rho_ratios[idx_after_sw] *= P02_P0_ratio
 
-            T_ratios = temperature_ratio(M, self._gas.gamma)
+            T_ratios = temperature_ratio(M, self.gamma)
+
+            states["Upstream SW"] = _create_section(
+                gamma, R, Mup_sw, T0, P0, rho0,
+                temperature_ratio(Mup_sw, gamma),
+                pressure_ratio(Mup_sw, gamma),
+                density_ratio(Mup_sw, gamma),
+                Ae_At_ratio, At)
+            Mdo_sw = shockwave.mach_downstream(Mup_sw, gamma)
+            A2s = (1 / Ae_A2s_ratio) * Ae
+            states["Downstream SW"] = _create_section(
+                gamma, R, Mdo_sw, T0, P02_P0_ratio * P0, rho0,
+                temperature_ratio(Mdo_sw, gamma),
+                pressure_ratio(Mdo_sw, gamma),
+                density_ratio(Mdo_sw, gamma),
+                Ae_A2s_ratio, A2s)
+            states["Exit"] = _create_section(
+                gamma, R, M[-1], T0, P02_P0_ratio * P0, rho0,
+                T_ratios[-1], P_ratios[-1], rho_ratios[-1],
+                Ae_A2s_ratio, A2s)
+
+        if "Exit" not in states:
+            states["Exit"] = _create_section(
+                gamma, R, M[-1], T0, P0, rho0,
+                T_ratios[-1], P_ratios[-1], rho_ratios[-1],
+                Ae / At, At)
+
+        states = pd.DataFrame(
+            data=states,
+            index=self.flow_states_labels
+        )
         L -= Lc
-        return L, area_ratios, M, P_ratios, rho_ratios, T_ratios, flow_condition, Asw_At_ratio
+        with param.edit_constant(self):
+            self.param.update(dict(
+                critical_temperature=ct,
+                critical_pressure=cp,
+                critical_density=cr,
+                critical_velocity=cv,
+                limit_pressure_ratios=[r1, r2, r3],
+                flow_states=states,
+                flow_results=[L, M,  P_ratios, rho_ratios, T_ratios],
+                mass_flow_rate=nozzle_mass_flow_rate(
+                    self.gamma, self.R, self.T0, self.P0,
+                    self.nozzle.throat_area)
+            ))
+        self._update_flow_conditions()
+        self._update_flow_condition_summary()
 
-    @property
-    def critical_temperature(self):
-        """Returns the critical temperature"""
-        return self._critical_temperature
+    def _update_flow_conditions(self):
+        # TODO: it should be possible to perform the task of this method inside
+        # _update_logic, thus reducing code repetition
+        P0, T0, rho0, gamma, R = self.P0, self.T0, self.rho0, self.gamma, self.R
+        Ae = self.nozzle.outlet_area
+        At = self.nozzle.throat_area
+        r1, r2, r3 = self.limit_pressure_ratios
+        flow_conditions = {}
 
-    @property
-    def critical_pressure(self):
-        """Returns the critical pressure"""
-        return self._critical_pressure
+        # chocked flow
+        M = m_from_critical_area_ratio(Ae / At, "sub", gamma)
+        pr = pressure_ratio(M, gamma)
+        dr = density_ratio(M, gamma)
+        tr = temperature_ratio(M, gamma)
+        flow_conditions["Chocked"] = [r1] + _create_section(
+            gamma, R, M, T0, P0, rho0,
+            tr, pr, dr, Ae / At, At)
 
-    @property
-    def critical_density(self):
-        """Returns the critical density"""
-        return self._critical_density
+        # shock wave at the exit plane
+        Meup_sw = m_from_critical_area_ratio(Ae / At, "super", gamma)
+        Medw_sw = shockwave.mach_downstream(Meup_sw, gamma)
+        Ae_A2s_ratio = critical_area_ratio(Medw_sw, gamma)
+        A2s = Ae / Ae_A2s_ratio
+        P02_P0_ratio = shockwave.total_pressure_ratio(Meup_sw)
+        pr = pressure_ratio(Medw_sw, gamma)
+        dr = density_ratio(Medw_sw, gamma) * P02_P0_ratio
+        tr = temperature_ratio(Medw_sw, gamma)
+        flow_conditions["Shock at Exit"] = [r2] + _create_section(
+            gamma, R, Medw_sw, T0, P02_P0_ratio * P0, rho0,
+            tr, pr, dr, Ae_A2s_ratio, A2s)
 
-    @property
-    def critical_velocity(self):
-        """Returns the critical velocity"""
-        return self._critical_velocity
+        # supercritical
+        M = m_from_critical_area_ratio(Ae / At, "super", gamma)
+        pr = pressure_ratio(M, gamma)
+        dr = density_ratio(M, gamma)
+        tr = temperature_ratio(M, gamma)
+        flow_conditions["Supercritical"] = [r3] + _create_section(
+            gamma, R, M, T0, P0, rho0,
+            tr, pr, dr, Ae / At, At)
+
+        labels = ["Pb / P0"] + self.flow_states_labels
+        with param.edit_constant(self):
+            self.flow_conditions = pd.DataFrame(
+                data=flow_conditions,
+                index=labels
+            )
+
+    @param.depends("_num_decimal_places", watch=True, on_init=True)
+    def _update_flow_condition_summary(self):
+        def to_string(n):
+            if self._num_decimal_places:
+                return str(round(n, self._num_decimal_places))
+            return str(n)
+
+        r1s, r2s, r3s = [to_string(n) for n in self.limit_pressure_ratios]
+        data = {
+            "No flow": "Pb / P0 = 1",
+            "Subsonic": f"Pb / P0 > {r1s}",
+            "Chocked": f"Pb / P0 = {r1s}",
+            "Shock in Nozzle": f"{r2s} < Pb / P0 < {r1s}",
+            "Shock at Exit": f"Pb / P0 = {r2s}",
+            "Overexpanded": f"{r3s} < Pb / P0 < {r2s}",
+            "Supercritical": f"Pb / P0 = {r3s}",
+            "Underexpanded": f"Pb / P0 < {r3s}",
+        }
+        df = pd.DataFrame(
+            data={"Condition": list(data.values())},
+            index=list(data.keys())
+        )
+        with param.edit_constant(self):
+            self.flow_condition_summary = df
+
+    @param.depends(
+        "limit_pressure_ratios", "Pb_P0_ratio", watch=True, on_init=True
+    )
+    def _update_flow_condition(self):
+        r1, r2, r3 = self.limit_pressure_ratios
+
+        if self.Pb_P0_ratio == None:
+            fc = "Undefined"
+        if np.isclose(self.Pb_P0_ratio, 1):
+            fc = "No flow"
+        if self.Pb_P0_ratio < r3:
+            fc = "Underexpanded Flow"
+        elif np.isclose(self.Pb_P0_ratio, r3):
+            fc = "Design Condition"
+        elif self.Pb_P0_ratio < r2:
+            fc = "Overexpanded Flow"
+        elif self.Pb_P0_ratio >= r2 and self.Pb_P0_ratio < r1:
+            fc = "Shock in Nozzle"
+        elif np.isclose(self.Pb_P0_ratio, r1):
+            fc = "Chocked"
+        else:
+            fc = "Subsonic Flow"
+
+        with param.edit_constant(self):
+            self.current_flow_condition = fc
 
     @property
     def critical_area(self):
         """Returns the critical area"""
-        return self._geometry.critical_area
+        return self.nozzle.throat_area
 
     @property
     def inlet_area(self):
         """Returns the inlet area"""
-        return self._geometry.inlet_area
+        return self.nozzle.inlet_area
 
     @property
     def outlet_area(self):
         """Returns the outlet area"""
-        return self._geometry.outlet_area
-
-    @property
-    def limit_pressure_ratios(self):
-        """
-        Returns
-        -------
-        r1 : float
-            Exit pressure ratio corresponding to fully subsonic flow in the
-            divergent (when M=1 in A*).
-        r2 : float
-            Exit pressure ratio corresponding to a normal shock wave at the
-            exit section of the divergent.
-        r3 : float
-            Exit pressure ratio corresponding to fully supersonic flow in the
-            divergent and Pe = Pb (pressure at back). Design condition.
-
-        """
-        return [self._r1, self._r2, self._r3]
+        return self.nozzle.outlet_area
 
     def __str__(self):
         s = "De Laval nozzle characteristics:\n"
-        s += "Geometry: " + self._geometry.__str__()
+        s += "Geometry: " + self.nozzle.__str__()
         s += "Critical Quantities:\n"
-        s += "\tT*\t{}\n".format(self._critical_temperature)
-        s += "\tP*\t{}\n".format(self._critical_pressure)
-        s += "\trho*\t{}\n".format(self._critical_density)
-        s += "\tu*\t{}\n".format(self._critical_velocity)
+        s += "\tT*\t{}\n".format(self.critical_temperature)
+        s += "\tP*\t{}\n".format(self.critical_pressure)
+        s += "\trho*\t{}\n".format(self.critical_density)
+        s += "\tu*\t{}\n".format(self.critical_velocity)
+        s += f"Mass flow rate: {self.mass_flow_rate}\n"
         s += "Important Pressure Ratios:\n"
-        s += "\tr1\t{}\n".format(self._r1)
-        s += "\tr2\t{}\n".format(self._r2)
-        s += "\tr3\t{}\n".format(self._r3)
-        s += "Flow Condition: \t{}\n".format(self._flow_condition)
-        s += "Input state\t{}\n".format(self._input_state)
-        if self._output_state != None:
-            s += "Output state\t{}\n".format(self._output_state)
+        s += f"\tr1\t{self.limit_pressure_ratios[0]}\n"
+        s += f"\tr2\t{self.limit_pressure_ratios[1]}\n"
+        s += f"\tr3\t{self.limit_pressure_ratios[2]}\n"
+        s += "Flow Conditions:\n"
+        s += f"\tSubsonic:\tPb/P0 > {self.limit_pressure_ratios[0]}\n"
+        s += f"\tChocked:\tPb/P0 = {self.limit_pressure_ratios[0]}\n"
+        s += f"\tInternal Shock:\t{self.limit_pressure_ratios[0]} < Pb/P0 < {self.limit_pressure_ratios[1]}\n"
+        s += f"\tShock at Exit:\tPb/P0 = {self.limit_pressure_ratios[1]}\n"
+        s += f"\tOverexpanded:\t{self.limit_pressure_ratios[1]} < Pb/P0 < {self.limit_pressure_ratios[2]}\n"
+        s += f"\tSupercritical:\tPb/P0 = {self.limit_pressure_ratios[2]}\n"
+        s += f"\tunderexpanded:\tPb/P0 > {self.limit_pressure_ratios[2]}\n"
+        s += "Nozzle Pressure Ratio, Pb/P0: \t{}\n".format(self.Pb_P0_ratio)
+        s += "Current Flow Condition: \t{}\n".format(self.current_flow_condition)
+        for state, values in self.flow_states.items():
+            s += f"State: {state}\n"
+            s += "\n".join([f"\t{l}: {v}" for l, v in zip(
+                self.flow_states_labels, values)]) + "\n"
         return s
 
-    def plot(self, Pb_P0_ratio=None, show=True, size=None, title=None):
-        """Visualize the nozzle geometry, the Mach number and the ratios along
-        the length of the nozzle.
+    def plot(self, interactive=True, show_nozzle=True, **params):
+        """Visualize the results.
 
         Parameters
         ----------
-        Pb_P0_ratio : float, optional
-            Back to Stagnation pressure ratio. Default to None.
-        size : (width, height) or None, optional
-            Set the figure size, in inches.
-        title : str or None
-            Title of the overall plot. Default to None, in which case a
-            default title will be added, showing the type of the geometry and
-            the flow condition.
+        interactive : bool
+            If True, returns an interactive application in the form of a
+            servable object, which will be automatically rendered inside a
+            Jupyter Notebook. If any other interpreter is used, then
+            ``solver.plot(interactive=True).show()`` might be requires in
+            order to visualize the application on a browser.
+            If False, a Bokeh figure will be shown on the screen.
+        show_nozzle : bool
+        **params :
+            Keyword arguments sent to ``DeLavalDiagram``.
 
+        Returns
+        -------
+        app :
+            The application or figure to be shown.
         """
-        if (Pb_P0_ratio is None) and (self._Pb_P0_ratio is None):
-            raise ValueError("Pb_P0_ratio must be provided.")
-        elif (Pb_P0_ratio is None):
-            Pb_P0_ratio = self._Pb_P0_ratio
+        from pygasflow.interactive.diagrams import DeLavalDiagram
+        d = DeLavalDiagram(
+            solver=self,
+            show_nozzle=show_nozzle,
+            **params
+        )
+        if interactive:
+            return d.servable()
 
-        if size is None:
-            size = (8, 10)
-
-        L, A, M, P, rho, T, flow_condition, Asw_At_ratio = self.compute(Pb_P0_ratio)
-
-        if title is None:
-            title = self._geometry._title + ": " + flow_condition
-
-        fig, ax = plt.subplots(nrows=4, sharex=True)
-        fig.set_size_inches(size)
-        radius_nozzle, radius_container = self._geometry.get_points(False)
-        ar_nozzle, ar_container = self._geometry.get_points(True)
-
-        # nozzle geometry
-        ax[0].add_patch(patches.Polygon(radius_container, facecolor="0.85", hatch="///", edgecolor="0.4", linewidth=0.5))
-        ax[0].add_patch(patches.Polygon(radius_nozzle, facecolor='#b7e1ff', edgecolor="0.4", linewidth=1))
-        ax[0].set_ylim(0, max(radius_container[:, 1]))
-        ax[0].set_ylabel("r [m]")
-        ax[0].set_title(title)
-
-        ax[1].add_patch(patches.Polygon(ar_container, facecolor="0.85", hatch="///", edgecolor="0.4", linewidth=0.5))
-        ax[1].add_patch(patches.Polygon(ar_nozzle, facecolor='#b7e1ff', edgecolor="0.4", linewidth=1))
-        ax[1].set_ylim(0, max(ar_container[:, 1]))
-        ax[1].set_ylabel("$A/A^{*}$")
-
-        # draw the shock wave if present in the nozzle
-        if Asw_At_ratio:
-            # get shock wave location in the divergent
-            x = self._geometry.location_divergent_from_area_ratio(Asw_At_ratio)
-            rsw = np.sqrt((Asw_At_ratio * self._geometry.critical_area) / np.pi)
-            ax[0].plot([x, x], [0, rsw], 'r')
-            ax[1].plot([x, x], [0, Asw_At_ratio], 'r')
-            ax[0].text(x, rsw + 0.5 * (max(radius_container[:, 1]) - max(radius_nozzle[:, -1])),
-                "SW",
-                color="r",
-                ha='center',
-                va="center",
-                bbox=dict(boxstyle="round", fc="white", lw=0, alpha=0.85),
-            )
-            ax[1].text(x, Asw_At_ratio + 0.5 * (max(ar_container[:, 1]) - max(ar_nozzle[:, -1])),
-                "SW",
-                color="r",
-                ha='center',
-                va="center",
-                bbox=dict(boxstyle="round", fc="white", lw=0, alpha=0.85),
-            )
-
-        # mach number
-        ax[2].plot(L, M)
-        ax[2].set_ylim(0)
-        ax[2].grid()
-        ax[2].set_ylabel("M")
-
-        # ratios
-        ax[3].plot(L, P, label="$P/P_{0}$")
-        ax[3].plot(L, rho, label=r"$\rho/\rho_{0}$")
-        ax[3].plot(L, T, label="$T/T_{0}$")
-        ax[3].set_xlim(min(ar_container[:, 0]), max(ar_container[:, 0]))
-        ax[3].set_ylim(0, 1)
-        ax[3].legend(loc="lower left")
-        ax[3].grid()
-        ax[3].set_xlabel("L [m]")
-        ax[3].set_ylabel("ratios")
-
-        plt.tight_layout()
-        plt.show()
+        from bokeh.plotting import show
+        if show_nozzle:
+            from bokeh.layouts import column
+            c = column(d.nozzle_diagram.figure, d.figure)
+            show(c)
+            return c
+        show(d.figure)
+        return d.figure
 
 
 def find_shockwave_area_ratio(Ae_At_ratio, Pe_P0_ratio, R, gamma):

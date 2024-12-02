@@ -2,6 +2,8 @@ import numpy as np
 import pygasflow.isentropic as ise
 from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.decorators import check
+from numbers import Number
+
 
 @check([1])
 def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
@@ -94,11 +96,13 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
     """
 
     if not isinstance(param_name, str):
-        raise ValueError("param_name must be a string")
+        raise ValueError("`param_name` must be a string")
     param_name = param_name.lower()
     available_pnames = ['m', 'pressure', 'density', 'temperature', 'crit_area_sub', 'crit_area_super', 'mach_angle', 'prandtl_meyer']
     if param_name not in available_pnames:
-        raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
+        raise ValueError("`param_name` not recognized. Must be one of the following:\n{}".format(available_pnames))
+    if not isinstance(gamma, Number):
+        raise ValueError("The specific heats ratio must be > 1.")
 
     M = None
     if param_name == "m":
@@ -123,6 +127,7 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
     if param_name in func_dict.keys():
         M = func_dict[param_name].__no_check(param_value, gamma)
     # compute the different ratios
+    M = np.atleast_1d(M)
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
 
     if to_dict:

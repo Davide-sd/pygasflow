@@ -15,7 +15,7 @@ from pygasflow.utils.decorators import check
 #   called by root finding methods.
 #   Therefore, I use plain formulas as much as possible.
 
-@check	
+@check
 def critical_total_temperature_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Total Temperature Ratio T0/T0*.
@@ -35,7 +35,7 @@ def critical_total_temperature_ratio(M, gamma=1.4):
     """
     return 2 * (1 + gamma) * M**2 / (1 + gamma * M**2)**2 * (1 + ((gamma - 1) / 2) * M**2)
 
-@check	
+@check
 def critical_temperature_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Temperature Ratio T/T*.
@@ -55,7 +55,7 @@ def critical_temperature_ratio(M, gamma=1.4):
     """
     return M**2 * (1 + gamma)**2 / (1 + gamma * M**2)**2
 
-@check	
+@check
 def critical_pressure_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Pressure Ratio P/P*.
@@ -75,7 +75,7 @@ def critical_pressure_ratio(M, gamma=1.4):
     """
     return (1 + gamma) / (1 + gamma * M**2)
 
-@check	
+@check
 def critical_density_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Density Ratio rho/rho*.
@@ -90,14 +90,15 @@ def critical_density_ratio(M, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
+    ratio : ndarray
         Critical Density Ratio rho/rho*.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return (1 + gamma * M**2) / ((gamma + 1) * M**2)
+    ratio = np.inf * np.ones_like(M)
+    idx = M != 0
+    ratio[idx] = (1 + gamma * M[idx]**2) / ((gamma + 1) * M[idx]**2)
+    return ratio
 
-@check	
+@check
 def critical_total_pressure_ratio(M, gamma=1.4):
     """
     Parameters
@@ -115,7 +116,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
     """
     return (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
 
-@check	
+@check
 def critical_velocity_ratio(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Velocity Ratio U/U*.
@@ -135,7 +136,7 @@ def critical_velocity_ratio(M, gamma=1.4):
     """
     return (1 + gamma) * M**2 / (1 + gamma * M**2)
 
-@check	
+@check
 def critical_entropy_parameter(M, gamma=1.4):
     """
     Compute the Rayleigh's Critical Entropy parameter (s*-s)/R.
@@ -150,12 +151,13 @@ def critical_entropy_parameter(M, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
+    cep : ndarray
         Critical Entropy parameter (s*-s)/R.
     """
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return -gamma /(gamma - 1) * np.log(M**2 * ((gamma + 1) / (1 + gamma * M**2))**((gamma + 1) / gamma))
+    cep = np.inf * np.ones_like(M)
+    idx = M != 0
+    cep[idx] = -gamma /(gamma - 1) * np.log(M[idx]**2 * ((gamma + 1) / (1 + gamma * M[idx]**2))**((gamma + 1) / gamma))
+    return cep
 
 @check
 def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
@@ -302,7 +304,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
 
     return apply_bisection(ratio, func, flag=flag)
 
-@check	
+@check
 def m_from_critical_density_ratio(ratio, gamma=1.4):
     """
     Compute the Mach number given Rayleigh's Critical Density Ratio rho/rho*.

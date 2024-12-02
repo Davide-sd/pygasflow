@@ -2,6 +2,8 @@ import numpy as np
 import pygasflow.rayleigh as ray
 from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.decorators import check
+from numbers import Number
+
 
 @check([1])
 def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
@@ -17,7 +19,7 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
         * ``'pressure'``: Critical Pressure Ratio P/P*
         * ``'density'``: Critical Density Ratio rho/rho*
         * ``'velocity'``: Critical Velocity Ratio U/U*.
-        * ``'temperature_sub'``: Critical Temperature Ratio T/T for
+        * ``'temperature_sub'``: Critical Temperature Ratio T/T* for
           subsonic case.
         * ``'temperature_super'``: Critical Temperature Ratio T/T* for
           supersonic case.
@@ -102,6 +104,8 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
                         'entropy_sub', 'entropy_super']
     if param_name not in available_pnames:
         raise ValueError("param_name not recognized. Must be one of the following:\n{}".format(available_pnames))
+    if not isinstance(gamma, Number):
+        raise ValueError("The specific heats ratio must be > 1.")
 
     M = None
     if param_name == "m":
@@ -137,6 +141,7 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
         M = func_dict[param_name].__no_check(param_value, gamma)
 
     # compute the different ratios
+    M = np.atleast_1d(M)
     prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach.__no_check(M, gamma)
 
     if to_dict:

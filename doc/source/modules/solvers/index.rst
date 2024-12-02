@@ -30,6 +30,8 @@ Shockwave Solvers
 
 .. module:: pygasflow.solvers.shockwave
 
+.. autofunction:: normal_shockwave_solver
+
 .. autofunction:: shockwave_solver
 
 .. autofunction:: conical_shockwave_solver
@@ -43,25 +45,13 @@ De Laval Solver
 .. autofunction:: find_shockwave_area_ratio
 
 .. autoclass:: De_Laval_Solver
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.critical_area
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.critical_density
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.critical_pressure
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.critical_temperature
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.critical_velocity
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.inlet_area
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.outlet_area
-
-.. autoattribute:: pygasflow.solvers.de_laval.De_Laval_Solver.limit_pressure_ratios
-
-.. autofunction:: pygasflow.solvers.de_laval.De_Laval_Solver.compute
-
-.. autofunction:: pygasflow.solvers.de_laval.De_Laval_Solver.flow_condition
-
 .. autofunction:: pygasflow.solvers.de_laval.De_Laval_Solver.plot
+
+
+Gas Related Solvers
+===================
+
+.. module:: pygasflow.solvers.gas
+.. autofunction:: gas_solver
+.. autofunction:: ideal_gas_solver
+.. autofunction:: sonic_condition

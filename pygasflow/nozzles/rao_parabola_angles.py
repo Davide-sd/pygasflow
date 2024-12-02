@@ -144,7 +144,10 @@ class Rao_Parabola_Angles(object):
         if (Lf < 60) or (Lf > 100):
             raise ValueError("Fractional length must be 60 <= Lf <= 100.")
         if (Ar < 5) or (Ar > 50):
-            raise ValueError("Area ratio must be 5 <= Ar <= 50.")
+            raise ValueError(
+                "Area ratio must be 5 <= Ar <= 50."
+                f" Instead, Ar={Ar} was received."
+            )
 
         Lf_inf, Lf_sup = self._find_Lf_range(Lf)
 

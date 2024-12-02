@@ -124,9 +124,10 @@ def critical_area_ratio(M, gamma=1.4):
         Critical area ratio A/A*.
     """
     # return 1  / Critical_Density_Ratio.__no_check(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__no_check(M, gamma)) / M
-    # TODO: here, division by M=0 produce the correct results, infinity.
-    # Do I need to suppress the warning???
-    return (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
+    ratios = np.inf * np.ones_like(M)
+    idx = M != 0
+    ratios[idx] = (((1 + (gamma - 1) / 2 * M[idx]**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M[idx]
+    return ratios
 
 
 @check
@@ -251,7 +252,10 @@ def m_from_density_ratio(ratio, gamma=1.4):
     """
     if np.any(ratio < 0) or np.any(ratio > 1):
         raise ValueError("Density ratio must be 0 <= rho/rho0 <= 1.")
-    return np.sqrt(2 / (gamma - 1) * (1 / ratio**(gamma - 1) - 1))
+    m = np.inf * np.ones_like(ratio)
+    idx = ratio != 0
+    m[idx] = np.sqrt(2 / (gamma - 1) * (1 / ratio[idx]**(gamma - 1) - 1))
+    return m
 
 @check
 def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
@@ -281,7 +285,7 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
     # func = lambda M, r: r - Critical_Area_Ratio.__no_check(M, gamma)
     return apply_bisection(ratio, func, flag=flag)
 
-# with arguments True, I want to convert to np.ndarray the first two parameters
+# I want to convert to np.ndarray the first two parameters
 @check([0, 1])
 def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
     """
@@ -311,8 +315,11 @@ def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
         raise ValueError("Pressure ratio must be 0 <= P/P0 <= 1.")
     if a_ratio.shape != p_ratio.shape:
         raise ValueError("The Critical Area Ratio and Pressure Ratio must have the same number of elements and the same shape.")
+    m = np.inf * np.ones_like(a_ratio)
+    idx = p_ratio != 0
     # eq. 5.28, Modern Compressible Flow, 3rd Edition, John D. Anderson
-    return np.sqrt(-1 / (gamma - 1) + np.sqrt(1 / (gamma - 1)**2 + 2 / (gamma - 1) * (2 / (gamma + 1))**((gamma + 1) / (gamma - 1)) / a_ratio**2 / p_ratio**2))
+    m[idx] = np.sqrt(-1 / (gamma - 1) + np.sqrt(1 / (gamma - 1)**2 + 2 / (gamma - 1) * (2 / (gamma + 1))**((gamma + 1) / (gamma - 1)) / a_ratio[idx]**2 / p_ratio[idx]**2))
+    return m
 
 @check
 def m_from_mach_angle(angle, gamma=1.4):
@@ -321,7 +328,7 @@ def m_from_mach_angle(angle, gamma=1.4):
 
     Parameters
     ----------
-    ratio : array_like
+    angle : array_like
         Mach Angle, [degrees]. If float, list, tuple is given as input,
         a conversion will be attempted. Must be 0 <= Mach Angle <= 90.
     gamma : float, optional
@@ -334,7 +341,10 @@ def m_from_mach_angle(angle, gamma=1.4):
     """
     if np.any(angle < 0) or np.any(angle > 90):
         raise ValueError("Mach angle must be between 0° and 90°.")
-    return 1 / np.sin(np.deg2rad(angle))
+    m = np.inf * np.ones_like(angle)
+    idx = angle != 0
+    m[idx] = 1 / np.sin(np.deg2rad(angle[idx]))
+    return m
 
 @check
 def mach_angle(M):
@@ -461,3 +471,87 @@ def get_ratios_from_mach(M, gamma):
     pm = prandtl_meyer_angle.__no_check(M, gamma)
 
     return pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
+
+
+@check([0], skip_gamma_check=True)
+def sonic_temperature_ratio(gamma):
+    """
+    Compute the sonic temperature ratio T0/T*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Must be gamma > 1.
+
+    Returns
+    -------
+    ratio : float
+        Sonic Temperature ratio T0/T*.
+    """
+    ratio = np.nan * np.ones_like(gamma)
+    idx = gamma > 1
+    ratio[idx] = (gamma[idx] + 1) / 2
+    return ratio
+
+
+@check([0], skip_gamma_check=True)
+def sonic_sound_speed_ratio(gamma):
+    """
+    Compute the sonic temperature ratio a0/a*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Must be gamma > 1.
+
+    Returns
+    -------
+    ratio : float
+        Sonic Temperature ratio a0/a*.
+    """
+    ratio = np.nan * np.ones_like(gamma)
+    idx = gamma > 1
+    ratio[idx] = np.sqrt((gamma[idx] + 1) / 2)
+    return ratio
+
+
+@check([0], skip_gamma_check=True)
+def sonic_pressure_ratio(gamma):
+    """
+    Compute the sonic pressure ratio P0/P*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Must be gamma > 1.
+
+    Returns
+    -------
+    ratio : float
+        Sonic Pressure ratio P0/P*.
+    """
+    ratio = np.nan * np.ones_like(gamma)
+    idx = gamma > 1
+    ratio[idx] = ((gamma[idx] + 1) / 2)**(gamma[idx] / (gamma[idx] - 1))
+    return ratio
+
+
+@check([0], skip_gamma_check=True)
+def sonic_density_ratio(gamma):
+    """
+    Compute the sonic density ratio rho0/rho*.
+
+    Parameters
+    ----------
+    gamma : float, optional
+        Specific heats ratio. Must be gamma > 1.
+
+    Returns
+    -------
+    ratio : float
+        Sonic density ratio rho0/rho*.
+    """
+    ratio = np.nan * np.ones_like(gamma)
+    idx = gamma > 1
+    ratio[idx] = ((gamma[idx] + 1) / 2)**(1 / (gamma[idx] - 1))
+    return ratio

@@ -55,9 +55,19 @@ import inspect
 #    the parameter orders if you don't know what you are doing.
 
 
-def _check_specific_heat_ratio(gamma):
-    if gamma <= 1:
-        raise ValueError("The specific heats ratio must be > 1.")
+def _check_specific_heat_ratio(gamma, skip_gamma_check):
+    if skip_gamma_check:
+        return
+    err = ValueError("The specific heats ratio must be > 1.")
+
+    if isinstance(gamma, np.ndarray) and (gamma.ndim > 0):
+        if any(gamma <= 1):
+            raise err
+    elif isinstance(gamma, (tuple, list)):
+        if any(np.array(gamma) <= 1):
+            raise err
+    elif gamma <= 1:
+        raise err
 
 
 def _check_mach_number(M, value):
@@ -111,7 +121,7 @@ def check_shockwave(var=None):
                 _check_mach_number(all_param["MN1"], 0)
                 # TODO: should I check that MN1 <= M1?
             if "gamma" in all_param.keys():
-                _check_specific_heat_ratio(all_param["gamma"])
+                _check_specific_heat_ratio(all_param["gamma"], False)
             if "beta" in all_param.keys():
                 _check_angle(["shock wave angle", "beta"], all_param["beta"])
             if "theta" in all_param.keys():
@@ -140,7 +150,10 @@ def check_shockwave(var=None):
 
 # This decorator is used to convert and check the arguments of the
 # function in the modules: isentropic, fanno, rayleigh, generic
-def check(var=None):
+def check(var=None, skip_gamma_check=False):
+    # skip_gamma_check: sonic conditions-related function depends only on
+    # gamma. Instead of raising an error and stop the computation, return
+    # NaN for the values of gamma <= 1.
     def decorator(original_function):
         indeces = [0]
         if not callable(var):
@@ -163,7 +176,7 @@ def check(var=None):
             if "M1" in all_param.keys():
                 _check_mach_number(all_param["M1"], 0)
             if "gamma" in all_param.keys():
-                _check_specific_heat_ratio(all_param["gamma"])
+                _check_specific_heat_ratio(all_param["gamma"], skip_gamma_check)
 
             # all_param include all parameters, even if they were not specified.
             # therefore, I need to check if flag has been effectively given!

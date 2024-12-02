@@ -18,3 +18,4 @@ This document is automatically generated using pygasflow's docstrings.
    shockwave.rst
    nozzles/index.rst
    atd/index.rst
+   interactive.rst

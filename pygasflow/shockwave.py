@@ -7,6 +7,7 @@ from pygasflow.utils.roots import apply_bisection
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.utils.decorators import check_shockwave, check
 import warnings
+from numbers import Number
 
 # NOTE:
 # In the following module:
@@ -479,7 +480,7 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
     flag = flag.lower()
     if flag not in ["weak", "strong", "both"]:
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
-    
+
     if beta is not None:
         beta = np.deg2rad(beta)
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
@@ -489,7 +490,7 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
         beta = np.deg2rad(beta[flag])
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
         tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
-    
+
     # Solve Flack's equation (C.8.27) to isolate downstream Mach number M2,
     # provided we first solve for both the Pressure ratio (pr) and the Total
     # Pressure ratio (tpr).
@@ -582,7 +583,7 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
             "M1 = {}\n".format(M1) +
             "theta_max(M1) = {}\n".format(theta_max) +
             "theta = {}\n".format(theta))
-        beta = beta_from_mach_theta(M1, theta)
+        beta = beta_from_mach_theta(M1, theta, gamma=gamma)
         MN1 = dict()
         for k,v in beta.items():
             beta[k] = np.deg2rad(v)
@@ -663,12 +664,11 @@ def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
     mn2 : array_like
         Normal Mach number dowstream of the shock wave.
     """
-    # TODO: use __no_check
-    pr = pressure_ratio(Mn, gamma)
-    dr = density_ratio(Mn, gamma)
-    tr = temperature_ratio(Mn, gamma)
-    tpr = total_pressure_ratio(Mn, gamma)
-    mn2 = mach_downstream(Mn, gamma)
+    pr = pressure_ratio.__no_check(Mn, gamma)
+    dr = density_ratio.__no_check(Mn, gamma)
+    tr = temperature_ratio.__no_check(Mn, gamma)
+    tpr = total_pressure_ratio.__no_check(Mn, gamma)
+    mn2 = mach_downstream.__no_check(Mn, gamma)
 
     return pr, dr, tr, tpr, mn2
 
@@ -756,7 +756,14 @@ def max_theta_from_mach(M1, gamma=1.4):
 
     def function(M):
         # Right hand side function of beta
-        func = lambda beta: np.tan(beta) * ((M**2 * (gamma + 1)) / (2 * (M**2 * np.sin(beta)**2 - 1)) - 1)
+        def func(beta):
+            num = (M**2 * (gamma + 1))
+            den = (2 * (M**2 * np.sin(beta)**2 - 1))
+            if np.isclose(den, 0):
+                # avoid raising warnings about division by 0
+                return np.inf
+            return np.tan(beta) * (num / den - 1)
+
         # bound a correspond to the discontinuity of func
         a = np.arcsin(1 / M)
         b = np.pi / 2
@@ -796,14 +803,15 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
     """
 
     theta_max = max_theta_from_mach.__no_check(M1, gamma)
+    theta_max = np.atleast_1d(theta_max)
 
     if M1.shape:
         beta = np.zeros_like(M1)
         for i, (m, t) in enumerate(zip(M1, theta_max)):
             # here I chose 'weak', but in this case it's the same as 'strong'!
-            beta[i] = beta_from_mach_theta(m, t)["weak"]
+            beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
         return beta
-    return beta_from_mach_theta(M1, theta_max)["weak"]
+    return beta_from_mach_theta(M1, theta_max, gamma=gamma)["weak"]
 
 @check_shockwave
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
@@ -811,6 +819,11 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     Compute the shock maximum deflection angle, theta_max, as well as the
     wave angle beta corresponding to the unitary downstream Mach
     number, M2 = 1.
+
+    Notes
+    -----
+    This function relies on root-finding algorithms. If a root can't be found,
+    np.nan will be used as the result.
 
     Parameters
     ----------
@@ -838,12 +851,19 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
         for i, (m, t) in enumerate(zip(M1, theta_max)):
             a = np.arcsin(1 / m)
             b = np.deg2rad(beta_from_mach_max_theta.__no_check(m, gamma))
-            beta[i] = bisect(func, a, b, args=(m, t))
+            try:
+                beta[i] = bisect(func, a, b, args=(m, t))
+            except ValueError:
+                beta[i] = np.nan
         return np.rad2deg(beta), np.rad2deg(theta_max)
 
     a = np.arcsin(1 / M1)
     b = np.deg2rad(beta_from_mach_max_theta.__no_check(M1, gamma))
-    return np.rad2deg(bisect(func, a, b, args=(M1, theta_max))), np.rad2deg(theta_max)
+    try:
+        res = np.rad2deg(bisect(func, a, b, args=(M1, theta_max)))
+    except ValueError:
+        res = np.nan
+    return res, np.rad2deg(theta_max)
 
 @check_shockwave([0, 1])
 def mach_from_theta_beta(theta, beta, gamma=1.4):
@@ -1082,10 +1102,18 @@ def mach_from_nondimensional_velocity(V, gamma=1.4):
     M : array_like
         Mach number
     """
-    if np.any(V <= 0):
-        raise ValueError("Nondimensional velocity must be V > 0.")
+    if np.any(V < 0) or np.any(V > 1):
+        raise ValueError("Nondimensional velocity must be 0 <= V <= 1.")
+    # TODO: can I modify check_shockwave to perform the conversion for V?
+    is_scalar = isinstance(V, Number)
+    V = np.atleast_1d(V)
+    M = np.inf * np.ones_like(V)
+    idx = ~np.isclose(V, 1)
     # inverse Anderson's equation 10.16
-    return np.sqrt(2 * V**2 / ((gamma - 1) * (1 - V**2)))
+    M[idx] = np.sqrt(2 * V[idx]**2 / ((gamma - 1) * (1 - V[idx]**2)))
+    if is_scalar:
+        return M[0]
+    return M
 
 # @check
 def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
@@ -1125,7 +1153,6 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     # check for detachment
     if delta < 0 or np.isnan(delta):
-        print(delta)
         raise ValueError("Detachment detected for the following conical flow condition:\n" +
             "M = {}\n".format(M) +
             "beta = {}\n".format(beta) +
@@ -1213,7 +1240,7 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     def function(M):
         # find the theta_c_max associated to the given Mach number in order to
         # chose the correct bisection interval for 'weak' or 'strong' solution.
-        Mc, tcmax, bmax = max_theta_c_from_mach(M)
+        Mc, tcmax, bmax = max_theta_c_from_mach(M, gamma)
         if theta_c > tcmax:
             raise ValueError("Detachment detected: can't solve the flow when theta_c > theta_c_max.\n" +
                 "M1 = {}\n".format(M1) +
@@ -1431,51 +1458,61 @@ def load_data(gamma=1.4):
     if gamma <= 1:
         raise ValueError("The specific heat ratio must be gamma > 1")
 
-    import csv
+    import pandas as pd
     import os
     # path of the folder containing this file
     current_dir = os.path.dirname(os.path.realpath(__file__))
     # path of the folder containing the data of the plot
     data_dir = os.path.join(current_dir, "data")
-    filename = os.path.join(data_dir, "m-beta-theta_c-g" + str(gamma) + ".csv")
+    filename = os.path.join(data_dir, "m-beta-theta_c-g" + str(gamma) + ".csv.zip")
     if not os.path.exists(filename):
         files = [f for f in os.listdir(data_dir) if os.path.isfile(os.path.join(data_dir, f))]
         raise FileNotFoundError("Could not find the file: {}\n".format(filename) +
         "The following files are available: {}\n".format(files) +
         "Insert the interested specific heat ratio!")
-    mach, beta, theta_c = [], [], []
-    with open(filename, mode='r') as csv_file:
-        csv_reader = csv.DictReader(csv_file)
-        count = 0
-        for row in csv_reader:
-            if count > 0:
-                mach.append(float(row["M1"]))
-                beta.append(float(row["beta"]))
-                theta_c.append(float(row["theta_c"]))
-            count += 1
+    df = pd.read_csv(filename)
+    mach = df["M1"].values
+    beta = df["beta"].values
+    theta_c = df["theta_c"].values
 
     return mach, beta, theta_c
 
-if __name__ == "__main__":
-    # print(np.rad2deg(np.arcsin(1 / 1.1)))
-    # print(mach_cone_angle_from_shock_angle(1.1, 65.3800226713429))
-    # print(beta_theta_c_for_unit_mach_downstream(2))
-    # print(max_theta_c_from_mach(2))
-    # print(mach_cone_angle_from_shock_angle(1.05, ))
-    # M1 = np.logspace(0, 1, 50)
-    # print(M1)
 
-    # print(load_data())
+def create_mach_beta_theta_c_csv_file(
+    M, gamma, folder="", filename="m-beta-theta_c-g%s.csv.zip"
+):
+    """Create a csv file for each value of gamma containing data for the
+    upstream Mach, beta, theta_c where the downstream Mach number is sonic.
+    This is useful to speed up the generation of the Mach-beta-theta_c diagram.
 
-    # print(normal_mach_upstream(2, theta=30))
-    print(mach_from_theta_beta(45, 50))
+    Parameters
+    ----------
+    M : list or np.array
+        Values of upstream Mach numbers where to compute beta, theta_c.
+    gamma : list
+        Values of the specific heat ratio.
+    folder : str
+    filename : str
+        A formatted string accepting one argument, the gamma value.
+    """
+    if any(not hasattr(v, "__iter__") for v in [M, gamma]):
+        raise TypeError(
+            "`M` and `gamma` must be iterables (list, tuple, arrays).")
 
+    import os
+    import pandas as pd
 
-    # M1 = np.logspace(0, 1, 50) / 100 + 0.99
-    # M1 = [1.1, 1.12, 1.14, 1.16, 1.18, 1.20, 1.23, 1.26, 1.29, 1.32, 1.35, 1.38,
-    #     1.41, 1.44, 1.47, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10,
-    #     100, 10000]
-    # for i, m in enumerate(M1):
-    #     # if i > 1:
-    #     b, t = beta_theta_c_for_unit_mach_downstream(m)
-    #     print(i, m, b, t)
+    for g in gamma:
+        print("Processing gamma = ", g)
+        beta = np.zeros_like(M)
+        theta_c = np.zeros_like(M)
+        for i, m in enumerate(M):
+            try:
+                beta[i], theta_c[i] = beta_theta_c_for_unit_mach_downstream(m, g)
+            except ValueError:
+                beta[i], theta_c[i] = np.nan, np.nan
+        df = pd.DataFrame.from_dict({
+            "M1": M, "beta": beta, "theta_c": theta_c
+        })
+        filepath = os.path.join(folder, filename % g)
+        df.to_csv(filepath, index=False, compression="zip")

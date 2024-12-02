@@ -18,6 +18,7 @@ import os
 import sys
 import inspect
 import sphinx_rtd_theme
+from pygasflow.utils.doc_utils import param_formatter, modify_panel_code
 
 sys.path.insert(0, os.path.abspath('../../'))
 
@@ -60,7 +61,8 @@ extensions = [
     'sphinx_rtd_theme',
     'nbsphinx',
     'nbsphinx_link', # to link to ipynb files outside of the source folder
-    'sphinx_design',
+    "bokeh.sphinxext.bokeh_plot",
+    "sphinx_panel_screenshot",
 ]
 
 # in order to show the icons on sponsorship buttons
@@ -237,6 +239,7 @@ replacements = {
     "(s2 - s1) / C_p": r"$\frac{s_{2} - s_{1}}{C_{p}}$",
     "Pt2 / P1": r"$\frac{P_{t2}}{P_{1}}$",
     "Ps / Pt2": r"$\frac{P_{s}}{P_{t2}}$",
+    "0 <= Pb_P0_ratio <= 1": r"$0 \le P_{b} / P_{0} \le 1$",
 }
 def replace(app, what, name, obj, options, lines):
     for i in range(len(lines)):
@@ -244,5 +247,38 @@ def replace(app, what, name, obj, options, lines):
             if k in lines[i]:
                 lines[i] = lines[i].replace(k, v)
 
+
+# -- param.Parameterized -----------------------------------------------------
+# Inspired by:
+# https://github.com/holoviz-dev/nbsite/blob/master/nbsite/paramdoc.py
 def setup(app):
-    app.connect('autodoc-process-docstring', replace);
+    app.connect('autodoc-process-docstring', replace)
+    app.connect("autodoc-process-docstring", param_formatter, priority=-100)
+
+
+# -- Options for sphinx_panel_screenshot --------------------------------------
+
+browser = "chrome"
+home_folder = os.path.expanduser("~")
+browser_path = os.path.join(home_folder, "selenium/chrome-linux/chrome")
+browser_driver_path = os.path.join(home_folder, "selenium/drivers/chromedriver")
+
+# browser = "firefox"
+# home_folder = os.path.expanduser("~")
+# browser_path = os.path.join(home_folder, "selenium/firefox/firefox")
+# browser_driver_path = os.path.join(home_folder, "selenium/drivers/geckodriver")
+
+
+driver_options = [
+    "--headless",
+    "--disable-dev-shm-usage",  # overcome limited resource problems
+    "--no-sandbox"              # Bypass OS security model
+]
+
+panel_screenshot_small_size = [800, 575]
+panel_screenshot_intercept_code = modify_panel_code
+panel_screenshot_browser = browser
+panel_screenshot_browser_path = browser_path
+panel_screenshot_driver_path = browser_driver_path
+panel_screenshot_driver_options = driver_options
+panel_screenshot_formats = ["large.png"]

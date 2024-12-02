@@ -1,5 +1,5 @@
 import numpy as np
-
+import param
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.nozzles.utils import convergent
 from pygasflow.isentropic import (
@@ -162,19 +162,22 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
 
         for j in range(npt - 1):
             # note that after the first line, theta_1 = 0
-            left_runn_chars[i]["theta"][j] = theta_1 + delta_theta * j
+            theta = theta_1 + delta_theta * j
 
             if i == 0:
-                left_runn_chars[i]["nu"][j] = left_runn_chars[i]["theta"][j]
-                left_runn_chars[i]["Km"][j] = left_runn_chars[i]["theta"][j] + left_runn_chars[i]["nu"][j]
-                left_runn_chars[i]["Kp"][j] = left_runn_chars[i]["theta"][j] - left_runn_chars[i]["nu"][j]
+                nu = theta
+                Km = theta + nu
             else:
-                left_runn_chars[i]["Km"][j] = left_runn_chars[i - 1]["Km"][j + 1]
-                left_runn_chars[i]["nu"][j] = left_runn_chars[i]["Km"][j] - left_runn_chars[i]["theta"][j]
+                Km = left_runn_chars[i - 1]["Km"][j + 1]
+                nu = Km - theta
 
-            left_runn_chars[i]["Kp"][j] = left_runn_chars[i]["theta"][j] - left_runn_chars[i]["nu"][j]
-            left_runn_chars[i]["M"][j] = m_from_prandtl_meyer_angle(left_runn_chars[i]["nu"][j], gamma)
-            left_runn_chars[i]["mu"][j] = mach_angle(left_runn_chars[i]["M"][j])
+            M = m_from_prandtl_meyer_angle(nu, gamma)
+            left_runn_chars[i]["theta"][j] = theta
+            left_runn_chars[i]["nu"][j] = nu
+            left_runn_chars[i]["Km"][j] = Km
+            left_runn_chars[i]["Kp"][j] = theta - nu
+            left_runn_chars[i]["M"][j] = M
+            left_runn_chars[i]["mu"][j] = mach_angle(M)
 
         left_runn_chars[i]["theta"][j + 1] = left_runn_chars[i]["theta"][j]
         left_runn_chars[i]["nu"][j + 1] = left_runn_chars[i]["nu"][j]
@@ -196,7 +199,8 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
 
     for i, l in enumerate(left_runn_chars):
         # number of points in the left running characteristic
-        _n = len(l["theta"])
+        theta, mu = l["theta"], l["mu"]
+        _n = len(theta)
         x = np.zeros(_n)
         y = np.zeros(_n)
 
@@ -206,22 +210,22 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
             if i == 0:
                 # point in the simmetry line
                 if j == 0:
-                    x[j] = -1 / tand(l["theta"][j] - l["mu"][j])
+                    x[j] = -1 / tand(theta[j] - mu[j])
                     y[j] = 0
 
                 # point at the wall
                 elif j == _n - 1:
-                    num = y[j-1] - 1 - x[j-1] * tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j]))
-                    den = tand(0.5 * (theta_w_max + l["theta"][j])) - tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j]))
+                    num = y[j-1] - 1 - x[j-1] * tand(0.5 * (theta[j-1] + mu[j-1] + theta[j] + mu[j]))
+                    den = tand(0.5 * (theta_w_max + theta[j])) - tand(0.5 * (theta[j-1] + mu[j-1] + theta[j] + mu[j]))
                     x[j] = num / den
-                    y[j] = 1 + x[j] * tand(0.5 * (theta_w_max + l["theta"][j]))
+                    y[j] = 1 + x[j] * tand(0.5 * (theta_w_max + theta[j]))
 
                 # points in the flow region
                 else:
-                    num = (1 - y[j-1] + x[j-1] * tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j])))
-                    den = tand(0.5 * (l["theta"][j-1] + l["mu"][j-1] + l["theta"][j] + l["mu"][j])) - tand(l["theta"][j] - l["mu"][j])
+                    num = (1 - y[j-1] + x[j-1] * tand(0.5 * (theta[j-1] + mu[j-1] + theta[j] + mu[j])))
+                    den = tand(0.5 * (theta[j-1] + mu[j-1] + theta[j] + mu[j])) - tand(theta[j] - mu[j])
                     x[j] = num / den
-                    y[j] = tand(l["theta"][j] - l["mu"][j]) * x[j] + 1
+                    y[j] = tand(theta[j] - mu[j]) * x[j] + 1
 
             # all other left characteristics
             else:
@@ -235,24 +239,24 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
 
                 # points in the simmetry line
                 if j == 0:
-                    x[j] = x_prev - y_prev / (tand(0.5 * (l["theta"][j] + theta_prev - l["mu"][j] - mu_prev)))
+                    x[j] = x_prev - y_prev / (tand(0.5 * (theta[j] + theta_prev - mu[j] - mu_prev)))
                     y[j] = 0
 
                 # point at the wall
                 elif j == _n - 1:
-                    num = x_prev * tand(0.5 * (theta_prev + l["theta"][j])) \
-                        - y_prev + l["y"][j-1] - l["x"][j-1] * tand(0.5 * (l["theta"][j] + l["theta"][j-1] + l["mu"][j] + l["mu"][j-1]))
+                    num = x_prev * tand(0.5 * (theta_prev + theta[j])) \
+                        - y_prev + l["y"][j-1] - l["x"][j-1] * tand(0.5 * (theta[j] + theta[j-1] + mu[j] + mu[j-1]))
 
-                    den = tand(0.5 * (l["theta"][j] + theta_prev)) \
-                        - tand(0.5 * (l["theta"][j-1] + l["theta"][j] + l["mu"][j-1] + l["mu"][j]))
+                    den = tand(0.5 * (theta[j] + theta_prev)) \
+                        - tand(0.5 * (theta[j-1] + theta[j] + mu[j-1] + mu[j]))
 
                     x[j] = num / den
-                    y[j] = y_prev + (l["x"][j] - x_prev) * tand(0.5 * (theta_prev + l["theta"][j]))
+                    y[j] = y_prev + (l["x"][j] - x_prev) * tand(0.5 * (theta_prev + theta[j]))
 
                 # points in the flow region
                 else:
-                    s1 = tand(0.5 * (l["theta"][j] + l["theta"][j-1] + l["mu"][j] + l["mu"][j-1]))
-                    s2 = tand(0.5 * (l["theta"][j] + theta_prev - l["mu"][j] - mu_prev))
+                    s1 = tand(0.5 * (theta[j] + theta[j-1] + mu[j] + mu[j-1]))
+                    s2 = tand(0.5 * (theta[j] + theta_prev - mu[j] - mu_prev))
                     x[j] = (y_prev - l["y"][j-1] + s1 * l["x"][j-1] - s2 * x_prev) / (s1 - s2)
                     y[j] = l["y"][j-1] + (l["x"][j] - l["x"][j-1]) * s1
 
@@ -308,133 +312,130 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
     Examples
     --------
 
-    .. plot::
-       :context: reset
-       :format: python
-       :include-source: True
+    Compute the length of a minimum length nozzle:
 
-       from pygasflow import CD_Min_Length_Nozzle
-       import matplotlib.pyplot as plt
-       Ri = 0.4
-       Rt = 0.2
-       Re = 1.2
-       Rj = 0.1
-       R0 = 0.2
-       theta_c = 40
-       nozzle = CD_Min_Length_Nozzle(Ri, Re, Rt, Rj, R0, theta_c, 10)
-       x, y = nozzle.build_geometry(1000)
-       plt.figure()
-       plt.plot(x, y)
-       plt.xlabel("Length")
-       plt.ylabel("Radius")
-       plt.grid()
-       plt.axis('equal')
-       plt.show()
+    >>> from pygasflow.nozzles import CD_Conical_Nozzle
+    >>> Ri, Re, Rt = 0.4, 1.2, 0.2
+    >>> nozzle = CD_Conical_Nozzle(Ri, Re, Rt, theta_c=30, theta_N=25)
+    >>> nozzle.length
+    np.float64(2.5666763867738522)
+
+    Change the angle of the divergent section and retrieve the new length
+    of the nozzle:
+
+    >>> nozzle.theta_N = 60
+    >>> nozzle.length
+    np.float64(1.0350852961085883)
+
+    Visualize the nozzle:
+
+    .. bokeh-plot::
+        :source-position: above
+
+        from pygasflow.nozzles import CD_Min_Length_Nozzle
+        Ri, Re, Rt = 0.4, 0.5, 0.2
+        nozzle = CD_Min_Length_Nozzle(Ri, Re, Rt, theta_c=30, n_lines=20)
+        nozzle.plot(interactive=False, show_characteristic_lines=True)
 
     """
 
-    _title = "MOC Nozzle"
+    _params_to_document = [
+        "inlet_radius", "outlet_radius", "throat_radius",
+        "theta_c", "gamma", "n_lines", "N",
+        "inlet_area", "outlet_area", "throat_area",
+        "length_convergent", "length_divergent", "length",
+        "shockwave_location", "theta_w_max", "wall",
+        "characteristics", "left_runn_chars"
+    ]
 
-    def __init__(self, Ri, Re, Rt, Rj, R0, theta_c, n, gamma=1.4, N=100):
-        """
-        Parameters
-        ----------
-        Ri : float
-            Inlet radius.
-        Re : float
-            Exit (outlet) radius.
-        Rt : float
-            Throat radius.
-        Rj : float
-            Radius of the junction between convergent and divergent.
-        R0 : float
-            Radius of the junction between combustion chamber and convergent.
-        theta_c : float
-            Half angle [degrees] of the convergent.
-        n : int
-            Number of characteristic lines. Must be > 2.
-        gamma : float
-            Specific heats ratio. Default to 1.4. Must be > 1.
-        N : int
-            Number of discretization elements along the length of the nozzle.
-            Default to 100.
-        """
-        if (Ri <= Rt) or (Re <= Rt):
-            raise ValueError("Must be Ai > At and Ae > At.")
-        if (not isinstance(n, int)) or (N <= 2):
-            raise ValueError("The number of characteristic lines must be n > 2.")
-        if (not isinstance(N, int)) or (N <= 1):
-            raise ValueError("The number of elements for discretization must be N > 1.")
-        if Rj <= 0:
-            raise ValueError("Junction radius between Convergent and Divergent must be > 0.")
-        if R0 <= 0:
-            raise ValueError("Junction radius between Combustion Chamber and Convergent must be > 0.")
-        if (theta_c <= 0) or (theta_c >= 90):
-            raise ValueError("The half cone angle of the convergent must be 0 < theta_N < 90.")
-        if gamma <= 1:
-            raise ValueError("The specific heats ratio must be > 1.")
+    theta_w_max = param.Number(constant=True, doc="Maximum angle of the wall.")
 
-        super().__init__(Ri, Re, Rt, None, None, "planar")
-        self._theta_c = theta_c
-        self._R0 = R0
-        self._Rj = Rj
-        self._n = n
-        self._gamma = gamma
+    wall = param.Array(constant=True, doc="""
+        Mx2 array of wall coordinates computed by MOC. First column is
+        the x-coordinates, second column is the y-coordinates.""")
 
-        # compute the intersection points of the different curves
-        # composing the nozzle.
-        self._compute_intersection_points()
+    characteristics = param.List(item_type=dict, constant=True, doc="""
+        List of dictionaries. Each dictionary contains the keys "x", "y"
+        for the coordinates of the points of each characteristic. Here, with
+        characteristic, I mean the points of the right and left running
+        characteristic.""")
 
-        x, y = self.build_geometry(N)
-        self._length_array = x
-        self._wall_radius_array = y
-        self._area_ratio_array = 2 * y / self._At
+    left_runn_chars = param.List(item_type=dict, constant=True, doc="""
+        List of dictionaries. Each dictionary contains the keys "Km", "Kp",
+        "theta", "nu", "M", "mu", "x", "y". Each dictionary represents the
+        points lying on the same left-running characteristic.""")
+
+    def __init__(
+        self, Ri=0.4, Re=1.2, Rt=0.2, Rj=0.1, R0=0.1, theta_c=40,
+        n_lines=10, gamma=1.4, **params
+    ):
+        params.setdefault("title", "MOC Nozzle")
+        params["geometry_type"] = "planar"
+        super().__init__(
+            Ri, Re, Rt, theta_c=theta_c, n_lines=n_lines,
+            gamma=gamma, **params
+        )
+
+    @param.depends(
+        "inlet_radius", "outlet_radius", "throat_radius",
+        "geometry_type", "theta_c", "n_lines", "gamma",
+        "N", "junction_radius_0",
+        watch=True, on_init=True
+    )
+    def _update_geometry(self):
+        # this method needs to be in this class and not in the parent
+        # class in order to break a recursion call. If this was removed, then
+        # `Nozzle_geometry._update_geometry` calls `_compute_intersection_points()`,
+        # which is going to update `theta_N, theta_e`, which would tring
+        # another `Nozzle_geometry._update_geometry`.
+        super()._update_geometry()
 
     def __str__(self):
         s = "C-D Minimum Length Nozzle\n"
         s += super().__str__()
+        s += f"Number of characteristic lines: {self.n_lines}\n"
         s += "Angles:\n"
-        s += "\ttheta_c\t{}\n".format(self._theta_c)
-        s += "\ttheta__w_max\t{}\n".format(self._theta_w_max)
+        s += "\ttheta_c\t{}\n".format(self.theta_c)
+        s += "\ttheta__w_max\t{}\n".format(self.theta_w_max)
         return s
 
     def _compute_intersection_points(self):
-        Ri, Rt, Re = self._Ri, self._Rt, self._Re
-        R0 = self._R0
-        Rj = self._Rj
-        n = self._n
-        gamma = self._gamma
+        Ri, Rt, Re = self.inlet_radius, self.throat_radius, self.outlet_radius
+        R0 = self.junction_radius_0
+        Rj = self.junction_radius_j
+        n = self.n_lines
+        gamma = self.gamma
 
         # find interesting points for the convergent
-        x0, y0, x1, y1, xc, yc = convergent(self._theta_c, Ri, R0, Rt, Rj / Rt)
-        # convergent length
-        self._Lc = xc
+        x0, y0, x1, y1, xc, yc = convergent(self.theta_c, Ri, R0, Rt, Rj / Rt)
+        self.length_convergent = xc
         # offset to the left, I want x=0 to be throat section
         x0 -= xc
         x1 -= xc
 
         # compute the wall points
-        wall, _, _, theta_w_max = min_length_supersonic_nozzle_moc(Rt, n, None, self._Ae / self._At, gamma)
-        # divergent length
-        self._Ld = wall[-1, 0]
-        # max angle at the wall downstream of the throat
-        self._theta_w_max = theta_w_max
-        # wall points coordinates
-        self._wall = wall
+        wall, characteristics, left_runn_chars, theta_w_max = min_length_supersonic_nozzle_moc(
+            Rt, n, None, self.outlet_area / self.throat_area, gamma)
+        self.length_divergent = wall[-1, 0]
+        self.length = self.length_convergent + self.length_divergent
+
+        with param.edit_constant(self):
+            self.param.update(dict(
+                theta_w_max=theta_w_max,
+                wall=wall,
+                characteristics=characteristics,
+                left_runn_chars=left_runn_chars
+            ))
 
         self._intersection_points = {
-            "S": [-self._Lc, Ri],   # start point
+            "S": [-self.length_convergent, Ri],   # start point
             "0": [x0, y0],  # combustion chamber circle - convergent straight line
             "1": [x1, y1],  # convergent straight line - throat circle
             "orig": [0, Rt],  # throat origin
-            "E": [self._Ld, Re] # end point
+            "E": [self.length_divergent, Re] # end point
         }
 
-    @property
-    def intersection_points(self):
-        return self._intersection_points
-
-    def build_geometry(self, N):
+    def build_geometry(self):
         """Discretize the length of the nozzle and compute the nozzle profile.
 
         Parameters
@@ -449,9 +450,10 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         y : array_like
             y_coordinate of the nozzle wall.
         """
-        Ri, Rt, Re = self._Ri, self._Rt, self._Re
-        R0 = self._R0
-        Rj = self._Rj
+        Ri, Rt, Re = self.inlet_radius, self.throat_radius, self.outlet_radius
+        R0 = self.junction_radius_0
+        Rj = self.junction_radius_j
+        N = self.N
 
         Lc = self.length_convergent
         Ld = self.length_divergent
@@ -459,7 +461,7 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         x0, y0 = self._intersection_points["0"]
         x1, y1 = self._intersection_points["1"]
 
-        theta_c = np.deg2rad(self._theta_c)
+        theta_c = np.deg2rad(self.theta_c)
         # intercept of the straight line to the throat section
         q = y1 + x1 * np.tan(theta_c)
 
@@ -477,7 +479,8 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         # straight line of the divergent
         # interpolation of the divergent's wall points
         # TODO: try to use UnivariateSpline and look for a decent smoothing
-        s = interpolate.InterpolatedUnivariateSpline(self._wall[:, 0], self._wall[:, 1])
+        s = interpolate.InterpolatedUnivariateSpline(
+            self.wall[:, 0], self.wall[:, 1])
         y[x > 0] = s(x[x > 0])
         # I absolutely need the origin to be a sharp corner!
         if 0 in x:
@@ -488,3 +491,14 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
             x[idx[-1]] = 0
 
         return x, y
+
+    def _get_params_for_ui(self):
+        return [
+            self.param.throat_radius,
+            self.param.outlet_radius,
+            self.param.inlet_radius,
+            self.param.junction_radius_0,
+            self.param.theta_c,
+            self.param.n_lines,
+            self.param.gamma,
+        ]

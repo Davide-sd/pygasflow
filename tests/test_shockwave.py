@@ -10,23 +10,31 @@
 # the result with known values.
 
 import numpy as np
-from pytest import raises
+import os
+import pytest
 from pygasflow.solvers.shockwave import (
     shockwave_solver as ss,
-    conical_shockwave_solver as css
+    conical_shockwave_solver as css,
+    normal_shockwave_solver as nss
 )
 from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
     mach_cone_angle_from_shock_angle,
     mach_downstream,
-    oblique_mach_downstream
+    oblique_mach_downstream,
+    beta_from_mach_max_theta,
+    load_data,
+    create_mach_beta_theta_c_csv_file
 )
+from tempfile import TemporaryDirectory
+
 
 def check_val(v1, v2, tol=1e-05):
     assert abs(v1 - v2) < tol
 
+
 def func(err, fn, *args, **kwargs):
-    with raises(err):
+    with pytest.raises(err):
         fn(*args, **kwargs)
 
 def test_raises_error():
@@ -369,3 +377,102 @@ def test_oblique_mach_downstream():
         expected_results["theta"]
     )
     assert np.allclose(expected_mach_downstream, actual_mach_downstream_results)
+
+
+def test_beta_from_mach_max_theta():
+    assert np.isclose(
+        beta_from_mach_max_theta(2.5, 1.4),
+        64.78216996529343
+    )
+    assert np.allclose(
+        beta_from_mach_max_theta([2.5, 3.5], 1.4),
+        [64.78216997, 65.68861403]
+    )
+
+
+def test_error_for_multiple_gamma():
+    err_msg = "The specific heats ratio must be > 1."
+    with pytest.raises(ValueError, match=err_msg):
+        ss("m1", [2, 3], "beta", 80, gamma=[1.1, 2])
+
+    with pytest.raises(ValueError, match=err_msg):
+        nss("m1", [2, 3], gamma=[1.1, 2])
+
+    with pytest.raises(ValueError, match=err_msg):
+        css([2.5, 5], "mc", 1.5, gamma=[1.1, 2])
+
+
+@pytest.mark.parametrize("g", [0.9, 1])
+def test_error_gamma_less_equal_than_one(g):
+    err_msg = "The specific heats ratio must be > 1."
+    with pytest.raises(ValueError, match=err_msg):
+        ss("m1", [2, 3], "beta", 80, gamma=g)
+
+    with pytest.raises(ValueError, match=err_msg):
+        nss("m1", [2, 3], gamma=g)
+
+    with pytest.raises(ValueError, match=err_msg):
+        css([2.5, 5], "mc", 1.5, gamma=g)
+
+
+@pytest.mark.parametrize("gamma, raise_error", [
+    (1.05, False),
+    (1.1, False),
+    (1.15, False),
+    (1.2, False),
+    (1.25, False),
+    (1.3, False),
+    (1.35, False),
+    (1.4, False),
+    (1.45, False),
+    (1.5, False),
+    (1.55, False),
+    (1.6, False),
+    (1.65, False),
+    (1.7, False),
+    (1.75, False),
+    (1.8, False),
+    (1.85, False),
+    (1.9, False),
+    (1.95, False),
+    (2, False),
+    (2.05, True)
+])
+def test_load_data(gamma, raise_error):
+    if not raise_error:
+        data = load_data(gamma)
+        assert len(data) == 3
+        assert all(isinstance(d, np.ndarray) for d in data)
+    else:
+        with pytest.raises(FileNotFoundError):
+            load_data(gamma)
+
+
+def test_create_mach_beta_theta_c_csv_file():
+    with pytest.raises(TypeError):
+        # gamma is not iterable
+        create_mach_beta_theta_c_csv_file([1, 1.1], 1.4)
+    with pytest.raises(TypeError):
+        # M1 is not iterable
+        create_mach_beta_theta_c_csv_file(2, [1.1, 1.4])
+    with pytest.raises(TypeError):
+        # both M1 and gamma are not iterables
+        create_mach_beta_theta_c_csv_file(2, 1.4)
+    with TemporaryDirectory(prefix="pygasflow_") as tmpdir:
+        create_mach_beta_theta_c_csv_file(
+            [1, 1.05], [1.35, 1.4], folder=tmpdir)
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "m-beta-theta_c-g1.35.csv.zip"
+        ))
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "m-beta-theta_c-g1.4.csv.zip"
+        ))
+    with TemporaryDirectory(prefix="pygasflow_") as tmpdir:
+        create_mach_beta_theta_c_csv_file(
+            [1.05], [1.35], folder=tmpdir, filename="test%s.csv.zip")
+        assert os.path.exists(os.path.join(
+            tmpdir,
+            "test1.35.csv.zip"
+        ))
