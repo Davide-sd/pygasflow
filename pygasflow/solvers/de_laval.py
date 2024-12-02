@@ -105,6 +105,20 @@ class De_Laval_Solver(param.Parameterized):
     A / A*                  1.000000      16.000000       1.747487      1.747487
     A*                      0.125664       0.125664       1.150577      1.150577
 
+    Show the possible flow conditions, depending on the back-to-stagnation
+    pressure ration:
+
+    >>> solver.flow_condition_summary
+                                                             Condition
+    No flow                                                Pb / P0 = 1
+    Subsonic                              Pb / P0 > 0.9990833631058978
+    Chocked                               Pb / P0 = 0.9990833631058978
+    Shock in Nozzle  0.08373983107077117 < Pb / P0 < 0.999083363105...
+    Shock at Exit                        Pb / P0 = 0.08373983107077117
+    Overexpanded     0.003635619912775599 < Pb / P0 < 0.08373983107...
+    Supercritical                       Pb / P0 = 0.003635619912775599
+    Underexpanded                       Pb / P0 < 0.003635619912775599
+
     Show ratios at known flow conditions:
 
     >>> solver.flow_conditions
