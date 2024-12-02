@@ -42,7 +42,11 @@ class BasePlot(param.Parameterized):
     def _place_legend_outside(self):
         # hide original legend and create a new one outside of the plot area
         self.figure.legend.visible = False
-        legend_items = self.figure.legend.items
+        legend_items = self.figure.legend.items.copy()
+        # NOTE: if I don't clear the elements of the original legend,
+        # the hidden legend will still occupy vertical space, which will
+        # make hover tool not working over the region covered by the legend
+        self.figure.legend.items.clear()
         legend = Legend(items=legend_items)
         # interactive legend
         legend.click_policy = "hide"
