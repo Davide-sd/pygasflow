@@ -24,7 +24,9 @@ from pygasflow.shockwave import (
     oblique_mach_downstream,
     beta_from_mach_max_theta,
     load_data,
-    create_mach_beta_theta_c_csv_file
+    create_mach_beta_theta_c_csv_file,
+    PressureDeflectionLocus,
+    max_theta_from_mach
 )
 from tempfile import TemporaryDirectory
 
@@ -476,3 +478,461 @@ def test_create_mach_beta_theta_c_csv_file():
             tmpdir,
             "test1.35.csv.zip"
         ))
+
+
+class Test_PressureDeflectionLocus:
+    def _do_test_instantion(
+        self, obj, M, gamma, theta_origin, pr_to_freestream, label
+    ):
+        assert obj.M == M
+        assert obj.gamma == gamma
+        assert obj.theta_origin == theta_origin
+        assert obj.pr_to_freestream == pr_to_freestream
+        assert obj.label == label
+        assert callable(obj.func_of_theta)
+        assert np.isclose(obj.theta_max, max_theta_from_mach(M, gamma))
+
+    def test_instantiation_simple(self):
+        p = PressureDeflectionLocus(M=2)
+        self._do_test_instantion(p, 2, 1.4, 0, 1, "")
+
+    def test_instantiation_M_gamma(self):
+        M = 3
+        gamma = 1.2
+        p = PressureDeflectionLocus(M=M, gamma=gamma)
+        self._do_test_instantion(p, 3, 1.2, 0, 1, "")
+
+    def test_instantiation_advanced(self):
+        p = PressureDeflectionLocus(
+            M=2, gamma=1.4, theta_origin=10, pr_to_freestream=3, label="test")
+        self._do_test_instantion(p, 2, 1.4, 10, 3, "test")
+
+    def test_new_locus_from_shockwave(self):
+        pdl1 = PressureDeflectionLocus(M=3, label="1")
+        pdl2 = pdl1.new_locus_from_shockwave(20, label="2")
+        self._do_test_instantion(
+            pdl2, 1.9941316655645605, 1.4, 20, 3.771257463082658, "2")
+
+        pdl1 = PressureDeflectionLocus(M=3, label="1", gamma=1.2)
+        pdl2 = pdl1.new_locus_from_shockwave(20, label="2")
+        assert np.isclose(pdl2.gamma, 1.2)
+
+    def test_update_func_theta_max(self):
+        p = PressureDeflectionLocus(M=2)
+        f1 = p.func_of_theta
+        tm1 = p.theta_max
+
+        p.M = 3
+        f2 = p.func_of_theta
+        tm2 = p.theta_max
+        assert not np.isclose(tm1, tm2)
+        assert id(f1) != id(f2)
+
+        p.gamma = 1.2
+        f3 = p.func_of_theta
+        tm3 = p.theta_max
+        assert not np.isclose(tm2, tm3)
+        assert id(f2) != id(f3)
+
+        p.theta_origin = 10
+        f4 = p.func_of_theta
+        tm4 = p.theta_max
+        assert np.isclose(tm3, tm4)
+        assert id(f3) != id(f4)
+
+        p.pr_to_freestream = 3
+        f5 = p.func_of_theta
+        tm5 = p.theta_max
+        assert np.isclose(tm4, tm5)
+        assert id(f4) != id(f5)
+
+    def test_intersection_between_locuses(self):
+        pdl1 = PressureDeflectionLocus(M=3, label="1")
+        pdl2 = pdl1.new_locus_from_shockwave(20, label="2")
+        pdl3 = pdl1.new_locus_from_shockwave(-15, label="3")
+
+        theta_inter, pr_inter = pdl2.intersection(pdl3, region="weak")
+        assert np.isclose(theta_inter, 4.795958931693682)
+        assert np.isclose(pr_inter, 8.352551913417367)
+
+        theta_inter, pr_inter = pdl2.intersection(pdl3, region="strong")
+        assert np.isclose(theta_inter, 1.4095306470178952)
+        assert np.isclose(pr_inter, 15.852431019354935)
+
+        theta_inter, pr_inter = pdl1.intersection(pdl2, region="weak")
+        assert np.isclose(theta_inter, 32.511026902792594)
+        assert np.isclose(pr_inter, 7.299330121992539)
+
+        theta_inter, pr_inter = pdl1.intersection(pdl3, region="weak")
+        assert np.isclose(theta_inter, -33.51465769303509)
+        assert np.isclose(pr_inter, 7.8289804826169425)
+
+        pdl4 = pdl2.new_locus_from_shockwave(20)
+        theta_inter, pr_inter = pdl3.intersection(pdl4, region="weak")
+        assert theta_inter is None
+        assert pr_inter is None
+
+    def test_create_path(self):
+        theta_2 = 20
+        theta_3 = -15
+        pdl1 = PressureDeflectionLocus(M=3, label="1")
+        pdl2 = pdl1.new_locus_from_shockwave(theta_2, label="2")
+        pdl3 = pdl1.new_locus_from_shockwave(theta_3, label="3")
+
+        # error: first element of the tuple is not an instance of PressureDeflectionLocus
+        pytest.raises(
+            ValueError,
+            lambda: PressureDeflectionLocus.create_path((0, theta_2))
+        )
+        # error: second element of the tuple is not a number
+        pytest.raises(
+            ValueError,
+            lambda: PressureDeflectionLocus.create_path((pdl1, pdl2))
+        )
+        # error: tuples with number of elements != 2
+        pytest.raises(
+            ValueError,
+            lambda: PressureDeflectionLocus.create_path((pdl1, theta_2, 3))
+        )
+        # error: not a tuple
+        pytest.raises(
+            ValueError,
+            lambda: PressureDeflectionLocus.create_path(pdl1, theta_2, 3)
+        )
+
+        theta, pr = PressureDeflectionLocus.create_path((pdl1, theta_2))
+        assert len(theta) == len(pr) == 100
+
+        theta, pr = PressureDeflectionLocus.create_path((pdl1, theta_2), N=5)
+        assert len(theta) == len(pr) == 5
+        assert np.allclose(theta, np.array([
+            0.,  5., 10., 15., 20.
+        ]))
+        assert np.allclose(pr, np.array([
+            1.        , 1.45398306, 2.05447215, 2.82156232, 3.77125746
+        ]))
+
+        phi, _ = pdl2.intersection(pdl3, region="weak")
+        theta, pr = PressureDeflectionLocus.create_path(
+            (pdl1, theta_2), (pdl2, phi), N=5)
+        assert len(theta) == len(pr) == 10
+        assert np.allclose(theta, np.array([
+            0.        ,  5.        , 10.        , 15.        , 20.        ,
+            20.        , 16.19898973, 12.39797947,  8.5969692 ,  4.79595893
+        ]))
+        assert np.allclose(pr, np.array([
+            1.        , 1.45398306, 2.05447215, 2.82156232, 3.77125746,
+            3.77125746, 4.64971828, 5.68480575, 6.90371604, 8.35255191
+        ]))
+
+        theta, pr = PressureDeflectionLocus.create_path(
+            (pdl1, theta_3), (pdl3, phi), N=5)
+        assert len(theta) == len(pr) == 10
+        assert np.allclose(theta, np.array([
+            -0.        ,  -3.75      ,  -7.5       , -11.25      ,
+            -15.        , -15.        , -10.05101027,  -5.10202053,
+            -0.1530308 ,   4.79595893
+        ]))
+        assert np.allclose(pr, np.array([
+            1.        , 1.32765833, 1.734528  , 2.22996022, 2.82156232,
+            2.82156232, 3.78869335, 4.99840531, 6.49434694, 8.35255191
+        ]))
+
+        theta, pr = PressureDeflectionLocus.create_path(
+            (pdl1, theta_3), (pdl3, phi), N=5, concatenate=False)
+        assert isinstance(theta, list)
+        assert len(theta) == 2
+        assert all(isinstance(t, np.ndarray) and (len(t) == 5) for t in theta)
+        assert isinstance(pr, list)
+        assert len(pr) == 2
+        assert all(isinstance(t, np.ndarray) and (len(t) == 5) for t in pr)
+        assert np.allclose(
+            theta[0], np.array([ -0.  ,  -3.75,  -7.5 , -11.25, -15.  ]))
+        assert np.allclose(
+            theta[1], np.array([
+                -15. , -10.05101027,  -5.10202053,  -0.1530308 , 4.79595893]))
+        assert np.allclose(
+            pr[0], np.array([
+                1.        , 1.32765833, 1.734528  , 2.22996022, 2.82156232]))
+        assert np.allclose(
+            pr[1], np.array([
+                2.82156232, 3.78869335, 4.99840531, 6.49434694, 8.35255191]))
+
+
+class Test_PressureDeflectionLocus_pressure_deflection:
+    def test_default_lengths(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        t, p = locus.pressure_deflection(include_mirror=False)
+        assert len(t) == len(p) == 200
+        t, p = locus.pressure_deflection(include_mirror=True)
+        assert len(t) == len(p) == 400
+
+    def test_include_mirror_False(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        t, p = locus.pressure_deflection(N=5, include_mirror=False)
+        t_max = max_theta_from_mach(M, gamma)
+        assert len(t) == len(p) == 10
+        assert len([t for t in np.isclose(t - t_max, 0) if t]) == 2
+        assert len([t for t in np.isclose(t - (-t_max), 0) if t]) == 0
+        assert np.allclose(t, np.array([
+            0, 20.67617858, 22.74379644, 22.95055823, 22.97353176,
+            22.97353176, 22.95055823, 22.74379644, 20.67617858,  0
+        ]))
+        assert np.allclose(p, np.array([
+            1, 2.95556551, 3.45277315, 3.5872617 , 3.64575071,
+            3.64575192, 3.70192379, 3.81560199, 4.10913375, 4.5
+        ]))
+
+    def test_include_mirror_True(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        t, p = locus.pressure_deflection(N=5, include_mirror=True)
+        t_max = max_theta_from_mach(M, gamma)
+        assert len(t) == len(p) == 20
+        assert len([t for t in np.isclose(t - t_max, 0) if t]) == 2
+        assert len([t for t in np.isclose(t - (-t_max), 0) if t]) == 2
+        assert np.allclose(t, np.array([
+            0.        ,  20.67617858,  22.74379644,  22.95055823,
+            22.97353176,  22.97353176,  22.95055823,  22.74379644,
+            20.67617858,   0.        ,  -0.        , -20.67617858,
+        -22.74379644, -22.95055823, -22.97353176, -22.97353176,
+        -22.95055823, -22.74379644, -20.67617858,  -0
+        ]))
+        assert np.allclose(p, np.array([
+            1.        , 2.95556551, 3.45277315, 3.5872617 , 3.64575071,
+            3.64575192, 3.70192379, 3.81560199, 4.10913375, 4.5       ,
+            4.5       , 4.10913375, 3.81560199, 3.70192379, 3.64575192,
+            3.64575071, 3.5872617 , 3.45277315, 2.95556551, 1.
+        ]))
+
+    def test_theta_origin_pr_to_freestream(self):
+        gamma = 1.4
+        M1 = 3
+        theta_2 = 20
+        theta_3 = -15
+
+        locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+        locus2 = locus1.new_locus_from_shockwave(theta_2)
+        locus3 = locus1.new_locus_from_shockwave(theta_3)
+
+        t, pr = locus2.pressure_deflection(N=5, include_mirror=True)
+        assert len(t) == len(pr) == 20
+        assert np.allclose(t, np.array([
+            20.        , 40.58502741, 42.64353015, 42.84938042, 42.87225267,
+            42.87225267, 42.84938042, 42.64353015, 40.58502741, 20.        ,
+            20.        , -0.58502741, -2.64353015, -2.84938042, -2.87225267,
+            -2.87225267, -2.84938042, -2.64353015, -0.58502741, 20.
+        ]))
+        assert np.allclose(pr, np.array([
+            3.77125752, 11.0844218 , 12.94381725, 13.44702261, 13.66591115,
+            13.66591578, 13.8761607 , 14.30173635, 15.4012961 , 16.8675321 ,
+            16.8675321 , 15.4012961 , 14.30173635, 13.8761607 , 13.66591578,
+            13.66591115, 13.44702261, 12.94381725, 11.0844218 ,  3.77125752
+        ]))
+
+        t, pr = locus3.pressure_deflection(N=5, include_mirror=True)
+        assert len(t) == len(pr) == 20
+        assert np.allclose(t, np.array([
+            -15.        ,   9.17472916,  11.59220207,  11.83394937,
+            11.86081018,  11.86081018,  11.83394937,  11.59220207,
+            9.17472916, -15.        , -15.        , -39.17472916,
+            -41.59220207, -41.83394937, -41.86081018, -41.86081018,
+            -41.83394937, -41.59220207, -39.17472916, -15.
+        ]))
+        assert np.allclose(pr, np.array([
+            2.8215624 , 10.50413697, 12.45604464, 12.97283314, 13.19571904,
+            13.19572119, 13.40862531, 13.83578023, 14.91214638, 16.26729013,
+            16.26729013, 14.91214638, 13.83578023, 13.40862531, 13.19572119,
+            13.19571904, 12.97283314, 12.45604464, 10.50413697,  2.8215624
+        ]))
+
+
+class Test_PressureDeflectionLocus_pressure_deflection_split_regions:
+    def test_default_lengths(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        tw, pw, ts, ps = locus.pressure_deflection_split_regions(
+            include_mirror=False)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 200
+        tw, pw, ts, ps = locus.pressure_deflection_split_regions(
+            include_mirror=True)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 400
+
+    def test_include_mirror_False(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        tw, pw, ts, ps = locus.pressure_deflection_split_regions(
+            N=5, include_mirror=False)
+        t_max = max_theta_from_mach(M, gamma)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 10
+        assert len([t for t in np.isclose(tw - t_max, 0) if t]) == 1
+        assert len([t for t in np.isclose(ts - t_max, 0) if t]) == 1
+        assert len([t for t in np.isclose(tw - (-t_max), 0) if t]) == 0
+        assert len([t for t in np.isclose(ts - (-t_max), 0) if t]) == 0
+        assert np.allclose(tw, np.array([
+            0.        , 20.67617858, 22.74379644, 22.95055823, 22.97353176
+        ]))
+        assert np.allclose(ts, np.array([
+            22.97353176, 22.95055823, 22.74379644, 20.67617858,  0
+        ]))
+        assert np.allclose(pw, np.array([
+            1.        , 2.95556551, 3.45277315, 3.5872617 , 3.64575071
+        ]))
+        assert np.allclose(ps, np.array([
+            3.64575192, 3.70192379, 3.81560199, 4.10913375, 4.5
+        ]))
+
+    def test_include_mirror_True(self):
+        M = 2
+        gamma = 1.4
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        tw, pw, ts, ps = locus.pressure_deflection_split_regions(
+            N=5, include_mirror=True)
+        t_max = max_theta_from_mach(M, gamma)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 20
+        assert len([t for t in np.isclose(tw - t_max, 0) if t]) == 1
+        assert len([t for t in np.isclose(ts - t_max, 0) if t]) == 1
+        assert len([t for t in np.isclose(tw - (-t_max), 0) if t]) == 1
+        assert len([t for t in np.isclose(ts - (-t_max), 0) if t]) == 1
+        assert np.allclose(tw, np.array([
+            -22.97353176, -22.95055823, -22.74379644, -20.67617858,
+            -0.        ,   0.        ,  20.67617858,  22.74379644,
+            22.95055823,  22.97353176
+        ]))
+        assert np.allclose(ts, np.array([
+            22.97353176,  22.95055823,  22.74379644,  20.67617858,
+            0.        ,  -0.        , -20.67617858, -22.74379644,
+        -22.95055823, -22.97353176
+        ]))
+        assert np.allclose(pw, np.array([
+            3.64575071, 3.5872617 , 3.45277315, 2.95556551, 1.        ,
+            1.        , 2.95556551, 3.45277315, 3.5872617 , 3.64575071
+        ]))
+        assert np.allclose(ps, np.array([
+            3.64575192, 3.70192379, 3.81560199, 4.10913375, 4.5       ,
+            4.5       , 4.10913375, 3.81560199, 3.70192379, 3.64575192
+        ]))
+
+    def test_theta_origin_pr_to_freestream(self):
+        gamma = 1.4
+        M1 = 3
+        theta_2 = 20
+        theta_3 = -15
+
+        locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+        locus2 = locus1.new_locus_from_shockwave(theta_2)
+        locus3 = locus1.new_locus_from_shockwave(theta_3)
+
+        tw, pw, ts, ps = locus2.pressure_deflection_split_regions(
+            N=5, include_mirror=True)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 20
+        assert np.allclose(tw, np.array([
+            -2.87225267, -2.84938042, -2.64353015, -0.58502741, 20.        ,
+            20.        , 40.58502741, 42.64353015, 42.84938042, 42.87225267
+        ]))
+        assert np.allclose(pw, np.array([
+            13.66591115, 13.44702261, 12.94381725, 11.0844218 ,  3.77125752,
+            3.77125752, 11.0844218 , 12.94381725, 13.44702261, 13.66591115
+        ]))
+        assert np.allclose(ts, np.array([
+            42.87225267, 42.84938042, 42.64353015, 40.58502741, 20.        ,
+            20.        , -0.58502741, -2.64353015, -2.84938042, -2.87225267
+        ]))
+        assert np.allclose(ps, np.array([
+            13.66591578, 13.8761607 , 14.30173635, 15.4012961 , 16.8675321 ,
+            16.8675321 , 15.4012961 , 14.30173635, 13.8761607 , 13.66591578
+        ]))
+
+        tw, pw, ts, ps = locus3.pressure_deflection_split_regions(
+            N=5, include_mirror=True)
+        assert (len(ts) + len(ts)) == (len(pw) + len(ps)) == 20
+        assert np.allclose(tw, np.array([
+            -41.86081018, -41.83394937, -41.59220207, -39.17472916,
+            -15.        , -15.        ,   9.17472916,  11.59220207,
+            11.83394937,  11.86081018
+        ]))
+        assert np.allclose(pw, np.array([
+            13.19571904, 12.97283314, 12.45604464, 10.50413697,  2.8215624 ,
+            2.8215624 , 10.50413697, 12.45604464, 12.97283314, 13.19571904
+        ]))
+        assert np.allclose(ts, np.array([
+            11.86081018,  11.83394937,  11.59220207,   9.17472916,
+            -15.        , -15.        , -39.17472916, -41.59220207,
+            -41.83394937, -41.86081018
+        ]))
+        assert np.allclose(ps, np.array([
+            13.19572119, 13.40862531, 13.83578023, 14.91214638, 16.26729013,
+            16.26729013, 14.91214638, 13.83578023, 13.40862531, 13.19572119
+        ]))
+
+
+class Test_PressureDeflectionLocus_pressure_deflection_segment:
+    def test_default_lengths(self):
+        M = 2
+        gamma = 1.4
+        theta_final = 10
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        theta, pr = locus.pressure_deflection_segment(theta_final)
+        assert len(theta) == len(pr) == 100
+
+    def test_values(self):
+        M = 2
+        gamma = 1.4
+        theta_final = 10
+        locus = PressureDeflectionLocus(M=M, gamma=gamma)
+        theta, pr = locus.pressure_deflection_segment(theta_final, N=5)
+        assert len(theta) == len(pr) == 5
+        assert np.allclose(theta, np.array([ 0. ,  2.5,  5. ,  7.5, 10. ]))
+        assert np.allclose(pr, np.array(
+            [1.        , 1.14913345, 1.31540694, 1.50052358, 1.7065786 ]))
+
+        theta, pr = locus.pressure_deflection_segment(-theta_final, N=5)
+        assert len(theta) == len(pr) == 5
+        assert np.allclose(theta, -np.array([ 0. ,  2.5,  5. ,  7.5, 10. ]))
+        assert np.allclose(pr, np.array(
+            [1.        , 1.14913345, 1.31540694, 1.50052358, 1.7065786 ]))
+
+    def test_theta_origin_pr_to_freestream(self):
+        gamma = 1.4
+        M1 = 3
+        theta_2 = 20
+        theta_3 = -15
+
+        locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+        locus2 = locus1.new_locus_from_shockwave(theta_2)
+        locus3 = locus1.new_locus_from_shockwave(theta_3)
+
+        theta1, pr1 = locus1.pressure_deflection_segment(theta_2, N=5)
+        assert np.allclose(theta1, np.array([ 0.,  5., 10., 15., 20. ]))
+        assert np.allclose(pr1, np.array(
+            [1.        , 1.45398306, 2.05447215, 2.82156232, 3.77125746 ]))
+
+        theta2, pr2 = locus2.pressure_deflection_segment(5, N=5)
+        assert np.allclose(theta2, np.array([ 20.  , 21.25, 22.5 , 23.75, 25.]))
+        assert np.allclose(pr2, np.array(
+            [3.77125746, 4.04420615, 4.3325282 , 4.636943  , 4.95821806 ]))
+
+        theta2, pr2 = locus2.pressure_deflection_segment(-5, N=5)
+        assert np.allclose(theta2, np.array([ 20.  , 18.75, 17.5 , 16.25, 15. ]))
+        assert np.allclose(pr2, np.array(
+            [3.77125746, 4.04420615, 4.3325282 , 4.636943  , 4.95821806 ]))
+
+        theta3, pr3 = locus3.pressure_deflection_segment(5, N=5)
+        assert np.allclose(theta3, np.array(
+            [-15.  , -13.75, -12.5 , -11.25, -10.  ]))
+        assert np.allclose(pr3, np.array(
+            [2.82156232, 3.04502121, 3.28216195, 3.53357527, 3.79985865 ]))
+
+        theta3, pr3 = locus3.pressure_deflection_segment(-5, N=5)
+        assert np.allclose(theta3, np.array(
+            [-15.  , -16.25, -17.5 , -18.75, -20.  ]))
+        assert np.allclose(pr3, np.array(
+            [2.82156232, 3.04502121, 3.28216195, 3.53357527, 3.79985865 ]))
+

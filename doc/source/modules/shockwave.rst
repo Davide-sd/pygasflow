@@ -60,11 +60,12 @@ Oblique Shock Waves
 
 .. autofunction:: mach_from_theta_beta
 
+.. autofunction:: oblique_mach_downstream
+
 .. autofunction:: shock_polar
 
-.. autofunction:: pressure_deflection
-
-.. autofunction:: oblique_mach_downstream
+.. autoclass:: PressureDeflectionLocus
+   :members:
 
 
 Conical Flow

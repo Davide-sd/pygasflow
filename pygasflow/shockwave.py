@@ -1,4 +1,5 @@
 import numpy as np
+import param
 from scipy.optimize import bisect, minimize_scalar
 from scipy.integrate import solve_ivp
 
@@ -629,7 +630,7 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
         "temperature": m1_from_temperature_ratio,
         "density": m1_from_density_ratio,
         "total_pressure": m1_from_total_pressure_ratio,
-        "mn2": m1_from_m2.__no_check,
+        "mn2": m1_from_m2.__no_check__,
     }
 
     if ratioName not in ratios.keys():
@@ -664,11 +665,11 @@ def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
     mn2 : array_like
         Normal Mach number dowstream of the shock wave.
     """
-    pr = pressure_ratio.__no_check(Mn, gamma)
-    dr = density_ratio.__no_check(Mn, gamma)
-    tr = temperature_ratio.__no_check(Mn, gamma)
-    tpr = total_pressure_ratio.__no_check(Mn, gamma)
-    mn2 = mach_downstream.__no_check(Mn, gamma)
+    pr = pressure_ratio.__no_check__(Mn, gamma)
+    dr = density_ratio.__no_check__(Mn, gamma)
+    tr = temperature_ratio.__no_check__(Mn, gamma)
+    tpr = total_pressure_ratio.__no_check__(Mn, gamma)
+    mn2 = mach_downstream.__no_check__(Mn, gamma)
 
     return pr, dr, tr, tpr, mn2
 
@@ -802,7 +803,7 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
         The shock angle in degrees.
     """
 
-    theta_max = max_theta_from_mach.__no_check(M1, gamma)
+    theta_max = max_theta_from_mach.__no_check__(M1, gamma)
     theta_max = np.atleast_1d(theta_max)
 
     if M1.shape:
@@ -844,13 +845,13 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     def func(b, M, t):
         return ((1 + (gamma - 1) / 2 * (M * np.sin(b))**2) / (gamma * (M * np.sin(b))**2 - (gamma - 1) / 2)) - np.sin(b - t)**2
 
-    theta_max = np.deg2rad(max_theta_from_mach.__no_check(M1, gamma))
+    theta_max = np.deg2rad(max_theta_from_mach.__no_check__(M1, gamma))
 
     if M1.shape:
         beta = np.zeros_like(M1)
         for i, (m, t) in enumerate(zip(M1, theta_max)):
             a = np.arcsin(1 / m)
-            b = np.deg2rad(beta_from_mach_max_theta.__no_check(m, gamma))
+            b = np.deg2rad(beta_from_mach_max_theta.__no_check__(m, gamma))
             try:
                 beta[i] = bisect(func, a, b, args=(m, t))
             except ValueError:
@@ -858,7 +859,7 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
         return np.rad2deg(beta), np.rad2deg(theta_max)
 
     a = np.arcsin(1 / M1)
-    b = np.deg2rad(beta_from_mach_max_theta.__no_check(M1, gamma))
+    b = np.deg2rad(beta_from_mach_max_theta.__no_check__(M1, gamma))
     try:
         res = np.rad2deg(bisect(func, a, b, args=(M1, theta_max)))
     except ValueError:
@@ -978,10 +979,18 @@ def shock_polar(M1, gamma=1.4, N=100):
 
     return Vx_as, Vy_as
 
+
+def _check_pressure_deflection(N):
+    if (not isinstance(N, int)) or (N <= 1):
+        raise ValueError("The number of discretization steps must be integer and > 1.")
+
+
 @check_shockwave
 def pressure_deflection(M1, gamma=1.4, N=100):
     """
-    Helper function to build Pressure-Deflection plots.
+    Helper function to build Pressure-Deflection plots. Computes the locus
+    of all possible static pressure values behind oblique shock wave for
+    given upstream conditions.
 
     Parameters
     ----------
@@ -990,10 +999,12 @@ def pressure_deflection(M1, gamma=1.4, N=100):
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be gamma > 1.
     N : int, optional
-        Half number of points discretizing the range [0, theta_max].
+        Number of points discretizing the range [0, theta_max].
         This function compute N points in the range [0, theta_max] for
         the `'weak'` solution, then compute N points in the range
         [theta_max, 0] for the `'strong'` solution.
+        If ``include_mirror=False``, the length of the returned arrays is
+        2*N, otherwise is 4*N.
 
     Returns
     -------
@@ -1002,29 +1013,552 @@ def pressure_deflection(M1, gamma=1.4, N=100):
     pr : array_like
         Pressure ratios computed for the given Mach and the above
         deflection angles.
+
     """
-    if (not isinstance(N, int)) or (N <= 1):
-        raise ValueError("The number of discretization steps must be integer and > 1.")
+    locus = PressureDeflectionLocus(M=M1, gamma=gamma)
+    return locus.pressure_deflection(N=N, include_mirror=False)
 
-    theta_max = max_theta_from_mach.__no_check(M1, gamma)
+class _BasePDLocus:
+    """I need this base class in order to initialize `upstream_locus`
+    in the subclass, which is a param.ClassSelector.
+    """
+    pass
 
-    theta = np.linspace(0, theta_max, N)
-    theta = np.append(theta, theta[::-1])
-    beta = np.zeros_like(theta)
 
-    for i in range(N):
-        betas = beta_from_mach_theta.__no_check(M1, theta[i], gamma)
-        beta[i] = betas["weak"]
-        beta[len(theta) -1 - i] = betas["strong"]
+class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
+    """Represent the locus of all possible static pressure values behind
+    oblique shock wave for given upstream conditions.
 
-    # TODO:
-    # it may happend to get a NaN, especially for theta=0, in that case, manual correction
-    # idx = np.where(np.isnan(beta))
-    # beta[idx] = 1
+    This class implements the logic to deal with pressure-deflection locus
+    from a numerical standpoint.
+    Take a look at :class:`~pygasflow.interactive.diagrams.PressureDeflectionDiagram`
+    in order to draw pressure-deflection locuses.
 
-    Mn = M1 * np.sin(np.deg2rad(beta))
+    """
 
-    return theta, pressure_ratio.__no_check(Mn, gamma)
+    label = param.String(doc="""
+        Name to be shown on the legend of the plot.""")
+    M = param.Number(1, bounds=(1, None), doc="""
+        Upstream Mach number for which the pressure-deflection locus
+        should be computed.""")
+    gamma = param.Number(1.4, bounds=(1, None), softbounds=(1, 2),
+        inclusive_bounds=(False, False), doc="""
+        Specific heats ratio.""")
+    theta_origin = param.Number(0, doc="""
+        Deflection angle at which `M` occurs.""")
+    pr_to_freestream = param.Number(1, bounds=(1, None), doc="""
+        Pressure ratio multiplier between the pressure at the current state
+        (M, theta_origin) and the free-stream pressure.""")
+    theta_max = param.Number(constant=True, doc="""
+        The maximum deflection angle possible with this pressure-deflection
+        locus. Note that `theta_max` is considered relative to `theta_origin`
+        along the left-running branch.""")
+    func_of_theta = param.Parameter(constant=True, doc="""
+        A numerical function whose only argument is the deflection angle (taken
+        from a pressure-deflection diagram), returning two pressure ratios
+        (weak and strong) associated with this pressure-deflection locus.""")
+    upstream_locus = param.ClassSelector(
+        class_=_BasePDLocus, constant=True, doc="""
+        The locus associated with the upstream condition.""")
+
+    def new_locus_from_shockwave(self, theta, label=""):
+        """Create a new PressureDeflectionLocus object using the upstream
+        conditions of this instance.
+
+        Parameters
+        ----------
+        theta : float
+            Deflection angle [degrees] of the oblique shockwave.
+        label : str
+            Label to be assigned to the new instance, which will later be shown
+            on plots.
+
+        Returns
+        -------
+        obj : PressureDeflectionLocus
+        """
+        # this import is here in order to avoid circular imports
+        from pygasflow.solvers import shockwave_solver
+
+        res = shockwave_solver(
+            "m1", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
+        M2 = res["m2"]
+        pr_to_freestream = res["pr"] * self.pr_to_freestream
+        theta_origin = self.theta_origin + theta
+        return type(self)(
+            M=M2, gamma=self.gamma, label=label,
+            theta_origin=theta_origin, pr_to_freestream=pr_to_freestream,
+            upstream_locus=self)
+
+    def __str__(self):
+        s = f"Pressure-Deflection Locus of {self.label}\n"
+        s += f"M\t\t{self.M}\n"
+        s += f"p/p_inf\t\t{self.pr_to_freestream}\n"
+        s += f"th_orig\t\t{self.theta_origin}\n"
+        return s
+
+    @param.depends(
+        "M", "gamma", "theta_origin", "pr_to_freestream",
+        watch=True, on_init=True
+    )
+    def update_func(self):
+        theta_max = max_theta_from_mach(self.M, self.gamma)
+
+        def func(theta):
+            actual_theta = abs(self.theta_origin - theta)
+            betas = beta_from_mach_theta(self.M, actual_theta, self.gamma)
+            betas = [betas["weak"], betas["strong"]]
+            Mn = self.M * np.sin(np.deg2rad(betas))
+            # avoid rounding errors that would make Mn < 1
+            idx = np.isclose(Mn, 1)
+            Mn[idx] = 1
+            pr = pressure_ratio(Mn, self.gamma) * self.pr_to_freestream
+            return pr
+
+        with param.edit_constant(self):
+            self.theta_max = theta_max
+            self.func_of_theta = func
+
+    @staticmethod
+    def create_path(*segments, concatenate=True, **kwargs):
+        """Create a path connecting one or more segments.
+
+        Parameters
+        ----------
+        segments : tuple
+            2-elements tuple where the first element is a PressureDeflectionLocus
+            and the second element is the deflection angle [degrees] of the
+            end of the segment.
+        concatenate : bool
+            If True, concatenate the results of each segments, thus returning
+            two numpy arrays. If False, returns two lists where each element
+            is the result for each segment.
+        **kwargs :
+            Keyword arguments passed to ``pressure_deflection_segment``.
+
+        Returns
+        -------
+        theta : np.ndarray or list
+            Array of deflection angles [degrees] or list of arrays of
+            deflection angles [degrees], depending on ``concatenate``.
+        pr : np.ndarray or list
+            Array of pressure ratios to freestream, or list of arrays of
+            pressure ratios, depending on ``concatenate``.
+
+        Examples
+        --------
+
+        .. plot::
+            :context: reset
+            :include-source: True
+
+            from pygasflow.shockwave import PressureDeflectionLocus
+            import matplotlib.pyplot as plt
+
+            gamma = 1.4
+            M1 = 3
+            theta = 25
+            locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+            locus2 = locus1.new_locus_from_shockwave(theta)
+
+            theta1, pr1 = locus1.pressure_deflection(include_mirror=True)
+            theta2, pr2 = locus2.pressure_deflection(include_mirror=True)
+            theta_segment, pr_segment = locus1.create_path(
+                (locus1, locus2.theta_origin),
+                (locus2, 15)
+            )
+
+            fig, ax = plt.subplots()
+            ax.plot(theta1, pr1, ":", label="M1")
+            ax.plot(theta2, pr2, ":", label="M2")
+            ax.plot(theta_segment, pr_segment, label="segment")
+            ax.set_xlabel(r"Deflection Angle $\theta$ [deg]")
+            ax.set_ylabel("Pressure Ratio to Freestream")
+            ax.legend()
+            ax.minorticks_on()
+            ax.grid(which='major', linestyle='-', alpha=0.7)
+            ax.grid(which='minor', linestyle=':', alpha=0.5)
+            plt.show()
+
+        """
+        if not all(
+            isinstance(t, (tuple, list))
+            and (len(t) == 2)
+            and isinstance(t[0], PressureDeflectionLocus)
+            and isinstance(t[1], Number)
+            for t in segments
+        ):
+            raise ValueError(
+                "Each segment of the path must be a 2-elements tuple, where"
+                " the first element is an instance of PressureDeflectionLocus"
+                " and the second element is the final deflection angle"
+                " [degrees] for the specified segment."
+            )
+        theta_list = []
+        pr_list = []
+        for (pdl, final_theta) in segments:
+            final_theta -= pdl.theta_origin
+            theta, pr = pdl.pressure_deflection_segment(final_theta, **kwargs)
+            theta_list.append(theta)
+            pr_list.append(pr)
+        if concatenate:
+            theta = np.concatenate(theta_list)
+            pr = np.concatenate(pr_list)
+            return theta, pr
+        return theta_list, pr_list
+
+    def intersection(self, other, region="weak", a=None, b=None):
+        """Find the intersection point of this locus with another one.
+
+        Note: this is an experimental function.
+
+        Parameters
+        ----------
+        other : PressureDeflectionLocus
+        region : str
+            Can be ``"weak"`` or ``"strong"``.
+
+        Returns
+        -------
+        theta_intersection : float
+            The deflection angle [degrees] of the intersection point. If there
+            is no intersection, None will be returned.
+        pr_intersection : float
+            The pressure ratio of the intersection point. If there
+            is no intersection, None will be returned.
+
+        Examples
+        --------
+
+        Example of the intersection of shocks of opposite families:
+
+        >>> from pygasflow.shockwave import PressureDeflectionLocus
+        >>> gamma = 1.4
+        >>> M1 = 3
+        >>> theta2 = 20
+        >>> theta3 = -15
+        >>> locus1 = PressureDeflectionLocus(M=M1, gamma=1.4, label="1")
+        >>> locus2 = locus1.new_locus_from_shockwave(theta2, label="2")
+        >>> locus3 = locus1.new_locus_from_shockwave(theta3, label="2")
+        >>> phi, p4_p1 = locus2.intersection(locus3)
+        >>> phi
+        4.795958931693682
+        >>> p4_p1
+        np.float64(8.352551913417367)
+
+        """
+        if self.theta_origin < other.theta_origin:
+            theta_origin1, theta_origin2 = self.theta_origin, other.theta_origin
+            theta_max1, theta_max2 = self.theta_max, other.theta_max
+            f1, f2 = self.func_of_theta, other.func_of_theta
+        else:
+            theta_origin1, theta_origin2 = other.theta_origin, self.theta_origin
+            theta_max1, theta_max2 = other.theta_max, self.theta_max
+            f1, f2 = other.func_of_theta, self.func_of_theta
+
+        if theta_origin1 + theta_max1 < theta_origin2 - theta_max2:
+            # no intersection found
+            return None, None
+
+        # TODO: This approach is not going to work if the intersection happens
+        # between the weak region in one locus and the strong region in
+        # the other. Maybe I should run a bisection with func(pressure_ratio)..
+        def func(theta, region="weak"):
+            pr1 = f1(theta)
+            pr2 = f2(theta)
+            if region == "weak":
+                return pr1[0] - pr2[0]
+            return pr1[1] - pr2[1]
+
+        if a is None:
+            a = min(theta_origin1 + theta_max1, theta_origin2 - theta_max2)
+        if b is None:
+            b = max(theta_origin1 + theta_max1, theta_origin2 - theta_max2)
+        theta_intersection = bisect(func, a=a, b=b, args=(region,))
+        pr_intersection = f1(theta_intersection)
+        pr_intersection = pr_intersection[0] if region == "weak" else pr_intersection[1]
+        return theta_intersection, pr_intersection
+
+    def pressure_deflection(self, N=100, include_mirror=True):
+        """
+        Helper function to build Pressure-Deflection plots. Computes the locus
+        of all possible static pressure values behind oblique shock wave for
+        given upstream conditions.
+
+        Parameters
+        ----------
+        N : int, optional
+            Number of points discretizing the range [0, theta_max].
+            This function compute N points in the range [0, theta_max] for
+            the `'weak'` solution, then compute N points in the range
+            [theta_max, 0] for the `'strong'` solution.
+            If ``include_mirror=False``, the length of the returned arrays is
+            2*N, otherwise is 4*N.
+        include_mirror : bool
+            If False, return numerical arrays for 0 <= theta <= theta_max.
+            If True, mirror the arrays in order to get data from
+            -theta_max <= theta <= theta_max.
+
+        Returns
+        -------
+        theta : array_like
+            Deflection angles
+        pr : array_like
+            Pressure ratios computed for the given Mach and the above
+            deflection angles.
+
+        Examples
+        --------
+
+        Plot half locus for the upstream condition, and the full locus for the
+        downstream condition:
+
+        .. plot::
+            :context: reset
+            :include-source: True
+
+            from pygasflow.shockwave import PressureDeflectionLocus
+            import matplotlib.pyplot as plt
+
+            gamma = 1.4
+            M1 = 3
+            theta = 25
+            locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+            locus2 = locus1.new_locus_from_shockwave(theta)
+
+            theta_1, pr_1 = locus1.pressure_deflection(include_mirror=False)
+            theta_2, pr_2 = locus2.pressure_deflection(include_mirror=True)
+
+            fig, ax = plt.subplots()
+            ax.plot(theta_1, pr_1, label=f"M = {locus1.M}")
+            ax.plot(theta_2, pr_2, label=f"M = {locus2.M}")
+            ax.set_xlabel(r"Deflection Angle $\theta$ [deg]")
+            ax.set_ylabel("Pressure Ratio to Freestream")
+            ax.legend()
+            ax.minorticks_on()
+            ax.grid(which='major', linestyle='-', alpha=0.7)
+            ax.grid(which='minor', linestyle=':', alpha=0.5)
+            plt.show()
+
+        """
+        _check_pressure_deflection(N)
+
+        # mandatory step in order to skip checks
+        M1 = np.atleast_1d(self.M).astype(np.float64)
+        gamma = self.gamma
+
+        theta_max = max_theta_from_mach.__no_check__(M1, gamma)
+        # place the majority of points in the proximity of theta_max
+        spacing = 1 - np.geomspace(1e-04, 1, N)
+        spacing[0] = 1
+        theta = theta_max * spacing
+        theta = np.append(theta[::-1], theta)
+        beta = np.zeros_like(theta)
+
+        for i in range(N):
+            betas = beta_from_mach_theta.__no_check__(M1, theta[i], gamma)
+            beta[i] = betas["weak"]
+            beta[len(theta) -1 - i] = betas["strong"]
+
+        # TODO:
+        # it may happend to get a NaN, especially for theta=0, in that case
+        # manual correction:
+        # idx = np.where(np.isnan(beta))
+        # beta[idx] = 1
+
+        Mn = M1 * np.sin(np.deg2rad(beta))
+        pr = pressure_ratio.__no_check__(Mn, gamma)
+
+        if include_mirror:
+            theta = np.append(theta, -theta[::-1])
+            pr = np.append(pr, pr[::-1])
+
+        theta += self.theta_origin
+        pr *= self.pr_to_freestream
+
+        return theta, pr
+
+    def pressure_deflection_split_regions(self, N=100, include_mirror=False):
+        """
+        Helper function to build Pressure-Deflection plots. Computes the locus
+        of all possible static pressure values behind oblique shock wave for
+        given upstream conditions, and split them between weak and strong regions.
+
+        Parameters are the same of ``pressure_deflection``.
+
+        Returns
+        -------
+        theta_weak : array_like
+            Deflection angles for the weak region.
+        pr_weak : array_like
+            Pressure ratios for the weak region.
+        theta_strong : array_like
+            Deflection angles for the strong region.
+        pr_strong : array_like
+            Pressure ratios for the strong region.
+
+        Examples
+        --------
+
+        Plot half locus for the upstream condition, and the full locus for the
+        downstream condition:
+
+        .. plot::
+            :context: reset
+            :include-source: True
+
+            from pygasflow.shockwave import PressureDeflectionLocus
+            import matplotlib.pyplot as plt
+
+            gamma = 1.4
+            M1 = 3
+            theta = 25
+            locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+            locus2 = locus1.new_locus_from_shockwave(theta)
+
+            theta_1w, pr_1w, theta_1s, pr_1s = locus1.pressure_deflection_split_regions(
+                include_mirror=False)
+            theta_2w, pr_2w, theta_2s, pr_2s = locus2.pressure_deflection_split_regions(
+                include_mirror=True)
+
+            fig, ax = plt.subplots()
+            ax.plot(theta_1w, pr_1w, label="M1 weak")
+            ax.plot(theta_1s, pr_1s, label="M1 strong")
+            ax.plot(theta_2w, pr_2w, label="M2 weak")
+            ax.plot(theta_2s, pr_2s, label="M2 strong")
+            ax.set_xlabel(r"Deflection Angle $\theta$ [deg]")
+            ax.set_ylabel("Pressure Ratio to Freestream")
+            ax.legend()
+            ax.minorticks_on()
+            ax.grid(which='major', linestyle='-', alpha=0.7)
+            ax.grid(which='minor', linestyle=':', alpha=0.5)
+            plt.show()
+
+        """
+        t, pr = self.pressure_deflection(N=N, include_mirror=False)
+
+        idx = np.array(list(range(len(t))), dtype=int)
+        n = len(t) / 2
+        weak_idx = idx[idx < n]
+        strong_idx = idx[idx >= n]
+        theta_weak, pr_weak = t[weak_idx], pr[weak_idx]
+        theta_strong, pr_strong = t[strong_idx], pr[strong_idx]
+
+        if include_mirror:
+            theta_weak -= self.theta_origin
+            theta_strong -= self.theta_origin
+
+            theta_weak = np.concatenate([-theta_weak[::-1], theta_weak])
+            pr_weak = np.concatenate([pr_weak[::-1], pr_weak])
+            theta_strong = np.concatenate([theta_strong, -theta_strong[::-1]])
+            pr_strong = np.concatenate([pr_strong, pr_strong[::-1]])
+
+            theta_weak += self.theta_origin
+            theta_strong += self.theta_origin
+
+        return theta_weak, pr_weak, theta_strong, pr_strong
+
+    def pressure_deflection_segment(self, theta, region="weak", N=100):
+        """
+        Helper function to build Pressure-Deflection plots. Computes the static
+        pressure values behind oblique shock wave for given upstream
+        conditions, in a specified deflection angle range [0, theta].
+
+        Parameters
+        ----------
+        theta : float
+            The deflection angle up to which the segment has to be computed.
+        region : string
+            Can be ``'weak'`` or ``'strong'``. If the latter is chosen, the segment
+            starts from theta=0, goes to theta=theta_max and then it proceeds to
+            the user provided value.
+        N : int, optional
+            Number of points discretizing the range [0, theta].
+
+        Returns
+        -------
+        theta : array_like
+            Deflection angles
+        pr : array_like
+            Pressure ratios computed for the given Mach and the above
+            deflection angles.
+
+        Examples
+        --------
+
+        Segment connecting the upstream condition to the downstream condition:
+
+        .. plot::
+            :context: reset
+            :include-source: True
+
+            from pygasflow.shockwave import PressureDeflectionLocus
+            import matplotlib.pyplot as plt
+
+            gamma = 1.4
+            M1 = 3
+            theta = 25
+            locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
+            locus2 = locus1.new_locus_from_shockwave(theta)
+
+            theta1, pr1 = locus1.pressure_deflection(include_mirror=True)
+            theta2, pr2 = locus2.pressure_deflection(include_mirror=True)
+            theta_segment, pr_segment = locus1.pressure_deflection_segment(theta)
+
+            fig, ax = plt.subplots()
+            ax.plot(theta1, pr1, ":", label="M1")
+            ax.plot(theta2, pr2, ":", label="M2")
+            ax.plot(theta_segment, pr_segment, label="segment")
+            ax.set_xlabel(r"Deflection Angle $\theta$ [deg]")
+            ax.set_ylabel("Pressure Ratio to Freestream")
+            ax.legend()
+            ax.minorticks_on()
+            ax.grid(which='major', linestyle='-', alpha=0.7)
+            ax.grid(which='minor', linestyle=':', alpha=0.5)
+            plt.show()
+
+        """
+        _check_pressure_deflection(N)
+
+        region = region.lower()
+        if region not in ["weak", "strong"]:
+            raise ValueError("`region` must be 'weak' or 'strong'.")
+
+        is_right_running_wave = theta < 0
+        theta = abs(theta)
+        theta_max = max_theta_from_mach(self.M, self.gamma)
+        betas = np.zeros(N)
+        pr = np.zeros(N)
+
+        if region == "weak":
+            theta = np.linspace(0, theta, N)
+            for i, t in enumerate(theta):
+                betas[i] = beta_from_mach_theta(
+                    self.M, theta[i], self.gamma)["weak"]
+        else:
+            N1 = int((theta_max / (2 * theta_max - theta)) * N)
+            N2 = N - N1
+            theta = np.append(
+                np.linspace(0, theta_max, N1),
+                np.linspace(theta_max, theta, N2 + 1)[1:]
+            )
+            for i, t in enumerate(theta):
+                b = beta_from_mach_theta(self.M, theta[i], self.gamma)
+                betas[i] = b["weak"] if i < N1 else b["strong"]
+
+        Mn = self.M * np.sin(np.deg2rad(betas))
+        # avoid rounding errors that would make Mn < 1
+        idx = np.isclose(Mn, 1)
+        Mn[idx] = 1
+        pr = pressure_ratio(Mn, self.gamma)
+
+        if is_right_running_wave:
+            theta = -theta
+
+        theta += self.theta_origin
+        pr *= self.pr_to_freestream
+
+        return theta, pr
 
 
 ###########################################################################################
@@ -1149,7 +1683,7 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     # Step 1. Compute M2 and theta (delta, in the book), just behind the shock.
     # delta = flow deflection angle
-    delta = theta_from_mach_beta.__no_check(M, beta, gamma)
+    delta = theta_from_mach_beta.__no_check__(M, beta, gamma)
 
     # check for detachment
     if delta < 0 or np.isnan(delta):
@@ -1165,7 +1699,7 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     # Step 2. Compute V' (Vn), Vr' and Vtheta' directly behind of the shock.
     # compute the nondimensional velocity components
-    V0 = nondimensional_velocity.__no_check(M_2, gamma)
+    V0 = nondimensional_velocity.__no_check__(M_2, gamma)
     V0_r = V0 * np.cos(np.deg2rad(beta - delta))
     V0_theta = -V0 * np.sin(np.deg2rad(beta - delta))
 
@@ -1203,7 +1737,7 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
     # at the cone surface, V_theta = 0, therefore V = V_r
     Vc = result.y[0, -1]
     # Mach number at the cone surface
-    Mc = mach_from_nondimensional_velocity.__no_check(Vc, gamma)
+    Mc = mach_from_nondimensional_velocity.__no_check__(Vc, gamma)
 
     return Mc, theta_c
 

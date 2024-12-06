@@ -1,6 +1,7 @@
 import numpy as np
 import param
 from bokeh.plotting import figure
+from bokeh.models import GlyphRenderer, Line, Circle, Label, Arrow
 from pygasflow.interactive.diagrams import (
     IsentropicDiagram,
     FannoDiagram,
@@ -11,7 +12,8 @@ from pygasflow.interactive.diagrams import (
     GasDiagram,
     SonicDiagram,
     NozzleDiagram,
-    DeLavalDiagram
+    DeLavalDiagram,
+    PressureDeflectionDiagram,
 )
 from pygasflow.interactive.diagrams.flow_base import BasePlot
 from pygasflow.nozzles import (
@@ -20,6 +22,7 @@ from pygasflow.nozzles import (
     CD_Min_Length_Nozzle
 )
 from pygasflow.solvers import De_Laval_Solver
+from pygasflow.shockwave import PressureDeflectionLocus
 import pytest
 from matplotlib import colormaps
 from matplotlib.colors import to_hex
@@ -90,6 +93,14 @@ expected = {
         "y_range": None,
         "size": (800, 300),
     },
+    PressureDeflectionDiagram: {
+        "title": "",
+        "x_label": "Deflection angle, θ [deg]",
+        "y_label": "Pressure Ratio to Freestream",
+        "x_range": None,
+        "y_range": None,
+        "size": (600, 400),
+    },
 }
 
 diagrams = [
@@ -101,6 +112,7 @@ diagrams = [
     ConicalShockDiagram,
     GasDiagram,
     SonicDiagram,
+    PressureDeflectionDiagram
 ]
 
 
@@ -127,7 +139,9 @@ def test_instantiation_no_params(DiagramClass):
         assert i1.figure.yaxis.axis_label == ["Ratios", "Angles [deg]"]
     else:
         assert i1.figure.yaxis.axis_label == expected[DiagramClass]["y_label"]
-    assert i1.x_range == expected[DiagramClass]["x_range"]
+
+    if expected[DiagramClass]["x_range"] is not None:
+        assert i1.x_range == expected[DiagramClass]["x_range"]
 
     if (
         (DiagramClass is ObliqueShockDiagram)
@@ -522,3 +536,97 @@ def test_update_de_laval_diagram():
     ui_basic = d1._plot_widgets()
     ui_full = d2._plot_widgets()
     assert len(ui_full.objects) == len(ui_basic.objects) + 3
+
+
+class Test_PressureDeflectionDiagram:
+    def setup(self):
+        M1 = 3
+        theta_2 = 20
+        theta_3 = -15
+
+        pdl1 = PressureDeflectionLocus(M=M1, label="1")
+        pdl2 = pdl1.new_locus_from_shockwave(theta_2, label="2")
+        pdl3 = pdl1.new_locus_from_shockwave(theta_3, label="3")
+        theta_intersection, pr_intersection = pdl2.intersection(pdl3)
+
+        return pdl1, pdl2, pdl3, theta_intersection, pr_intersection
+
+    def plot_state(self):
+        d = PressureDeflectionDiagram()
+        label, circle = d.plot_state(2, 1, "test")
+        assert isinstance(label, Label)
+        assert isinstance(circle, GlyphRenderer)
+        assert isinstance(circle.glyph, Circle)
+        assert circle.glyph.x == 2
+        assert circle.glyph.y == 1
+        assert l.x == 2
+        assert l.y == 1
+        assert l.text == "test"
+
+    @pytest.mark.parametrize("show_state", [True, False])
+    def test_plot_locus(self, show_state):
+        pdl1, pdl2, pdl3, th, pr = self.setup()
+        d = PressureDeflectionDiagram()
+
+        line, label, circle =  d.plot_locus(pdl1, show_state=show_state)
+        assert isinstance(line, GlyphRenderer)
+        assert isinstance(line.glyph, Line)
+        if show_state:
+            assert isinstance(label, Label)
+            assert isinstance(circle, GlyphRenderer)
+            assert isinstance(circle.glyph, Circle)
+        else:
+            assert label is None
+            assert circle is None
+
+    @pytest.mark.parametrize("show_state", [True, False])
+    def test_plot_locus_split_regions(self, show_state):
+        pdl1, pdl2, pdl3, th, pr = self.setup()
+        d = PressureDeflectionDiagram()
+
+        line_w, line_s, label, circle =  d.plot_locus_split_regions(
+            pdl1, show_state=show_state)
+        for line in [line_w, line_s]:
+            assert isinstance(line, GlyphRenderer)
+            assert isinstance(line.glyph, Line)
+        if show_state:
+            assert isinstance(label, Label)
+            assert isinstance(circle, GlyphRenderer)
+            assert isinstance(circle.glyph, Circle)
+        else:
+            assert label is None
+            assert circle is None
+
+    @pytest.mark.parametrize("num_arrows", [2, 3])
+    def test_plot_path(self, num_arrows):
+        pdl1, pdl2, pdl3, th, pr = self.setup()
+        d = PressureDeflectionDiagram()
+
+        line, arrows = d.plot_path(
+            (pdl1, pdl2.theta_origin), (pdl2, th), num_arrows=num_arrows)
+        assert isinstance(line, GlyphRenderer)
+        assert isinstance(line.glyph, Line)
+        assert isinstance(arrows, Arrow)
+        assert len(arrows.source.data["x_start"] == num_arrows)
+
+    @pytest.mark.parametrize(
+        "show_state, num_renderers, num_labels, num_arrows", [
+        (True, 9, 4, 2),
+        (False, 6, 1, 2),
+    ])
+    def test_complete_diagram(
+        self, show_state, num_renderers, num_labels, num_arrows
+    ):
+        pdl1, pdl2, pdl3, th, pr = self.setup()
+        d = PressureDeflectionDiagram()
+        d.plot_locus(pdl1, show_state=show_state)
+        d.plot_locus(pdl2, show_state=show_state)
+        d.plot_locus(pdl3, show_state=show_state)
+        d.plot_path((pdl1, pdl2.theta_origin), (pdl2, th))
+        d.plot_path((pdl1, pdl3.theta_origin), (pdl3, th))
+        d.plot_state(th, pr, "4")
+        assert len(d.figure.renderers) == num_renderers
+        labels = [l for l in d.figure.center if isinstance(l, Label)]
+        arrows = [l for l in d.figure.center if isinstance(l, Arrow)]
+        assert len(labels) == num_labels
+        assert len(arrows) == num_arrows
