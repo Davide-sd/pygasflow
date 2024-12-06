@@ -34,6 +34,9 @@ future
   to easily create pressure-deflection diagrams and compute related
   quantities.
 
+* Fixed bug with some function that computed wrong results when
+  integer numbers were provided as arguments.
+
 * Fixed functions that raised *RuntimeWarning: divide by zero encountered
   in divide*.
 

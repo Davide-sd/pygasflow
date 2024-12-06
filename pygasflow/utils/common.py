@@ -18,6 +18,10 @@ def convert_to_ndarray(x):
         if curr_numpy_ver >= np_2_0_0:
             return np.atleast_1d(np.asarray(x, dtype=np.float64))
         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+    else:
+        # this is mandatory, otherwise some function computes wrong
+        # results if integer arguments are provided
+        x = x.astype(np.float64)
     return x
 
 

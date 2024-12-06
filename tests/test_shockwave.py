@@ -936,3 +936,14 @@ class Test_PressureDeflectionLocus_pressure_deflection_segment:
         assert np.allclose(pr3, np.array(
             [2.82156232, 3.04502121, 3.28216195, 3.53357527, 3.79985865 ]))
 
+
+@pytest.mark.parametrize("M", [
+    int(2),
+    float(2),
+    np.atleast_1d([2]).astype(int),
+    np.atleast_1d([2]).astype(np.float64)
+])
+def test_max_theta_from_mach(M):
+    # the results is always correct regardless of the type of the mach number
+    tm = max_theta_from_mach(M, 1.4)
+    assert np.isclose(tm, 22.97353176093536)
