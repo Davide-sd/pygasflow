@@ -45,7 +45,7 @@ De Laval Solver
 .. autofunction:: find_shockwave_area_ratio
 
 .. autoclass:: De_Laval_Solver
-.. autofunction:: pygasflow.solvers.de_laval.De_Laval_Solver.plot
+   :members:
 
 
 Gas Related Solvers

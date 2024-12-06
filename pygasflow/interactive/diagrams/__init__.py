@@ -32,15 +32,16 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
 
     Returns
     -------
-    diagram : Column or figure
-        If ``interactive=True``, a panel's ``Column`` object will be
-        returned, containing the widgets and the figure. It will be
+    diagram : :class:`~panel.layout.Column` or :class:`~bokeh.plotting.figure`
+        If ``interactive=True``, a panel's :class:`~panel.layout.Column` object
+        will be returned, containing the widgets and the figure. It will be
         automatically rendered on Jupyter Notebook/Lab. If the interpreter
         is unable to render it, execute the ``.show()`` method on the returned
         object.
-        If ``interactive=False``, it returns a Bokeh ``figure``, which will be
-        also visualized on the screen (either a Jupyter Notebook/Lab's cell
-        or in a new browser window).
+        If ``interactive=False``, it returns a Bokeh
+        :class:`~bokeh.plotting.figure`, which will be also visualized on the
+        screen (either a Jupyter Notebook/Lab's cell or in a new
+        browser window).
 
     Examples
     --------

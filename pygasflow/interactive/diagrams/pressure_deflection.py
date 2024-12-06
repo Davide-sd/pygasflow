@@ -60,6 +60,49 @@ def _compute_arrows_position(x, y, num_arrows=1, dir=1):
 
 
 class PressureDeflectionDiagram(PlotSettings):
+    """Creates a pressure-deflection diagram.
+
+    Examples
+    --------
+
+    .. bokeh-plot::
+        :source-position: above
+
+        from pygasflow.shockwave import PressureDeflectionLocus
+        from pygasflow.interactive import PressureDeflectionDiagram
+        from bokeh.plotting import show
+
+        M1 = 3
+        theta_2 = 20
+        theta_3 = -15
+
+        pdl1 = PressureDeflectionLocus(M=M1, label="1")
+        pdl2 = pdl1.new_locus_from_shockwave(theta_2, label="2")
+        pdl3 = pdl1.new_locus_from_shockwave(theta_3, label="3")
+
+        phi, p4_p1 = pdl2.intersection(pdl3)
+        print("Intersection between locus M2 and locus M3 happens at:")
+        print("Deflection Angle [deg]:", phi)
+        print("Pressure ratio to freestream:", p4_p1)
+
+        d = PressureDeflectionDiagram(
+            title="Intersection of shocks of opposite families"
+        )
+        d.plot_locus(pdl1)
+        d.plot_locus(pdl2)
+        d.plot_locus(pdl3)
+        d.plot_path((pdl1, theta_2), (pdl2, phi))
+        d.plot_path((pdl1, theta_3), (pdl3, phi))
+        d.plot_state(
+            phi, p4_p1, "4=4'",
+            background_fill_color="white",
+            background_fill_alpha=0.8)
+        d.move_legend_outside()
+        d.y_range = (0, 18)
+        show(d.figure)
+
+    """
+
     def __init__(self, **params):
         params.setdefault("x_label", "Deflection angle, θ [deg]")
         params.setdefault("y_label", "Pressure Ratio to Freestream")
@@ -90,14 +133,14 @@ class PressureDeflectionDiagram(PlotSettings):
             the label's visibility. Useful to hide the label when the
             visibility of ``primary_line`` is toggled on the legend.
         circle_kw : None or dict
-            Keyword arguments to the Circle renderer.
+            Keyword arguments to :class:`bokeh.models.Circle`.
         **kwargs :
-            Keyword arguments passed to ``bokeh.models.Label``.
+            Keyword arguments passed to :class:`bokeh.models.Label`.
 
         Returns
         -------
-        lbl : bokeh.models.Label
-        circle_rend : bokeh.models.GlyphRenderer
+        lbl : :class:`bokeh.models.Label`
+        circle_rend : :class:`bokeh.models.GlyphRenderer`
         """
         kwargs.setdefault("x_offset", 0)
         kwargs.setdefault("y_offset", 15)
@@ -131,17 +174,17 @@ class PressureDeflectionDiagram(PlotSettings):
 
         Parameters
         ----------
-        locus : PressureDeflectionLocus
+        locus : :class:`~pygasflow.shockwave.PressureDeflectionLocus`
         show_state : bool
             If True, also add a text on the diagram at the start of the locus.
         **kwargs :
-            Keyword arguments passed to ``bokeh.models.Line``
+            Keyword arguments passed to :class:`bokeh.models.Line`
 
         Returns
         -------
-        line_rend : bokeh.models.GlyphRenderer
-        lbl : bokeh.model.Label or None
-        circle_rend : bokeh.models.GlyphRenderer or None
+        line_rend : :class:`bokeh.models.GlyphRenderer`
+        lbl : :class:`bokeh.models.Label` or None
+        circle_rend : :class:`bokeh.models.GlyphRenderer` or None
         """
         if locus.label:
             kwargs.setdefault("legend_label", f"M{locus.label}")
@@ -170,14 +213,14 @@ class PressureDeflectionDiagram(PlotSettings):
 
         Parameters
         ----------
-        locus : PressureDeflectionLocus
+        locus : :class:`~pygasflow.shockwave.PressureDeflectionLocus`
         show_state : bool
             If True, also add a text on the diagram at the start of the locus.
         **weak_kwargs :
-            Keyword arguments passed to ``bokeh.models.Line`` in order to
+            Keyword arguments passed to :class:`bokeh.models.Line` in order to
             customize the line for the weak region.
         **strong_kwargs :
-            Keyword arguments passed to ``bokeh.models.Line`` in order to
+            Keyword arguments passed to :class:`bokeh.models.Line` in order to
             customize the line for the strong region.
         same_color : bool
             Wheter the two lines uses the same color.
@@ -186,10 +229,10 @@ class PressureDeflectionDiagram(PlotSettings):
 
         Returns
         -------
-        line_rend_weak : bokeh.models.GlyphRenderer
-        line_rend_strong : bokeh.models.GlyphRenderer
-        lbl : bokeh.model.Label or None
-        circle_rend : bokeh.models.GlyphRenderer or None
+        line_rend_weak : :class:`bokeh.models.GlyphRenderer`
+        line_rend_strong : :class:`bokeh.models.GlyphRenderer`
+        lbl : :class:`bokeh.models.Label` or None
+        circle_rend : :class:`bokeh.models.GlyphRenderer` or None
         """
         weak_kwargs = weak_kwargs.copy()
         strong_kwargs = strong_kwargs.copy()
@@ -234,12 +277,12 @@ class PressureDeflectionDiagram(PlotSettings):
         num_arrows : int
             Number of arrows to add over the each segment.
         **kwargs :
-            Keyword arguments passed to ``bokeh.models.Line``.
+            Keyword arguments passed to :class:`bokeh.models.Line`.
 
         Returns
         -------
-        rend : bokeh.models.GlyphRenderer
-        arrows : bokeh.models.Arrow
+        rend : :class:`bokeh.models.GlyphRenderer`
+        arrows : :class:`bokeh.models.Arrow`
         """
         theta, pr = PressureDeflectionLocus.create_path(
             *segments, concatenate=False)

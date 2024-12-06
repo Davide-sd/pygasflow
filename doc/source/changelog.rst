@@ -11,30 +11,35 @@ future
   * Refactoring of ``pygasflow.nozzles`` and ``pygasflow.solver.de_laval``
     in order to use the `holoviz param <https://param.holoviz.org/>`_ module,
     which allows for a more robust code base while also providing the
-    foundation for interactive applications. In particular, ``De_Laval_Solver``,
-    ``CD_Conical_Nozzle, CD_TOP_Nozzle, CD_Min_Length_Nozzle`` are no longer
+    foundation for interactive applications. In particular,
+    :class:`~pygasflow.solvers.de_laval.De_Laval_Solver`,
+    :class:`~pygasflow.nozzles.cd_conical.CD_Conical_Nozzle`,
+    :class:`~pygasflow.nozzles.cd_top.CD_TOP_Nozzle`,
+    :class:`~pygasflow.nozzles.moc.CD_Min_Length_Nozzle` are no longer
     compatible with previous versions of the module.
 
-* Added new functions ``gas_solver``, ``ideal_gas_solver`` and ``sonic_condition``
-  to ``pygasflow.solvers.gas``.
+* Added new functions :func:`~pygasflow.solvers.gas.gas_solver`,
+  :func:`~pygasflow.solvers.gas.ideal_gas_solver` and
+  :func:`~pygasflow.solvers.gas.sonic_condition`.
 
 * Added a new sub-module, ``pygasflow.interactive``, which provides
   a web-based GUI (graphical user interface) to many of the functionalities
-  of the module, thanks to `holoviz panel <https://panel.holoviz.org/>`_.
-  The GUI allows for:
+  of the module, implemented with `holoviz panel <https://panel.holoviz.org/>`_.
+  The GUI allows:
 
-  * an easier and non-programmatic way of getting quick results.
+  * for an easier and non-programmatic way of getting quick results.
   * to easily explore different configurations.
   * reliability: over the years there have been many web-based compressible
-    flow GUIs over the internet. However, they are not guaranteed to exists
+    flow GUIs on the internet. However, they are not guaranteed to exists
     forever. On the other hand, this sub-module is part of pygasflow, and it
     will always be readily available should the user needs it.
 
-* Added ``PressureDeflectionLocus`` and ``PressureDeflectionDiagram``
+* Added :class:`~pygasflow.shockwave.PressureDeflectionLocus` and
+  :class:`~pygasflow.interactive.PressureDeflectionDiagram`
   to easily create pressure-deflection diagrams and compute related
   quantities.
 
-* Fixed bug with some function that computed wrong results when
+* Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.
 
 * Fixed functions that raised *RuntimeWarning: divide by zero encountered

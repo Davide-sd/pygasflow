@@ -1031,7 +1031,8 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 
     This class implements the logic to deal with pressure-deflection locus
     from a numerical standpoint.
-    Take a look at :class:`~pygasflow.interactive.diagrams.PressureDeflectionDiagram`
+    Take a look at
+    :class:`~pygasflow.interactive.diagrams.pressure_deflection.PressureDeflectionDiagram`
     in order to draw pressure-deflection locuses.
 
     """
@@ -1134,7 +1135,8 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             two numpy arrays. If False, returns two lists where each element
             is the result for each segment.
         **kwargs :
-            Keyword arguments passed to ``pressure_deflection_segment``.
+            Keyword arguments passed to
+            :func:`~PressureDeflectionLocus.pressure_deflection_segment`.
 
         Returns
         -------
@@ -1384,7 +1386,8 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         of all possible static pressure values behind oblique shock wave for
         given upstream conditions, and split them between weak and strong regions.
 
-        Parameters are the same of ``pressure_deflection``.
+        Parameters are the same of
+        :func:`~PressureDeflectionLocus.pressure_deflection`.
 
         Returns
         -------
@@ -1928,7 +1931,8 @@ def max_theta_c_from_mach(M1, gamma=1.4):
 def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
     """ Given an upstream Mach number, compute the point (beta, theta_c)
     where the downstream Mach number is sonic.
-    WARNING: this procedure is really slow!
+
+    **WARNING:** this procedure is really slow!
 
     Parameters
     ----------
@@ -1971,9 +1975,9 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
     return function(M1)
 
 def load_data(gamma=1.4):
-    """ The ``beta_theta_c_for_unit_mach_downstream`` function is really slow
-    in computing the data. Often, that data is needed in a plot. Here, a few
-    precomputed tables has been provided.
+    """ The :func:`beta_theta_c_for_unit_mach_downstream` function is really
+    slow in computing the data. Often, that data is needed in a plot.
+    Here, a few precomputed tables has been provided.
 
     Parameters
     ----------

@@ -23,8 +23,10 @@ The following are the most important functions available to the users.
 
 from pygasflow.interactive.compressible import compressible_app
 from pygasflow.interactive.diagrams import diagram
+from pygasflow.interactive.diagrams import PressureDeflectionDiagram
 
 __all__ = [
-    "compressible_app",
-    "diagram",
+   "compressible_app",
+   "diagram",
+   "PressureDeflectionDiagram"
 ]

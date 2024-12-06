@@ -55,6 +55,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.linkcode',
+    'sphinx.ext.intersphinx',
     'sphinx_math_dollar', 'sphinx.ext.mathjax',
     'numpydoc',
     'matplotlib.sphinxext.plot_directive',
@@ -255,6 +256,17 @@ def replace(app, what, name, obj, options, lines):
 def setup(app):
     app.connect('autodoc-process-docstring', replace)
     app.connect("autodoc-process-docstring", param_formatter, priority=-100)
+
+
+# -- Options for intersphinx extension ---------------------------------------
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "bokeh": ("https://docs.bokeh.org/en/latest/", None),
+    "panel": ("https://panel.holoviz.org/", None),
+    "param": ("https://param.holoviz.org/", None),
+}
 
 
 # -- Options for sphinx_panel_screenshot --------------------------------------

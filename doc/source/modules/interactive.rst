@@ -5,3 +5,5 @@ Interactive
 
 .. autofunction:: compressible_app
 .. autofunction:: diagram
+.. autoclass:: PressureDeflectionDiagram
+   :members:
