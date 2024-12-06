@@ -161,7 +161,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     if p1_name not in available_p1names:
         raise ValueError("p1_name must be either one of {}".format(available_p1names))
     if p1_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']:
-        MN1 = get_upstream_normal_mach_from_ratio.__no_check(p1_name, p1_value, gamma)
+        MN1 = get_upstream_normal_mach_from_ratio.__no_check__(p1_name, p1_value, gamma)
     elif p1_name == "mn1":
         if p1_name == p2_name:
             raise ValueError("p1_name must be different than p2_name")
@@ -176,7 +176,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
         if not isinstance(beta, np.ndarray):
             beta = beta * np.ones_like(theta)
-        M1 = mach_from_theta_beta.__no_check(theta, beta)
+        M1 = mach_from_theta_beta.__no_check__(theta, beta)
     elif p1_name == "beta":
         if theta is None:
             raise ValueError("If you provide p1_name='beta', it must be p2_name='theta'.")
@@ -185,27 +185,27 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
         if not isinstance(theta, np.ndarray):
             theta = theta * np.ones_like(beta)
-        M1 = mach_from_theta_beta.__no_check(theta, beta)
+        M1 = mach_from_theta_beta.__no_check__(theta, beta)
     else:   # 'm2'
         # TODO:
         # Is it even possible to solve it knowing only M2, beta or M2, theta?????
         raise NotImplementedError("Solving a shock wave with a given M2 is not yet implemented.")
 
     if (M1 is not None) and (MN1 is not None):
-        beta = beta_from_upstream_mach.__no_check(M1, MN1)
-        theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
+        beta = beta_from_upstream_mach.__no_check__(M1, MN1)
+        theta = theta_from_mach_beta.__no_check__(M1, beta, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check__(MN1, gamma)
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
     elif M1 is not None:
         # at this point, either beta or theta is set, not both!
-        MN1 = normal_mach_upstream.__no_check(M1, beta, theta, gamma, flag)
+        MN1 = normal_mach_upstream.__no_check__(M1, beta, theta, gamma, flag)
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check__(MN1, gamma)
 
         if beta is not None:
-            theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
+            theta = theta_from_mach_beta.__no_check__(M1, beta, gamma)
         else:
-            beta = beta_from_mach_theta.__no_check(M1, theta, gamma)[flag]
+            beta = beta_from_mach_theta.__no_check__(M1, theta, gamma)[flag]
 
         if isinstance(M1, (list, tuple, np.ndarray)):
             if hasattr(beta, "__iter__") and (len(beta) == 1):
@@ -218,11 +218,11 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
     else:
         # compute the different ratios
-        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check(MN1, gamma)
+        pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream.__no_check__(MN1, gamma)
 
         if beta is not None:
             M1 = MN1 / np.sin(np.deg2rad(beta))
-            theta = theta_from_mach_beta.__no_check(M1, beta, gamma)
+            theta = theta_from_mach_beta.__no_check__(M1, beta, gamma)
             if isinstance(M1, (list, tuple, np.ndarray)):
                 beta *= np.ones_like(M1)
         else:

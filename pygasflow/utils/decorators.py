@@ -26,7 +26,7 @@ import inspect
 # the flag (sub, super, weak, strong), or the angles beta, theta for oblique
 # showckwaves. Any other check is left to the specific function.
 #
-# The decorators check and check_shockwave also implements a __no_check
+# The decorators check and check_shockwave also implements a __no_check__
 # function. This is useful to avoid the function to execute the decorator's
 # code: in this way, solvers can call all the specific functions without having
 # to execute the same conversion/check every time, thus improving performance.
@@ -139,7 +139,7 @@ def check_shockwave(var=None):
         def no_check_function(*args, **kwargs):
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
-        wrapper_function.__no_check = no_check_function
+        wrapper_function.__no_check__ = no_check_function
         return wrapper_function
 
     if callable(var):
@@ -192,7 +192,7 @@ def check(var=None, skip_gamma_check=False):
         def no_check_function(*args, **kwargs):
             res = original_function(*args, **kwargs)
             return ret_correct_vals(res)
-        wrapper_function.__no_check = no_check_function
+        wrapper_function.__no_check__ = no_check_function
         return wrapper_function
 
     if callable(var):
@@ -244,7 +244,7 @@ def as_array(index_list=[0]):
                 if i < len(args):
                     args[i] = convert_to_ndarray(args[i])
             return original_function(*args, **kwargs)
-        wrapper_function.__no_check = original_function
+        wrapper_function.__no_check__ = original_function
         return wrapper_function
     return decorator
 

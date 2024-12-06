@@ -299,7 +299,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
         if np.any(ratio < 1):
             raise ValueError("It must be P0/P0* >= 1")
 
-    # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check__(M, gamma)
     func = lambda M, r: r - (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
 
     return apply_bisection(ratio, func, flag=flag)
@@ -376,7 +376,7 @@ def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
     if np.any(ratio < 0):
         raise ValueError("It must be (s*-s)/R >= 0.")
 
-    # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check__(M, gamma)
     func = lambda M, r: r - (-gamma /(gamma - 1) * np.log(M**2 * ((gamma + 1) / (1 + gamma * M**2))**((gamma + 1) / gamma)))
 
     # TODO: need to adjust the extreme of the range where to apply bisection.
@@ -413,12 +413,12 @@ def get_ratios_from_mach(M, gamma):
     eps : array_like
         Critical Entropy Ratio (s*-s)/R
     """
-    prs = critical_pressure_ratio.__no_check(M, gamma)
-    drs = critical_density_ratio.__no_check(M, gamma)
-    trs = critical_temperature_ratio.__no_check(M, gamma)
-    tprs = critical_total_pressure_ratio.__no_check(M, gamma)
-    ttrs = critical_total_temperature_ratio.__no_check(M, gamma)
-    urs = critical_velocity_ratio.__no_check(M, gamma)
-    eps = critical_entropy_parameter.__no_check(M, gamma)
+    prs = critical_pressure_ratio.__no_check__(M, gamma)
+    drs = critical_density_ratio.__no_check__(M, gamma)
+    trs = critical_temperature_ratio.__no_check__(M, gamma)
+    tprs = critical_total_pressure_ratio.__no_check__(M, gamma)
+    ttrs = critical_total_temperature_ratio.__no_check__(M, gamma)
+    urs = critical_velocity_ratio.__no_check__(M, gamma)
+    eps = critical_entropy_parameter.__no_check__(M, gamma)
 
     return prs, drs, trs, tprs, ttrs, urs, eps

@@ -15,7 +15,7 @@ from pytest import raises
 #       np.asarray([2, 3]) -> dtype=int
 #       np.asarray([2., 3]) -> dtype=float
 # which is going to produce different results in the functions when
-# used with __no_check. If used normally, the `check` decorator converts
+# used with __no_check__. If used normally, the `check` decorator converts
 # the provided values to float.
 
 ################################################################################
@@ -61,7 +61,7 @@ def func(error, fn, *args, nocheck=False, **kwargs):
             fn(*args, **kwargs)
     else:
         with raises(error):
-            fn.__no_check(*args, **kwargs)
+            fn.__no_check__(*args, **kwargs)
 
 
 def test_raise_error_isentropic():
@@ -103,11 +103,11 @@ def test_raise_error_isentropic():
     func(ValueError, ise.m_from_prandtl_meyer_angle, 140)     # angle > nu_max
     func(ValueError, ise.m_from_prandtl_meyer_angle, [140, 0.5])     # at least one angle > nu_max
 
-    # Test for __no_check. The aim is for the parameters to make into
+    # Test for __no_check__. The aim is for the parameters to make into
     # the function and either produce errors or produce random junk results
     func(TypeError, ise.critical_velocity_ratio, -1, nocheck=True)  # int is not subscriptable
     func(TypeError, ise.critical_velocity_ratio, 2, gamma=0.9, nocheck=True)  # int is not subscriptable
-    assert np.all(ise.critical_velocity_ratio.__no_check([2, 3, -1]) - np.asarray([2, 2, 2]) == 0)
+    assert np.all(ise.critical_velocity_ratio.__no_check__([2, 3, -1]) - np.asarray([2, 2, 2]) == 0)
 
 
 def test_raise_error_fanno():

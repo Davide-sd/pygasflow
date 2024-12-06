@@ -267,7 +267,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
     if np.any(ratio < 1):
         raise ValueError("It must be P/P* > 1.")
 
-    # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Total_Pressure_Ratio.__no_check__(M, gamma)
     func = lambda M, r: r - (1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
 
     return apply_bisection(ratio, func, flag=flag)
@@ -336,7 +336,7 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
     # I get: ValueError: f(a) and f(b) must have different signs
     # need to be dealt with!
 
-    # func = lambda M, r: r - Critical_Friction_Parameter.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Friction_Parameter.__no_check__(M, gamma)
     func = lambda M, r: r - (((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M**2 / (1 + ((gamma - 1) / 2) * M**2)) + (1 / gamma) * (1 / M**2 - 1))
 
     return apply_bisection(fp, func, flag=flag)
@@ -366,7 +366,7 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     if np.any(ep < 0):
         raise ValueError("It must be (s* - s) / R >= 0.")
 
-    # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Entropy_Parameter.__no_check__(M, gamma)
     func = lambda M, r: r - np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
 
     return apply_bisection(ep, func, flag=flag)
@@ -400,12 +400,12 @@ def get_ratios_from_mach(M, gamma):
     eps : array_like
         Critical Entropy Ratio (s*-s)/R
     """
-    prs = critical_pressure_ratio.__no_check(M, gamma)
-    drs = critical_density_ratio.__no_check(M, gamma)
-    trs = critical_temperature_ratio.__no_check(M, gamma)
-    tprs = critical_total_pressure_ratio.__no_check(M, gamma)
-    urs = critical_velocity_ratio.__no_check(M, gamma)
-    fps = critical_friction_parameter.__no_check(M, gamma)
-    eps = critical_entropy_parameter.__no_check(M, gamma)
+    prs = critical_pressure_ratio.__no_check__(M, gamma)
+    drs = critical_density_ratio.__no_check__(M, gamma)
+    trs = critical_temperature_ratio.__no_check__(M, gamma)
+    tprs = critical_total_pressure_ratio.__no_check__(M, gamma)
+    urs = critical_velocity_ratio.__no_check__(M, gamma)
+    fps = critical_friction_parameter.__no_check__(M, gamma)
+    eps = critical_entropy_parameter.__no_check__(M, gamma)
 
     return prs, drs, trs, tprs, urs, fps, eps

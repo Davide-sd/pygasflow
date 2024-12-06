@@ -59,7 +59,7 @@ def critical_temperature_ratio(M, gamma=1.4):
     out : ndarray
         Critical Temperature ratio T/T*.
     """
-    # return Temperature_Ratio.__no_check(M, gamma) * 0.5 * (gamma + 1)
+    # return Temperature_Ratio.__no_check__(M, gamma) * 0.5 * (gamma + 1)
     return ((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2)
 
 @check
@@ -80,7 +80,7 @@ def critical_pressure_ratio(M, gamma=1.4):
     out : ndarray
         Critical Pressure ratio P/P*.
     """
-    # return Pressure_Ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
+    # return Pressure_Ratio.__no_check__(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
     return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(gamma / (gamma - 1))
 
 @check
@@ -102,7 +102,7 @@ def critical_density_ratio(M, gamma=1.4):
         Critical density ratio rho/rho*.
     """
     # TODO: this first version appears to be faster!
-    return density_ratio.__no_check(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
+    return density_ratio.__no_check__(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
     # return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(1 / (gamma - 1))
 
 @check
@@ -123,7 +123,7 @@ def critical_area_ratio(M, gamma=1.4):
     out : ndarray
         Critical area ratio A/A*.
     """
-    # return 1  / Critical_Density_Ratio.__no_check(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__no_check(M, gamma)) / M
+    # return 1  / Critical_Density_Ratio.__no_check__(M, gamma) * np.sqrt(1 / Critical_Temperature_Ratio.__no_check__(M, gamma)) / M
     ratios = np.inf * np.ones_like(M)
     idx = M != 0
     ratios[idx] = (((1 + (gamma - 1) / 2 * M[idx]**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M[idx]
@@ -282,7 +282,7 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
         raise ValueError("Area ratio must be A/A* >= 1.")
 
     func = lambda M, r: r - (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
-    # func = lambda M, r: r - Critical_Area_Ratio.__no_check(M, gamma)
+    # func = lambda M, r: r - Critical_Area_Ratio.__no_check__(M, gamma)
     return apply_bisection(ratio, func, flag=flag)
 
 # I want to convert to np.ndarray the first two parameters
@@ -459,16 +459,16 @@ def get_ratios_from_mach(M, gamma):
         Prandtl-Meyer Angle
     """
 
-    pr = pressure_ratio.__no_check(M, gamma)
-    dr = density_ratio.__no_check(M, gamma)
-    tr = temperature_ratio.__no_check(M, gamma)
-    prs = critical_pressure_ratio.__no_check(M, gamma)
-    drs = critical_density_ratio.__no_check(M, gamma)
-    trs = critical_temperature_ratio.__no_check(M, gamma)
-    urs = critical_velocity_ratio.__no_check(M, gamma)
-    ar = critical_area_ratio.__no_check(M, gamma)
-    ma = mach_angle.__no_check(M)
-    pm = prandtl_meyer_angle.__no_check(M, gamma)
+    pr = pressure_ratio.__no_check__(M, gamma)
+    dr = density_ratio.__no_check__(M, gamma)
+    tr = temperature_ratio.__no_check__(M, gamma)
+    prs = critical_pressure_ratio.__no_check__(M, gamma)
+    drs = critical_density_ratio.__no_check__(M, gamma)
+    trs = critical_temperature_ratio.__no_check__(M, gamma)
+    urs = critical_velocity_ratio.__no_check__(M, gamma)
+    ar = critical_area_ratio.__no_check__(M, gamma)
+    ma = mach_angle.__no_check__(M)
+    pm = prandtl_meyer_angle.__no_check__(M, gamma)
 
     return pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
 

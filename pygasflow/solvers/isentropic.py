@@ -113,9 +113,9 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
         # we have all scalar values in the output
         M = ret_correct_vals(M)
     elif param_name == "crit_area_sub":
-        M = ise.m_from_critical_area_ratio.__no_check(param_value, "sub", gamma)
+        M = ise.m_from_critical_area_ratio.__no_check__(param_value, "sub", gamma)
     elif param_name == "crit_area_super":
-        M = ise.m_from_critical_area_ratio.__no_check(param_value, "super", gamma)
+        M = ise.m_from_critical_area_ratio.__no_check__(param_value, "super", gamma)
 
     func_dict = {
         'pressure': ise.m_from_pressure_ratio,
@@ -125,10 +125,10 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=False):
         'prandtl_meyer': ise.m_from_prandtl_meyer_angle,
     }
     if param_name in func_dict.keys():
-        M = func_dict[param_name].__no_check(param_value, gamma)
+        M = func_dict[param_name].__no_check__(param_value, gamma)
     # compute the different ratios
     M = np.atleast_1d(M)
-    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check(M, gamma)
+    pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check__(M, gamma)
 
     if to_dict:
         return {

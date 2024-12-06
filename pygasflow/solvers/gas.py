@@ -272,10 +272,10 @@ def sonic_condition(gamma=1.4, to_dict=False):
     {'drs': np.float64(1.5774409656148785), 'prs': np.float64(1.892929158737854), 'ars': np.float64(1.0954451150103321), 'trs': np.float64(1.2)}
 
     """
-    drs = sonic_density_ratio.__no_check(gamma)
-    prs = sonic_pressure_ratio.__no_check(gamma)
-    ars = sonic_sound_speed_ratio.__no_check(gamma)
-    trs = sonic_temperature_ratio.__no_check(gamma)
+    drs = sonic_density_ratio.__no_check__(gamma)
+    prs = sonic_pressure_ratio.__no_check__(gamma)
+    ars = sonic_sound_speed_ratio.__no_check__(gamma)
+    trs = sonic_temperature_ratio.__no_check__(gamma)
     if to_dict:
         return {"drs": drs, "prs": prs, "ars": ars, "trs": trs}
     return drs, prs, ars, trs

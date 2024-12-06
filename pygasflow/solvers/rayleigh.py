@@ -116,21 +116,21 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
         # into a numpy array. Let's extract it.
         M = ret_correct_vals(M)
     elif param_name == 'total_pressure_sub':
-        M = ray.m_from_critical_total_pressure_ratio.__no_check(param_value, "sub", gamma)
+        M = ray.m_from_critical_total_pressure_ratio.__no_check__(param_value, "sub", gamma)
     elif param_name == 'total_pressure_super':
-        M = ray.m_from_critical_total_pressure_ratio.__no_check(param_value, "super", gamma)
+        M = ray.m_from_critical_total_pressure_ratio.__no_check__(param_value, "super", gamma)
     elif param_name == 'total_temperature_sub':
-        M = ray.m_from_critical_total_temperature_ratio.__no_check(param_value, "sub", gamma)
+        M = ray.m_from_critical_total_temperature_ratio.__no_check__(param_value, "sub", gamma)
     elif param_name == 'total_temperature_super':
-        M = ray.m_from_critical_total_temperature_ratio.__no_check(param_value, "super", gamma)
+        M = ray.m_from_critical_total_temperature_ratio.__no_check__(param_value, "super", gamma)
     elif param_name == 'temperature_sub':
-        M = ray.m_from_critical_temperature_ratio.__no_check(param_value, "sub", gamma)
+        M = ray.m_from_critical_temperature_ratio.__no_check__(param_value, "sub", gamma)
     elif param_name == 'temperature_super':
-        M = ray.m_from_critical_temperature_ratio.__no_check(param_value, "super", gamma)
+        M = ray.m_from_critical_temperature_ratio.__no_check__(param_value, "super", gamma)
     elif param_name == 'entropy_sub':
-        M = ray.m_from_critical_entropy.__no_check(param_value, "sub", gamma)
+        M = ray.m_from_critical_entropy.__no_check__(param_value, "sub", gamma)
     elif param_name == 'entropy_super':
-        M = ray.m_from_critical_entropy.__no_check(param_value, "super", gamma)
+        M = ray.m_from_critical_entropy.__no_check__(param_value, "super", gamma)
 
     func_dict = {
         'pressure': ray.m_from_critical_pressure_ratio,
@@ -138,11 +138,11 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=False):
         'velocity': ray.m_from_critical_velocity_ratio,
     }
     if param_name in func_dict.keys():
-        M = func_dict[param_name].__no_check(param_value, gamma)
+        M = func_dict[param_name].__no_check__(param_value, gamma)
 
     # compute the different ratios
     M = np.atleast_1d(M)
-    prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach.__no_check(M, gamma)
+    prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach.__no_check__(M, gamma)
 
     if to_dict:
         return {
