@@ -31,6 +31,16 @@ The following charts has been generated with the functions included in this pack
 </div>
 
 
+The following screenshots highlights the interactive capabilities implemented
+in this module:
+
+<div>
+<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/interactive-rayleigh.png" width=250/>
+<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/interactive-oblique-shock.png" width=250/>
+<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/interactive-nozzles.png" width=250/>
+</div>
+
+
 ## Installation
 
 The repository is avaliable on PyPi:

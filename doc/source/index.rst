@@ -53,6 +53,21 @@ The following charts has been generated with the functions included in this pack
    :width: 200
    :alt: Shock Reflection
 
+The following screenshots highlights the interactive capabilities implemented
+in this module:
+
+.. image:: _static/interactive-rayleigh.png
+   :width: 200
+   :alt: Shock Reflection
+
+.. image:: _static/interactive-oblique-shock.png
+   :width: 200
+   :alt: Shock Reflection
+
+.. image:: _static/interactive-nozzles.png
+   :width: 200
+   :alt: Shock Reflection
+
 
 Development and Support
 =======================
