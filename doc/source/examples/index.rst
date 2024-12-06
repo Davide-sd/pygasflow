@@ -12,6 +12,4 @@ Examples
    tut-5.nblink
    tut-6.nblink
    tut-7.nblink
-   tut-8.nblink
-   tut-9.nblink
    tut-10.nblink
