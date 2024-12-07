@@ -1054,7 +1054,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         The maximum deflection angle possible with this pressure-deflection
         locus. Note that `theta_max` is considered relative to `theta_origin`
         along the left-running branch.""")
-    func_of_theta = param.Parameter(constant=True, doc="""
+    eval_at_theta = param.Parameter(constant=True, doc="""
         A numerical function whose only argument is the deflection angle (taken
         from a pressure-deflection diagram), returning two pressure ratios
         (weak and strong) associated with this pressure-deflection locus.""")
@@ -1118,7 +1118,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 
         with param.edit_constant(self):
             self.theta_max = theta_max
-            self.func_of_theta = func
+            self.eval_at_theta = func
 
     @staticmethod
     def create_path(*segments, concatenate=True, **kwargs):
@@ -1252,11 +1252,11 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         if self.theta_origin < other.theta_origin:
             theta_origin1, theta_origin2 = self.theta_origin, other.theta_origin
             theta_max1, theta_max2 = self.theta_max, other.theta_max
-            f1, f2 = self.func_of_theta, other.func_of_theta
+            f1, f2 = self.eval_at_theta, other.eval_at_theta
         else:
             theta_origin1, theta_origin2 = other.theta_origin, self.theta_origin
             theta_max1, theta_max2 = other.theta_max, self.theta_max
-            f1, f2 = other.func_of_theta, self.func_of_theta
+            f1, f2 = other.eval_at_theta, self.eval_at_theta
 
         if theta_origin1 + theta_max1 < theta_origin2 - theta_max2:
             # no intersection found

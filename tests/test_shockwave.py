@@ -489,7 +489,7 @@ class Test_PressureDeflectionLocus:
         assert obj.theta_origin == theta_origin
         assert obj.pr_to_freestream == pr_to_freestream
         assert obj.label == label
-        assert callable(obj.func_of_theta)
+        assert callable(obj.eval_at_theta)
         assert np.isclose(obj.theta_max, max_theta_from_mach(M, gamma))
 
     def test_instantiation_simple(self):
@@ -519,29 +519,29 @@ class Test_PressureDeflectionLocus:
 
     def test_update_func_theta_max(self):
         p = PressureDeflectionLocus(M=2)
-        f1 = p.func_of_theta
+        f1 = p.eval_at_theta
         tm1 = p.theta_max
 
         p.M = 3
-        f2 = p.func_of_theta
+        f2 = p.eval_at_theta
         tm2 = p.theta_max
         assert not np.isclose(tm1, tm2)
         assert id(f1) != id(f2)
 
         p.gamma = 1.2
-        f3 = p.func_of_theta
+        f3 = p.eval_at_theta
         tm3 = p.theta_max
         assert not np.isclose(tm2, tm3)
         assert id(f2) != id(f3)
 
         p.theta_origin = 10
-        f4 = p.func_of_theta
+        f4 = p.eval_at_theta
         tm4 = p.theta_max
         assert np.isclose(tm3, tm4)
         assert id(f3) != id(f4)
 
         p.pr_to_freestream = 3
-        f5 = p.func_of_theta
+        f5 = p.eval_at_theta
         tm5 = p.theta_max
         assert np.isclose(tm4, tm5)
         assert id(f4) != id(f5)
