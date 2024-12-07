@@ -118,7 +118,7 @@ class PressureDeflectionDiagram(PlotSettings):
         self.figure.grid.minor_grid_line_dash = [2, 2]
         self.color_iterator = itertools.cycle(self.colors)
 
-    def plot_state(
+    def add_state(
         self, x, y, text, primary_line=None, circle_kw=None, **kwargs
     ):
         """Add `text` to the specified point `(x, y)` in the diagram.
@@ -169,7 +169,7 @@ class PressureDeflectionDiagram(PlotSettings):
             primary_line.js_on_change("visible", callback)
         return lbl, circle_rend
 
-    def plot_locus(self, locus, show_state=True, **kwargs):
+    def add_locus(self, locus, show_state=True, **kwargs):
         """Add the locus to the diagram, with a single line.
 
         Parameters
@@ -196,7 +196,7 @@ class PressureDeflectionDiagram(PlotSettings):
         line_rend = self.figure.line("x", "y", source=source, **kwargs)
         lbl, circle_rend = None, None
         if show_state and locus.label:
-            lbl, circle_rend = self.plot_state(
+            lbl, circle_rend = self.add_state(
                 locus.theta_origin,
                 locus.pr_to_freestream,
                 locus.label,
@@ -204,7 +204,7 @@ class PressureDeflectionDiagram(PlotSettings):
             )
         return line_rend, lbl, circle_rend
 
-    def plot_locus_split_regions(
+    def add_locus_split_regions(
         self, locus, weak_kwargs={}, strong_kwargs={}, same_color=True,
         show_state=True
     ):
@@ -257,7 +257,7 @@ class PressureDeflectionDiagram(PlotSettings):
             "x", "y", source=source_s, **strong_kwargs)
         lbl, circle_rend = None, None
         if show_state and locus.label:
-            lbl, circle_rend = self.plot_state(
+            lbl, circle_rend = self.add_state(
                 locus.theta_origin,
                 locus.pr_to_freestream,
                 locus.label,
@@ -265,7 +265,7 @@ class PressureDeflectionDiagram(PlotSettings):
             )
         return line_rend_weak, line_rend_strong, lbl, circle_rend
 
-    def plot_path(self, *segments, num_arrows=2, **kwargs):
+    def add_path(self, *segments, num_arrows=2, **kwargs):
         """Add a path connecting one or more segments.
 
         Parameters

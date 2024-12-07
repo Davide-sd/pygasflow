@@ -551,24 +551,24 @@ class Test_PressureDeflectionDiagram:
 
         return pdl1, pdl2, pdl3, theta_intersection, pr_intersection
 
-    def plot_state(self):
+    def test_add_state(self):
         d = PressureDeflectionDiagram()
-        label, circle = d.plot_state(2, 1, "test")
+        label, circle = d.add_state(2, 1, "test")
         assert isinstance(label, Label)
         assert isinstance(circle, GlyphRenderer)
         assert isinstance(circle.glyph, Circle)
         assert circle.glyph.x == 2
         assert circle.glyph.y == 1
-        assert l.x == 2
-        assert l.y == 1
-        assert l.text == "test"
+        assert label.x == 2
+        assert label.y == 1
+        assert label.text == "test"
 
     @pytest.mark.parametrize("show_state", [True, False])
-    def test_plot_locus(self, show_state):
+    def test_add_locus(self, show_state):
         pdl1, pdl2, pdl3, th, pr = self.setup()
         d = PressureDeflectionDiagram()
 
-        line, label, circle =  d.plot_locus(pdl1, show_state=show_state)
+        line, label, circle =  d.add_locus(pdl1, show_state=show_state)
         assert isinstance(line, GlyphRenderer)
         assert isinstance(line.glyph, Line)
         if show_state:
@@ -580,11 +580,11 @@ class Test_PressureDeflectionDiagram:
             assert circle is None
 
     @pytest.mark.parametrize("show_state", [True, False])
-    def test_plot_locus_split_regions(self, show_state):
+    def test_add_locus_split_regions(self, show_state):
         pdl1, pdl2, pdl3, th, pr = self.setup()
         d = PressureDeflectionDiagram()
 
-        line_w, line_s, label, circle =  d.plot_locus_split_regions(
+        line_w, line_s, label, circle =  d.add_locus_split_regions(
             pdl1, show_state=show_state)
         for line in [line_w, line_s]:
             assert isinstance(line, GlyphRenderer)
@@ -598,11 +598,11 @@ class Test_PressureDeflectionDiagram:
             assert circle is None
 
     @pytest.mark.parametrize("num_arrows", [2, 3])
-    def test_plot_path(self, num_arrows):
+    def test_add_path(self, num_arrows):
         pdl1, pdl2, pdl3, th, pr = self.setup()
         d = PressureDeflectionDiagram()
 
-        line, arrows = d.plot_path(
+        line, arrows = d.add_path(
             (pdl1, pdl2.theta_origin), (pdl2, th), num_arrows=num_arrows)
         assert isinstance(line, GlyphRenderer)
         assert isinstance(line.glyph, Line)
@@ -619,12 +619,12 @@ class Test_PressureDeflectionDiagram:
     ):
         pdl1, pdl2, pdl3, th, pr = self.setup()
         d = PressureDeflectionDiagram()
-        d.plot_locus(pdl1, show_state=show_state)
-        d.plot_locus(pdl2, show_state=show_state)
-        d.plot_locus(pdl3, show_state=show_state)
-        d.plot_path((pdl1, pdl2.theta_origin), (pdl2, th))
-        d.plot_path((pdl1, pdl3.theta_origin), (pdl3, th))
-        d.plot_state(th, pr, "4")
+        d.add_locus(pdl1, show_state=show_state)
+        d.add_locus(pdl2, show_state=show_state)
+        d.add_locus(pdl3, show_state=show_state)
+        d.add_path((pdl1, pdl2.theta_origin), (pdl2, th))
+        d.add_path((pdl1, pdl3.theta_origin), (pdl3, th))
+        d.add_state(th, pr, "4")
         assert len(d.figure.renderers) == num_renderers
         labels = [l for l in d.figure.center if isinstance(l, Label)]
         arrows = [l for l in d.figure.center if isinstance(l, Arrow)]
