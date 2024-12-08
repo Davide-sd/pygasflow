@@ -34,13 +34,7 @@ class NormalShockDiagram(FlowCommon):
         params["_parameter_name"] = "m1"
         super().__init__(**params)
 
-    def _create_figure(self):
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-            "y_range": self.y_range
-        })
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
 
         for i, (l, r) in enumerate(zip(self.labels, self.results[1:])):
@@ -66,7 +60,7 @@ class NormalShockDiagram(FlowCommon):
 
         self._place_legend_outside()
 
-    def _update_figure(self):
+    def _update_renderers(self):
         for i, (l, r, renderer) in enumerate(zip(
             self.labels, self.results[1:], self.figure.renderers
         )):

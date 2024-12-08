@@ -101,26 +101,15 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
             self.param.show_region_line
         ]
 
-    @param.depends("upstream_mach", "gamma", "N", watch=True, on_init=True)
+    @param.depends("upstream_mach", "gamma", "N", watch=True)
     def update(self):
         try:
             self.results = self._compute_results()
-            if self.figure is not None:
-                self._update_figure()
-            else:
-                self._create_figure()
+            self._update_func()
         except ValueError as err:
             self.error_log = "ValueError: %s" % err
 
-    def _create_figure(self):
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-            "y_range": self.y_range,
-            "width": self.size[0],
-            "height": self.size[1],
-        })
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
         ann_color = "#000000" if self._theme == "default" else "#ffffff"
 
@@ -251,7 +240,7 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
 
         self._place_legend_outside()
 
-    def _update_figure(self):
+    def _update_renderers(self):
         # update mach lines
         max_theta = 0
         for label, source, renderer in zip(

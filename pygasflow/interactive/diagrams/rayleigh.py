@@ -12,6 +12,7 @@ class RayleighDiagram(FlowCommon):
 
     def __init__(self, **params):
         params.setdefault("title", "Rayleigh Flow")
+        params.setdefault("y_range", (0, 3))
         params.setdefault("labels", [
             "p/p*", "rho/rho*", "T/T*",
             "P0/P0*", "T0/T0*", "U/U*", "(s*-s)/R"
@@ -19,13 +20,7 @@ class RayleighDiagram(FlowCommon):
         params["_solver"] = rayleigh_solver
         super().__init__(**params)
 
-    def _create_figure(self):
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-            "y_range": self.y_range
-        })
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
 
         for l, r in zip(self.labels, self.results[1:]):

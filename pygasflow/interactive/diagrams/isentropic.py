@@ -16,6 +16,7 @@ class IsentropicDiagram(FlowCommon):
 
     def __init__(self, **params):
         params.setdefault("title", "Isentropic Flow")
+        params.setdefault("y_range", (0, 3))
         params.setdefault("labels", [
             "P/P0", "rho/rho0", "T/T0",
             "p/p*", "rho/rho*", "T/T*", "U/U*", "A/A*",
@@ -35,13 +36,7 @@ class IsentropicDiagram(FlowCommon):
         if self.figure is not None:
             self.figure.yaxis[1].axis_label = self.y_label_right
 
-    def _create_figure(self):
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-            "y_range": self.y_range
-        })
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
 
         for l, r in zip(self.labels[:-2], self.results[1:-2]):

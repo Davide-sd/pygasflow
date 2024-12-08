@@ -33,7 +33,7 @@ expected = {
         "title": "Isentropic Flow",
         "x_label": "M",
         "y_label": "Ratios",
-        "x_range": (0, 5),
+        "x_range": None,
         "y_range": (0, 3),
         "size": (800, 300),
     },
@@ -41,7 +41,7 @@ expected = {
         "title": "Fanno Flow",
         "x_label": "M",
         "y_label": "Ratios",
-        "x_range": (0, 5),
+        "x_range": None,
         "y_range": (0, 3),
         "size": (800, 300),
     },
@@ -49,7 +49,7 @@ expected = {
         "title": "Rayleigh Flow",
         "x_label": "M",
         "y_label": "Ratios",
-        "x_range": (0, 5),
+        "x_range": None,
         "y_range": (0, 3),
         "size": (800, 300),
     },
@@ -57,7 +57,7 @@ expected = {
         "title": "Normal Shock Properties",
         "x_label": "Upstream Mach, M1",
         "y_label": "Ratios",
-        "x_range": (0, 5),
+        "x_range": None,
         "y_range": (0, 1.5),
         "size": (700, 400),
     },
@@ -81,7 +81,7 @@ expected = {
         "title": "",
         "x_label": "Mass-specific gas constant, R, [J / (Kg K)]",
         "y_label": "Specific Heats [J / K]",
-        "x_range": (1.05, 2),
+        "x_range": (0, 5000),
         "y_range": None,
         "size": (800, 300),
     },
@@ -143,10 +143,9 @@ def test_instantiation_no_params(DiagramClass):
     if expected[DiagramClass]["x_range"] is not None:
         assert i1.x_range == expected[DiagramClass]["x_range"]
 
-    if (
-        (DiagramClass is ObliqueShockDiagram)
-        or (DiagramClass is ConicalShockDiagram)
-    ):
+    if DiagramClass in [
+        ObliqueShockDiagram, ConicalShockDiagram, GasDiagram, SonicDiagram
+    ]:
         assert (i1.figure.x_range.start, i1.figure.x_range.end) == expected[DiagramClass]["x_range"]
     else:
         # not enforced on init
@@ -170,16 +169,7 @@ def test_instantiation_no_params(DiagramClass):
     i1.y_range_right = (5, 6)
 
 
-@pytest.mark.parametrize("DiagramClass", [
-    IsentropicDiagram,
-    FannoDiagram,
-    RayleighDiagram,
-    NormalShockDiagram,
-    ObliqueShockDiagram,
-    ConicalShockDiagram,
-    GasDiagram,
-    SonicDiagram
-])
+@pytest.mark.parametrize("DiagramClass", diagrams)
 def test_instantiation_with_params(DiagramClass):
     params = dict(
         title="Title", x_label="x_label", y_label="y_label",
@@ -204,17 +194,14 @@ def test_instantiation_with_params(DiagramClass):
 
     assert i2.x_range == (1, 2)
 
-    if (
-        (DiagramClass is ObliqueShockDiagram)
-        or (DiagramClass is ConicalShockDiagram)
-    ):
-        assert (i2.figure.x_range.start, i2.figure.x_range.end) == expected[DiagramClass]["x_range"]
+    # ObliqueShockDiagram/ConicalShockDiagram recomputes appropriate x_range
+    # on each update
+    if DiagramClass is ObliqueShockDiagram:
+        assert (i2.figure.x_range.start, i2.figure.x_range.end) == (0, 50)
+    elif DiagramClass is ConicalShockDiagram:
+        assert (i2.figure.x_range.start, i2.figure.x_range.end) == (0, 60)
     else:
-        assert np.allclose(
-            (i2.figure.x_range.start, i2.figure.x_range.end),
-            (np.nan, np.nan),
-            equal_nan=True
-        )
+        assert (i2.figure.x_range.start, i2.figure.x_range.end) == (1, 2)
 
     if expected[DiagramClass]["y_range"] is not None:
         assert i2.y_range == (3, 4)
@@ -372,7 +359,7 @@ def test_update_sonic_diagram():
     d = SonicDiagram()
     assert len(d.figure.renderers) == 4
     old_data = d.figure.renderers[0].data_source.data.copy()
-    assert len(old_data["xs"]) == 100
+    assert len(old_data["xs"]) == 10
     x_range1 = (old_data["xs"].min(), old_data["xs"].max())
 
     d.gamma_range = (1.5, 1.75)
@@ -380,9 +367,9 @@ def test_update_sonic_diagram():
     x_range2 = (new_data["xs"].min(), new_data["xs"].max())
     assert x_range1 != x_range2
 
-    d.N = 10
+    d.N = 20
     new_data2 = d.figure.renderers[0].data_source.data.copy()
-    assert len(new_data2["xs"]) == 10
+    assert len(new_data2["xs"]) == 20
 
 
 @pytest.mark.parametrize("NozzleClass", [

@@ -57,6 +57,9 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
             nozzle=params["solver"].nozzle,
             size=params["size"])
         )
+        x_range = params["nozzle_diagram"].figure.x_range
+        x_range = (x_range.start, x_range.end)
+        params.setdefault("x_range", x_range),
         super().__init__(**params)
         # catch exceptions and show them on the error_log
         self.solver.is_interactive_app = True
@@ -76,13 +79,10 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
     @param.depends(
         "solver",
         "solver.flow_results",
-        watch=True, on_init=True
+        watch=True
     )
     def update(self):
-        if self.figure is None:
-            self._create_figure()
-        else:
-            self._update_figure()
+        self._update_func()
 
     @param.depends("solver", "solver.nozzle", watch=True)
     def _update_nozzle_diagram(self):
@@ -97,14 +97,7 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
             msg += self.nozzle_diagram.error_log
         self.error_log = msg
 
-    def _create_figure(self):
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "x_range": self.nozzle_diagram.figure.x_range,
-            "title": self.title,
-            "y_range": self.y_range,
-        })
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
 
         i = 0
@@ -139,7 +132,7 @@ class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
         self.figure.extra_y_ranges['mach'] = Range1d(
             0, self.solver.flow_results[1].max() * 1.05)
 
-    def _update_figure(self):
+    def _update_renderers(self):
         length = self.solver.flow_results[0]
         for d, r in zip(self.solver.flow_results[1:], self.figure.renderers):
             old_data = r.data_source.data

@@ -33,12 +33,6 @@ class BasePlot(param.Parameterized):
     _legend = param.ClassSelector(class_=Legend,
         doc="The legend, placed outside of the plotting area.")
 
-    def _create_figure(self, **fig_kwargs):
-        if self.figure is None:
-            fig_kwargs.setdefault("height", self.size[1])
-            fig_kwargs.setdefault("width", self.size[0])
-            self.figure = figure(**fig_kwargs)
-
     def _place_legend_outside(self):
         # hide original legend and create a new one outside of the plot area
         self.figure.legend.visible = False
@@ -61,17 +55,47 @@ class PlotSettings(BasePlot):
 
     y_label = param.String("Ratios", label="Y Label:")
 
-    x_range = param.Range((0, 5), label="X Range")
+    x_range = param.Range(label="X Range")
 
-    y_range = param.Range((0, 3), label="Y Range")
+    y_range = param.Range(label="Y Range")
+
+    _update_func = param.Callable(doc="Reference to _update_renderers()")
+
+    def __init__(self, **params):
+        if hasattr(self, "_create_renderers"):
+            # renderers must be create the first time self.update is executed
+            params["_update_func"] = self._create_renderers
+        super().__init__(**params)
+
+        if self.figure is None:
+            fig_kwargs = {
+                "height": self.size[1],
+                "width": self.size[0],
+                "x_axis_label": self.x_label,
+                "y_axis_label": self.y_label,
+                "title": self.title,
+            }
+            if self.x_range is not None:
+                fig_kwargs["x_range"] = self.x_range
+            if self.y_range is not None:
+                fig_kwargs["y_range"] = self.y_range
+            self.figure = figure(**fig_kwargs)
+
+        # create renderers
+        self.update()
+        if hasattr(self, "_update_renderers"):
+            # from now on, every change in parameters will update the renderers
+            self._update_func = self._update_renderers
 
     @param.depends("x_range", watch=True)
     def update_x_range(self):
-        self.figure.x_range = Range1d(*self.x_range)
+        if self.x_range is not None:
+            self.figure.x_range = Range1d(*self.x_range)
 
     @param.depends("y_range", watch=True)
     def update_y_range(self):
-        self.figure.y_range = Range1d(*self.y_range)
+        if self.y_range is not None:
+            self.figure.y_range = Range1d(*self.y_range)
 
     @param.depends("title", watch=True, on_init=True)
     def update_title(self):
@@ -125,21 +149,18 @@ class FlowCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
     _solver = param.Callable(doc="""
         Solver to be used to compute numerical results.""")
 
-    @param.depends("mach_range", "gamma", "N", watch=True, on_init=True)
+    @param.depends("mach_range", "gamma", "N", watch=True)
     def update(self):
         if self._solver is not None:
             M = np.linspace(self.mach_range[0], self.mach_range[1], self.N)
             try:
                 self.results = self._solver(
                     self._parameter_name, M, gamma=self.gamma)
-                if self.figure is not None:
-                    self._update_figure()
-                else:
-                    self._create_figure()
+                self._update_func()
             except ValueError as err:
                 self.error_log = "ValueError: %s" % err
 
-    def _update_figure(self):
+    def _update_renderers(self):
         for l, r, renderer in zip(
             self.labels, self.results[1:], self.figure.renderers
         ):

@@ -102,21 +102,24 @@ class PressureDeflectionDiagram(PlotSettings):
         show(d.figure)
 
     """
+    # TODO:
+    # 1. add tooltips to states
+    # 2. create some class that renders the locus, so that we can monitor
+    #    the attributes of the locus, and update it when they change.
+    #    This would allow interactive pressure-deflection diagrams.
 
     def __init__(self, **params):
         params.setdefault("x_label", "Deflection angle, θ [deg]")
         params.setdefault("y_label", "Pressure Ratio to Freestream")
         params.setdefault("size", (600, 400))
         super().__init__(**params)
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-        })
         self.figure.grid.minor_grid_line_alpha = 0.75
         self.figure.grid.minor_grid_line_color = self.figure.grid.grid_line_color[0]
         self.figure.grid.minor_grid_line_dash = [2, 2]
         self.color_iterator = itertools.cycle(self.colors)
+
+    def update(self):
+        pass
 
     def add_state(
         self, x, y, text, primary_line=None, circle_kw=None, **kwargs

@@ -57,21 +57,18 @@ class GasDiagram(PlotSettings, pn.viewable.Viewer):
         params.setdefault("x_label", "Mass-specific gas constant, R, [J / (Kg K)]")
         params.setdefault("y_label", "Specific Heats [J / K]")
         params.setdefault("title", "")
-        params.setdefault("x_range", self.gamma_range)
+        params.setdefault("x_range", self.R_range)
         super().__init__(**params)
 
     @param.depends(
         "select",
         "gamma_range", "gamma",
         "R_range", "R", "N",
-        watch=True, on_init=True
+        watch=True
     )
     def update(self):
         try:
-            if self.figure is not None:
-                self._update_figure()
-            else:
-                self._create_figure()
+            self._update_func()
         except ValueError as err:
             self.error_log = "ValueError: %s" % err
 
@@ -84,12 +81,7 @@ class GasDiagram(PlotSettings, pn.viewable.Viewer):
             R = np.linspace(*self.R_range, self.N)
         return gas_solver("gamma", gamma, "R", R, to_dict=True)
 
-    def _create_figure(self):
-        super()._create_figure(
-            x_axis_label=self.x_label,
-            y_axis_label=self.y_label,
-            title=""
-        )
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
         results = self._compute_results()
 
@@ -121,7 +113,7 @@ class GasDiagram(PlotSettings, pn.viewable.Viewer):
 
         self._place_legend_outside()
 
-    def _update_figure(self):
+    def _update_renderers(self):
         results = self._compute_results()
         x_key = "gamma" if self.select == 0 else "R"
         x_var = results[x_key]
@@ -196,15 +188,13 @@ class SonicDiagram(PlotSettings, pn.viewable.Viewer):
         params.setdefault("y_label", "Ratios")
         params.setdefault("title", "Sonic condition")
         params.setdefault("x_range", self.gamma_range)
+        params.setdefault("N", 10)
         super().__init__(**params)
 
-    @param.depends("gamma_range", "N", watch=True, on_init=True)
+    @param.depends("gamma_range", "N", watch=True)
     def update(self):
         try:
-            if self.figure is not None:
-                self._update_figure()
-            else:
-                self._create_figure()
+            self._update_func()
         except ValueError as err:
             self.error_log = "ValueError: %s" % err
 
@@ -214,12 +204,7 @@ class SonicDiagram(PlotSettings, pn.viewable.Viewer):
         results["gamma"] = gammas
         return results
 
-    def _create_figure(self):
-        super()._create_figure(
-            x_axis_label=self.x_label,
-            y_axis_label=self.y_label,
-            title=self.title
-        )
+    def _create_renderers(self):
         colors = itertools.cycle(self.colors)
         results = self._compute_results()
         labels = ["T0/T*", "a0/a*", "p0/p*", "rho0/rho*"]
@@ -243,7 +228,7 @@ class SonicDiagram(PlotSettings, pn.viewable.Viewer):
 
         self._place_legend_outside()
 
-    def _update_figure(self):
+    def _update_renderers(self):
         results = self._compute_results()
         labels = ["T0/T*", "a0/a*", "p0/p*", "rho0/rho*"]
         for i, (k, renderer) in enumerate(zip(

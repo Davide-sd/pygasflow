@@ -48,7 +48,7 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
         doc="Only used in MOC nozzles."
     )
 
-    def __init__(self, *args, **params):
+    def __init__(self, **params):
         params.setdefault("x_label", "Length [m]")
         params.setdefault("y_label",
             "A/A*" if self.show_area_ratio else "radius [m]")
@@ -57,8 +57,9 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
             self._user_provided_nozzle = True
         params.setdefault(
             "nozzle", CD_Conical_Nozzle())
-        super().__init__(*args, **params)
+        super().__init__(**params)
         self.nozzle.is_interactive_app = True
+        self._update_show_characteristic_lines()
 
     @param.depends(
         "show_full_nozzle", "show_area_ratio", watch=True, on_init=True
@@ -69,15 +70,9 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
         if self.show_area_ratio:
             self.show_full_nozzle = False
 
-    def _create_figure(self):
+    def _create_renderers(self):
         nozzle, container = self.nozzle.get_points(self.show_area_ratio)
-        x_range = (container[:, 0].min(), container[:, 0].max())
-        super()._create_figure(**{
-            "x_axis_label": self.x_label,
-            "y_axis_label": self.y_label,
-            "title": self.title,
-            "x_range": x_range,
-        })
+        self.x_range = (container[:, 0].min(), container[:, 0].max())
 
         glyph_container = Patch(
             x="x", y="y",
@@ -116,7 +111,7 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
             self._add_characteristic_lines()
         self._update_y_range()
 
-    def _update_figure(self):
+    def _update_renderers(self):
         nozzle, container = self.nozzle.get_points(self.show_area_ratio)
         source_container = {"x": container[:, 0], "y": container[:, 1]}
         source_nozzle = {"x": nozzle[:, 0], "y": nozzle[:, 1]}
@@ -204,7 +199,7 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
         # to change nozzle type. However, when a change happens, it doesn't
         # create a new NozzleDiagram, instead it updates the existing one.
         # Problem: the colorbar might not be present, because it is created
-        # inside _create_figure, which is only executed once, at NozzlesPage
+        # inside _create_renderers, which is only executed once, at NozzlesPage
         # loading.
         if hasattr(self, "_cb"):
             self._cb.color_mapper.update(low=min(data["p"]), high=max(data["p"]))
@@ -241,15 +236,12 @@ class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
         "nozzle.gamma",
         "nozzle.n_lines",
         "show_area_ratio",
-        watch=True, on_init=True
+        watch=True
     )
     def update(self):
-        if self.figure is None:
-            self._create_figure()
-        else:
-            self._update_figure()
+        self._update_func()
 
-    @param.depends("show_characteristic_lines", watch=True, on_init=True)
+    @param.depends("show_characteristic_lines", watch=True)
     def _update_show_characteristic_lines(self):
         if isinstance(self.nozzle, CD_Min_Length_Nozzle):
             self.figure.renderers[-2].visible = self.show_characteristic_lines
