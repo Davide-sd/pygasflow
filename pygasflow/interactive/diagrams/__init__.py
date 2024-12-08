@@ -1,4 +1,4 @@
-from bokeh.plotting import show as bokeh_show
+import panel as pn
 from pygasflow.interactive.diagrams.isentropic import IsentropicDiagram
 from pygasflow.interactive.diagrams.fanno import FannoDiagram
 from pygasflow.interactive.diagrams.rayleigh import RayleighDiagram
@@ -21,10 +21,9 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
         oblique_shock, conical_shock, gas, sonic
     interactive : bool
         If True, an Holoviz's panel object will be returned. If False,
-        a Bokeh figure will be returned.
+        something else will be returned: see ``show`` for more info.
     show : bool
-        If ``interactive=False``, controls wheter the Bokeh figure should be
-        shown on the screen.
+        Controls what is going to be returned by the function.
     **params :
         Keyword arguments passed to the diagram component for further
         customization, like ``title``, ``x_label``, ``y_label``,
@@ -38,22 +37,24 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
         automatically rendered on Jupyter Notebook/Lab. If the interpreter
         is unable to render it, execute the ``.show()`` method on the returned
         object.
-        If ``interactive=False``, it returns a Bokeh
-        :class:`~bokeh.plotting.figure`, which will be also visualized on the
-        screen (either a Jupyter Notebook/Lab's cell or in a new
-        browser window).
+        If ``interactive=False, show=True``, a panel's
+        :class:`~panel.pane.Bokeh` object will be returned, containing
+        the figure only. It will be automatically rendered on Jupyter
+        Notebook/Lab. If the interpreter is unable to render it, execute the
+        ``.show()`` method on the returned object.
+        If ``interactive=False, show=False`` it returns the Diagram
+        object, which can be used for further customizations.
 
     Examples
     --------
 
     Visualize a diagram about the oblique shock properties:
 
-    .. bokeh-plot::
-        :source-position: above
+    .. panel-screenshot::
+        :large-size: 700,400
 
         from pygasflow.interactive import diagram
-        from bokeh.plotting import show
-        show(diagram("oblique_shock", size=(700, 400), show=False))
+        diagram("oblique_shock", size=(700, 400), interactive=False)
 
     Visualize an interactive application about the isentropic relations:
 
@@ -83,8 +84,8 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
     if interactive:
         return diagram.servable()
     if show:
-        bokeh_show(diagram.figure)
-    return diagram.figure
+        return pn.pane.Bokeh(diagram.figure).servable()
+    return diagram
 
 
 __all__ = [

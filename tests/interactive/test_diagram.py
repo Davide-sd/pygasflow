@@ -1,5 +1,6 @@
 import numpy as np
 import param
+import panel as pn
 from bokeh.plotting import figure
 from bokeh.models import GlyphRenderer, Line, Circle, Label, Arrow
 from pygasflow.interactive.diagrams import (
@@ -14,6 +15,7 @@ from pygasflow.interactive.diagrams import (
     NozzleDiagram,
     DeLavalDiagram,
     PressureDeflectionDiagram,
+    diagram
 )
 from pygasflow.interactive.diagrams.flow_base import BasePlot
 from pygasflow.nozzles import (
@@ -617,3 +619,50 @@ class Test_PressureDeflectionDiagram:
         arrows = [l for l in d.figure.center if isinstance(l, Arrow)]
         assert len(labels) == num_labels
         assert len(arrows) == num_arrows
+
+
+@pytest.mark.parametrize("ncols, location, raise_error", [
+    (0, "right", True),     # error because ncols < 1
+    (-1, "right", True),    # error because ncols < 1
+    (1, "right", False),
+    (1, "left", False),
+    (1, "above", False),
+    (1, "below", False),
+    (2, "right", False),
+    (2, "left", False),
+    (2, "above", False),
+    (2, "below", False),
+    (1, "top", True),       # error because of wrong location
+    (1, "bottom", True),    # error because of wrong location
+])
+def test_legend_location(ncols, location, raise_error):
+    d = IsentropicDiagram()
+    f = lambda: d.move_legend_outside(ncols, location)
+    if raise_error:
+        pytest.raises(ValueError, f)
+    else:
+        f()
+        assert d.legend.ncols == ncols
+        assert d.legend in getattr(d.figure, location)
+
+
+@pytest.mark.parametrize(
+    "select, interactive, show, DiagramClass, raise_error", [
+    ("asd", True, True, IsentropicDiagram, True),
+    ("isentropic", True, True, IsentropicDiagram, False),
+    ("isentropic", False, True, IsentropicDiagram, False),
+    ("isentropic", False, False, IsentropicDiagram, False),
+])
+def test_diagram_function(select, interactive, show, DiagramClass, raise_error):
+    f = lambda: diagram(select, interactive=interactive, show=show)
+    if raise_error:
+        pytest.raises(ValueError, f)
+        return
+
+    d = f()
+    if interactive:
+        assert isinstance(d, pn.Column)
+    elif show:
+        assert isinstance(d, pn.pane.Bokeh)
+    else:
+        assert isinstance(d, DiagramClass)

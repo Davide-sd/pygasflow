@@ -30,22 +30,47 @@ class BasePlot(param.Parameterized):
         Theme used by the overall application. Useful to choose which
         color to apply to elements of the plot.""")
 
-    _legend = param.ClassSelector(class_=Legend,
-        doc="The legend, placed outside of the plotting area.")
+    legend = param.ClassSelector(class_=Legend,
+        doc="The legend, when placed outside of the plotting area.")
 
-    def _place_legend_outside(self):
-        # hide original legend and create a new one outside of the plot area
-        self.figure.legend.visible = False
-        legend_items = self.figure.legend.items.copy()
-        # NOTE: if I don't clear the elements of the original legend,
-        # the hidden legend will still occupy vertical space, which will
-        # make hover tool not working over the region covered by the legend
-        self.figure.legend.items.clear()
-        legend = Legend(items=legend_items)
-        # interactive legend
-        legend.click_policy = "hide"
-        self.figure.add_layout(legend, "right")
-        self._legend = legend
+    def move_legend_outside(self, ncols=1, location="right"):
+        """Move the legend to a new location.
+
+        Parameters
+        ----------
+        ncols : int
+        location : str
+            Possible values are: ``"left", "right", "above", "below"``.
+        """
+        if ncols < 1:
+            raise ValueError("`ncols` must be >= 1.")
+        location = location.lower()
+        allowed_locations = ["left", "right", "above", "below"]
+        if location not in allowed_locations:
+            raise ValueError(
+                f"`location` must be one of the following: {allowed_locations}"
+            )
+
+        if self.legend is None:
+            # hide original legend and create a new one outside of the plot area
+            self.figure.legend.visible = False
+            legend_items = self.figure.legend.items.copy()
+            # NOTE: if I don't clear the elements of the original legend,
+            # the hidden legend will still occupy vertical space, which will
+            # make hover tool not working over the region covered by the legend
+            self.figure.legend.items.clear()
+            legend = Legend(items=legend_items)
+            # interactive legend
+            legend.click_policy = "hide"
+            legend.ncols = ncols
+            self.figure.add_layout(legend, location)
+            self.legend = legend
+        else:
+            for l in allowed_locations:
+                if self.legend in getattr(self.figure, l):
+                    getattr(self.figure, l).remove(self.legend)
+            self.legend.ncols = ncols
+            self.figure.add_layout(self.legend, location)
 
 
 class PlotSettings(BasePlot):

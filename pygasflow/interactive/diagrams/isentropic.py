@@ -77,4 +77,4 @@ class IsentropicDiagram(FlowCommon):
         )
         self.figure.add_layout(y_deg, 'right')
 
-        self._place_legend_outside()
+        self.move_legend_outside()

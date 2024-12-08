@@ -88,8 +88,8 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
         # TODO: as of Bokeh 3.6.0, there is a bug somewhere.
         # Or maybe I coded things in a wrong way. Either way, the legend
         # won't update with new labels. Here is a fix:
-        if self._legend is not None:
-            for value, entry in zip(self.labels, self._legend.items):
+        if self.legend is not None:
+            for value, entry in zip(self.labels, self.legend.items):
                 entry.update(label=Value(value))
 
     def _plot_widgets(self):
@@ -238,7 +238,7 @@ class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
         self._ann_arrows = [a1, a2, a3, a4]
         self._ann_labels = [l1, l2]
 
-        self._place_legend_outside()
+        self.move_legend_outside()
 
     def _update_renderers(self):
         # update mach lines

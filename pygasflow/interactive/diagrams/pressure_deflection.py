@@ -76,11 +76,11 @@ class PressureDeflectionDiagram(PlotSettings):
         theta_2 = 20
         theta_3 = -15
 
-        pdl1 = PressureDeflectionLocus(M=M1, label="1")
-        pdl2 = pdl1.new_locus_from_shockwave(theta_2, label="2")
-        pdl3 = pdl1.new_locus_from_shockwave(theta_3, label="3")
+        loc1 = PressureDeflectionLocus(M=M1, label="1")
+        loc2 = loc1.new_locus_from_shockwave(theta_2, label="2")
+        loc3 = loc1.new_locus_from_shockwave(theta_3, label="3")
 
-        phi, p4_p1 = pdl2.intersection(pdl3)
+        phi, p4_p1 = loc2.intersection(loc3)
         print("Intersection between locus M2 and locus M3 happens at:")
         print("Deflection Angle [deg]:", phi)
         print("Pressure ratio to freestream:", p4_p1)
@@ -88,12 +88,12 @@ class PressureDeflectionDiagram(PlotSettings):
         d = PressureDeflectionDiagram(
             title="Intersection of shocks of opposite families"
         )
-        d.plot_locus(pdl1)
-        d.plot_locus(pdl2)
-        d.plot_locus(pdl3)
-        d.plot_path((pdl1, theta_2), (pdl2, phi))
-        d.plot_path((pdl1, theta_3), (pdl3, phi))
-        d.plot_state(
+        d.add_locus(loc1)
+        d.add_locus(loc2)
+        d.add_locus(loc3)
+        d.add_path((loc1, theta_2), (loc2, phi))
+        d.add_path((loc1, theta_3), (loc3, phi))
+        d.add_state(
             phi, p4_p1, "4=4'",
             background_fill_color="white",
             background_fill_alpha=0.8)
@@ -317,9 +317,6 @@ class PressureDeflectionDiagram(PlotSettings):
         )
         self.figure.add_layout(arrows)
         return rend, arrows
-
-    def move_legend_outside(self):
-        self._place_legend_outside()
 
     def show(self):
         bokeh_show(self.figure)

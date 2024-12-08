@@ -111,7 +111,7 @@ class GasDiagram(PlotSettings, pn.viewable.Viewer):
                 renderers=[line]
             ))
 
-        self._place_legend_outside()
+        self.move_legend_outside()
 
     def _update_renderers(self):
         results = self._compute_results()
@@ -226,7 +226,7 @@ class SonicDiagram(PlotSettings, pn.viewable.Viewer):
                 renderers=[line]
             ))
 
-        self._place_legend_outside()
+        self.move_legend_outside()
 
     def _update_renderers(self):
         results = self._compute_results()

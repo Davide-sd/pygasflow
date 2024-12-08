@@ -37,4 +37,4 @@ class RayleighDiagram(FlowCommon):
                 renderers=[line]
             ))
 
-        self._place_legend_outside()
+        self.move_legend_outside()
