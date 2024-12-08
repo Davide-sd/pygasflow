@@ -5,12 +5,12 @@ import numpy as np
 import panel as pn
 import param
 from pygasflow.interactive.diagrams.flow_base import (
-    PlotSettings
+    BasePlot
 )
 from pygasflow.solvers import gas_solver, sonic_condition
 
 
-class GasDiagram(PlotSettings, pn.viewable.Viewer):
+class GasDiagram(BasePlot, pn.viewable.Viewer):
     """Plot the relationships Cp=f(gamma, R) and Cv=f(gamma, R).
     """
 
@@ -160,7 +160,7 @@ class GasDiagram(PlotSettings, pn.viewable.Viewer):
         )
 
 
-class SonicDiagram(PlotSettings, pn.viewable.Viewer):
+class SonicDiagram(BasePlot, pn.viewable.Viewer):
     """Plot the sonic conditions T0/T*=f(gamma), a0/a*=f(gamma),
     p0/p*=f(gamma), rho0/rhoT*=f(gamma).
     """

@@ -15,13 +15,13 @@ import itertools
 from pygasflow.interactive.diagrams.flow_base import (
     CommonParameters,
     BasePlot,
-    PlotSettings
+    BasePlot
 )
 import panel as pn
 import param
 
 
-class ShockCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
+class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
     """Common logic for the following plots:
 
     * Oblique Shock Properties: Mach - β - θ

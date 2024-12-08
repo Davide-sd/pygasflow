@@ -6,12 +6,12 @@ import param
 import panel as pn
 from pygasflow.nozzles import CD_TOP_Nozzle
 from pygasflow.solvers import De_Laval_Solver
-from pygasflow.interactive.diagrams.flow_base import PlotSettings
+from pygasflow.interactive.diagrams.flow_base import BasePlot
 from pygasflow.interactive.diagrams.nozzle import NozzleDiagram
 import itertools
 
 
-class DeLavalDiagram(PlotSettings, pn.viewable.Viewer):
+class DeLavalDiagram(BasePlot, pn.viewable.Viewer):
     """Plot M, P/P0, T/T0, rho/rho0 along the length of a convergent-divergent
     nozzle.
     """

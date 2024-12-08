@@ -11,10 +11,10 @@ from pygasflow.nozzles import (
     CD_Conical_Nozzle,
     CD_Min_Length_Nozzle
 )
-from pygasflow.interactive.diagrams.flow_base import PlotSettings
+from pygasflow.interactive.diagrams.flow_base import BasePlot
 
 
-class NozzleDiagram(PlotSettings, pn.viewable.Viewer):
+class NozzleDiagram(BasePlot, pn.viewable.Viewer):
     """Draw a representation of a nozzle.
     """
     # NOTE: it would be nice to have a class able to accept multiple

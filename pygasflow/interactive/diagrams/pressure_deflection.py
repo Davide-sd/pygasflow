@@ -4,7 +4,7 @@ from bokeh.models import (
 from bokeh.plotting import show as bokeh_show
 import itertools
 import numpy as np
-from pygasflow.interactive.diagrams.flow_base import PlotSettings
+from pygasflow.interactive.diagrams.flow_base import BasePlot
 from pygasflow.shockwave import PressureDeflectionLocus
 
 
@@ -59,7 +59,7 @@ def _compute_arrows_position(x, y, num_arrows=1, dir=1):
     return source
 
 
-class PressureDeflectionDiagram(PlotSettings):
+class PressureDeflectionDiagram(BasePlot):
     """Creates a pressure-deflection diagram.
 
     Examples

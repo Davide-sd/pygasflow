@@ -26,12 +26,50 @@ class BasePlot(param.Parameterized):
     colors = param.Tuple(Category10[10], length=10,
         doc="List of categorical colors.")
 
+    legend = param.ClassSelector(class_=Legend,
+        doc="The legend, when placed outside of the plotting area.")
+
+    title = param.String("", label="Title:")
+
+    x_label = param.String("M", label="X Label:")
+
+    y_label = param.String("Ratios", label="Y Label:")
+
+    x_range = param.Range(label="X Range")
+
+    y_range = param.Range(label="Y Range")
+
     _theme = param.String("default", doc="""
         Theme used by the overall application. Useful to choose which
         color to apply to elements of the plot.""")
 
-    legend = param.ClassSelector(class_=Legend,
-        doc="The legend, when placed outside of the plotting area.")
+    _update_func = param.Callable(doc="Reference to _update_renderers()")
+
+    def __init__(self, **params):
+        if hasattr(self, "_create_renderers"):
+            # renderers must be create the first time self.update is executed
+            params["_update_func"] = self._create_renderers
+        super().__init__(**params)
+
+        if self.figure is None:
+            fig_kwargs = {
+                "height": self.size[1],
+                "width": self.size[0],
+                "x_axis_label": self.x_label,
+                "y_axis_label": self.y_label,
+                "title": self.title,
+            }
+            if self.x_range is not None:
+                fig_kwargs["x_range"] = self.x_range
+            if self.y_range is not None:
+                fig_kwargs["y_range"] = self.y_range
+            self.figure = figure(**fig_kwargs)
+
+        # create renderers
+        self.update()
+        if hasattr(self, "_update_renderers"):
+            # from now on, every change in parameters will update the renderers
+            self._update_func = self._update_renderers
 
     def move_legend_outside(self, ncols=1, location="right"):
         """Move the legend to a new location.
@@ -71,46 +109,6 @@ class BasePlot(param.Parameterized):
                     getattr(self.figure, l).remove(self.legend)
             self.legend.ncols = ncols
             self.figure.add_layout(self.legend, location)
-
-
-class PlotSettings(BasePlot):
-    title = param.String("", label="Title:")
-
-    x_label = param.String("M", label="X Label:")
-
-    y_label = param.String("Ratios", label="Y Label:")
-
-    x_range = param.Range(label="X Range")
-
-    y_range = param.Range(label="Y Range")
-
-    _update_func = param.Callable(doc="Reference to _update_renderers()")
-
-    def __init__(self, **params):
-        if hasattr(self, "_create_renderers"):
-            # renderers must be create the first time self.update is executed
-            params["_update_func"] = self._create_renderers
-        super().__init__(**params)
-
-        if self.figure is None:
-            fig_kwargs = {
-                "height": self.size[1],
-                "width": self.size[0],
-                "x_axis_label": self.x_label,
-                "y_axis_label": self.y_label,
-                "title": self.title,
-            }
-            if self.x_range is not None:
-                fig_kwargs["x_range"] = self.x_range
-            if self.y_range is not None:
-                fig_kwargs["y_range"] = self.y_range
-            self.figure = figure(**fig_kwargs)
-
-        # create renderers
-        self.update()
-        if hasattr(self, "_update_renderers"):
-            # from now on, every change in parameters will update the renderers
-            self._update_func = self._update_renderers
 
     @param.depends("x_range", watch=True)
     def update_x_range(self):
@@ -157,7 +155,7 @@ class CommonParameters(param.Parameterized):
     results = param.List([], doc="Results of the computation.")
 
 
-class FlowCommon(CommonParameters, PlotSettings, pn.viewable.Viewer):
+class FlowCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
     mach_range = param.Range((0, 5), bounds=(0, 25),
         label="Mach range",
         doc="Minimum and Maximum Mach number for the visualization."
