@@ -39,6 +39,8 @@ class BasePlot(param.Parameterized):
 
     y_range = param.Range(label="Y Range")
 
+    show_minor_grid = param.Boolean(False, doc="Toggle minor grid visibility.")
+
     _theme = param.String("default", doc="""
         Theme used by the overall application. Useful to choose which
         color to apply to elements of the plot.""")
@@ -64,6 +66,7 @@ class BasePlot(param.Parameterized):
             if self.y_range is not None:
                 fig_kwargs["y_range"] = self.y_range
             self.figure = figure(**fig_kwargs)
+        self.toggle_minor_grid_visibility()
 
         # create renderers
         self.update()
@@ -134,6 +137,15 @@ class BasePlot(param.Parameterized):
     def update_y_label(self):
         if self.figure is not None:
             self.figure.yaxis[0].axis_label = self.y_label
+
+    @param.depends("show_minor_grid", watch=True)
+    def toggle_minor_grid_visibility(self):
+        self.figure.grid.minor_grid_line_alpha = 0.75
+        self.figure.grid.minor_grid_line_dash = [2, 2]
+        if self.show_minor_grid:
+            self.figure.grid.minor_grid_line_color = self.figure.grid.grid_line_color[0]
+        else:
+            self.figure.grid.minor_grid_line_color = None
 
 
 class CommonParameters(param.Parameterized):

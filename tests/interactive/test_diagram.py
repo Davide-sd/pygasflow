@@ -666,3 +666,13 @@ def test_diagram_function(select, interactive, show, DiagramClass, raise_error):
         assert isinstance(d, pn.pane.Bokeh)
     else:
         assert isinstance(d, DiagramClass)
+
+
+@pytest.mark.parametrize("show_minor_grid", [True, False])
+def test_minor_grid_visibility(show_minor_grid):
+    for DiagramClass in diagrams:
+        d = DiagramClass(show_minor_grid=show_minor_grid)
+        if not show_minor_grid:
+            assert d.figure.grid.minor_grid_line_color == [None, None]
+        else:
+            assert isinstance(d.figure.grid.minor_grid_line_color, list)

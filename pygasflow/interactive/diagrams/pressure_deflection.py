@@ -112,10 +112,8 @@ class PressureDeflectionDiagram(BasePlot):
         params.setdefault("x_label", "Deflection angle, θ [deg]")
         params.setdefault("y_label", "Pressure Ratio to Freestream")
         params.setdefault("size", (600, 400))
+        params.setdefault("show_minor_grid", True)
         super().__init__(**params)
-        self.figure.grid.minor_grid_line_alpha = 0.75
-        self.figure.grid.minor_grid_line_color = self.figure.grid.grid_line_color[0]
-        self.figure.grid.minor_grid_line_dash = [2, 2]
         self.color_iterator = itertools.cycle(self.colors)
 
     def update(self):
