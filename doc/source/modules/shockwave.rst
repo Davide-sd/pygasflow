@@ -62,6 +62,8 @@ Oblique Shock Waves
 
 .. autofunction:: oblique_mach_downstream
 
+.. autofunction:: shock_polar_equation
+
 .. autofunction:: shock_polar
 
 .. autoclass:: PressureDeflectionLocus

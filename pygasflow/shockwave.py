@@ -930,8 +930,37 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
     mach[idx1] = np.inf
     return mach
 
+
+def shock_polar_equation(Vx_as_ratio, M1s, gamma=1.4):
+    """Analytical equation for the shock polar.
+
+    Parameters
+    ----------
+    Vx_as_ratio : float or array_like
+        This is Vx/a*
+    M1s : float
+        Characteristic upstream Mach number.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    Vy/a* : float
+    """
+    is_scalar = isinstance(Vx_as_ratio, Number)
+    Vx_as_ratio = np.atleast_1d(Vx_as_ratio)
+    # equation 4.22 (Anderson)
+    num = (M1s - Vx_as_ratio)**2 * (Vx_as_ratio * M1s - 1)
+    # account for numerical errors leading (num) to be proportional to a very small
+    # negative value
+    num[num < 0] = 0
+    den = (2 / (gamma + 1)) * M1s**2 - Vx_as_ratio * M1s + 1
+    res = np.sqrt(num / den)
+    return res[0] if is_scalar else res
+
+
 @check_shockwave
-def shock_polar(M1, gamma=1.4, N=100):
+def shock_polar(M1, gamma=1.4, N=100, include_mirror=True):
     """
     Compute the ratios (Vx/a*), (Vy/a*) for plotting a Shock Polar.
 
@@ -942,7 +971,10 @@ def shock_polar(M1, gamma=1.4, N=100):
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be gamma > 1.
     N : int, optional
-        Number of discretization steps in the range [2, 2*pi]. Must be > 1.
+        Number of discretization steps in the range [0, pi]. Must be > 1.
+    include_mirror : bool
+        If True, return results for polar angle in [0, 2*pi]. Otherwise,
+        return results for polar angle in [0, pi].
 
     Returns
     -------
@@ -956,26 +988,18 @@ def shock_polar(M1, gamma=1.4, N=100):
 
     M1s = characteristic_mach_number(M1, gamma)
     # downstream Mach number to a normal shock wave
-    M_2 = mach_downstream(M1)
-    M2s = characteristic_mach_number(M_2, gamma)
-
-    def _shock_polar(Vx_as_ratio, M1s):
-        # equation 4.22 (Anderson)
-        num = (M1s - Vx_as_ratio)**2 * (Vx_as_ratio * M1s - 1)
-        # account for numerical errors leading (num) to be proportional to a very small
-        # negative value
-        num[num < 0] = 0
-        den = (2 / (gamma + 1)) * M1s**2 - Vx_as_ratio * M1s + 1
-        return np.sqrt(num / den)
+    M2 = mach_downstream(M1, gamma)
+    M2s = characteristic_mach_number(M2, gamma)
 
     # polar coordinate
-    alpha = np.linspace(0, np.pi, 100)
+    alpha = np.linspace(0, np.pi, N)
     r = (M1s - M2s) / 2
     Vx_as = M2s + r + r * np.cos(alpha)
-    Vy_as = _shock_polar(Vx_as, M1s)
+    Vy_as = shock_polar_equation(Vx_as, M1s, gamma)
 
-    Vx_as = np.append(Vx_as, Vx_as[::-1])
-    Vy_as = np.append(Vy_as, -Vy_as[::-1])
+    if include_mirror:
+        Vx_as = np.append(Vx_as, Vx_as[::-1])
+        Vy_as = np.append(Vy_as, -Vy_as[::-1])
 
     return Vx_as, Vy_as
 

@@ -9,6 +9,7 @@ from pygasflow.interactive.diagrams.gas import GasDiagram, SonicDiagram
 from pygasflow.interactive.diagrams.nozzle import NozzleDiagram
 from pygasflow.interactive.diagrams.de_laval import DeLavalDiagram
 from pygasflow.interactive.diagrams.pressure_deflection import PressureDeflectionDiagram
+from pygasflow.interactive.diagrams.shock_polar import ShockPolarDiagram
 
 
 def diagram(select="isentropic", interactive=False, show=True, **params):
@@ -18,7 +19,7 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
     ----------
     select : str
         Available options are: isentropic, fanno, rayleigh, normal_shock,
-        oblique_shock, conical_shock, gas, sonic
+        oblique_shock, conical_shock, gas, sonic, shock_polar
     interactive : bool
         If True, an Holoviz's panel object will be returned. If False,
         something else will be returned: see ``show`` for more info.
@@ -73,6 +74,7 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
         "conical_shock": ConicalShockDiagram,
         "gas": GasDiagram,
         "sonic": SonicDiagram,
+        "shock_polar": ShockPolarDiagram,
     }
     if not select in mapping:
         raise ValueError(
@@ -100,5 +102,6 @@ __all__ = [
     "NozzleDiagram",
     "DeLavalDiagram",
     "PressureDeflectionDiagram",
+    "ShockPolarDiagram",
     "diagram",
 ]

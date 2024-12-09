@@ -12,6 +12,7 @@
 import numpy as np
 import os
 import pytest
+from pygasflow.generic import characteristic_mach_number
 from pygasflow.solvers.shockwave import (
     shockwave_solver as ss,
     conical_shockwave_solver as css,
@@ -26,9 +27,12 @@ from pygasflow.shockwave import (
     load_data,
     create_mach_beta_theta_c_csv_file,
     PressureDeflectionLocus,
-    max_theta_from_mach
+    max_theta_from_mach,
+    shock_polar_equation,
+    shock_polar
 )
 from tempfile import TemporaryDirectory
+from numbers import Number
 
 
 def check_val(v1, v2, tol=1e-05):
@@ -947,3 +951,52 @@ def test_max_theta_from_mach(M):
     # the results is always correct regardless of the type of the mach number
     tm = max_theta_from_mach(M, 1.4)
     assert np.isclose(tm, 22.97353176093536)
+
+
+def test_shock_polar_equation():
+    M1 = 5
+    gamma = 1.4
+    M1s = characteristic_mach_number(M1, gamma)
+    res = shock_polar_equation(1.5, M1s, gamma)
+    assert isinstance(res, Number)
+    assert np.isclose(res, 0.8388490177635208)
+
+    res = shock_polar_equation([1.5], M1s, gamma)
+    assert isinstance(res, np.ndarray)
+    assert np.allclose(res, [0.8388490177635208])
+
+    res = shock_polar_equation([1.25, 1.5], M1s, gamma)
+    assert isinstance(res, np.ndarray)
+    assert np.allclose(res, [0.85788745, 0.83884902])
+
+
+def test_shock_polar():
+    M1 = 2
+    gamma = 1.4
+
+    Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=True, N=5)
+    assert np.allclose(Vx_as, [
+        1.63299316, 1.48352672, 1.1226828 , 0.76183888, 0.61237244,
+        0.61237244, 0.76183888, 1.1226828 , 1.48352672, 1.63299316])
+    assert np.allclose(Vy_as, [
+        0.        ,  0.19935999,  0.39528471,  0.30600611,  0.,
+       -0.        , -0.30600611, -0.39528471, -0.19935999, -0.])
+
+    Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=False, N=5)
+    assert np.allclose(Vx_as, [
+        1.63299316, 1.48352672, 1.1226828 , 0.76183888, 0.61237244])
+    assert np.allclose(Vy_as, [
+        0.        , 0.19935999, 0.39528471, 0.30600611, 0.])
+
+    gamma = 1.2
+    Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=False, N=5)
+    assert np.allclose(Vx_as, [
+        1.77281052, 1.59579546, 1.1684433 , 0.74109114, 0.56407607])
+    assert np.allclose(Vy_as, [
+        0, 2.36104640e-01, 4.68140838e-01, 3.62407031e-01, 0.])
+
+    Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=False, N=50)
+    assert len(Vx_as) == len(Vy_as) == 50
+
+    Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=True, N=50)
+    assert len(Vx_as) == len(Vy_as) == 100

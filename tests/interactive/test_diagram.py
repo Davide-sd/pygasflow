@@ -15,6 +15,7 @@ from pygasflow.interactive.diagrams import (
     NozzleDiagram,
     DeLavalDiagram,
     PressureDeflectionDiagram,
+    ShockPolarDiagram,
     diagram
 )
 from pygasflow.interactive.diagrams.flow_base import BasePlot
@@ -103,6 +104,14 @@ expected = {
         "y_range": None,
         "size": (600, 400),
     },
+    ShockPolarDiagram: {
+        "title": "Shock Polar Diagram",
+        "x_label": "Vx / a*",
+        "y_label": "Vy / a*",
+        "x_range": None,
+        "y_range": None,
+        "size": (600, 600),
+    },
 }
 
 diagrams = [
@@ -114,7 +123,8 @@ diagrams = [
     ConicalShockDiagram,
     GasDiagram,
     SonicDiagram,
-    PressureDeflectionDiagram
+    PressureDeflectionDiagram,
+    ShockPolarDiagram
 ]
 
 
@@ -676,3 +686,57 @@ def test_minor_grid_visibility(show_minor_grid):
             assert d.figure.grid.minor_grid_line_color == [None, None]
         else:
             assert isinstance(d.figure.grid.minor_grid_line_color, list)
+
+
+@pytest.mark.parametrize(
+    "show_m_inf, show_theta, show_beta, show_sonic, n_renderers", [
+        (False, False, False, False, 1),
+        (True, False, False, False, 2),
+        (False, True, False, False, 6),
+        (False, False, True, False, 7),
+        (False, False, False, True, 2),
+        (True, True, True, True, 14),
+    ])
+def test_shock_polar(
+    show_m_inf, show_theta, show_beta, show_sonic, n_renderers
+):
+    d = ShockPolarDiagram(
+        show_mach_at_infinity=show_m_inf,
+        show_theta_line=show_theta,
+        show_beta_line=show_beta,
+        show_sonic_circle=show_sonic,
+    )
+    assert len(d.figure.renderers) == n_renderers
+    assert np.isclose(d.mach_number, 5)
+    assert np.isclose(d.gamma, 1.4)
+
+    idx = 0 if not show_sonic else 1
+    data1 = d.figure.renderers[idx].data_source.data.copy()
+    assert len(data1) == 9
+    assert all([k in data1 for k in [
+        "xs", "ys", "theta", "beta", "pr", "dr", "tr", "tpr", "m2"]])
+    assert len(data1["xs"]) == 100
+    assert d.legend.items[idx].label.value == "M = 5"
+
+    # no error should be raised while triggering an update
+    d.mach_number = 3
+    data2 = d.figure.renderers[idx].data_source.data.copy()
+    assert not np.allclose(data1["xs"], data2["xs"])
+    assert not np.allclose(data1["ys"], data2["ys"])
+    assert d.legend.items[idx].label.value == "M = 3"
+
+    d.include_mirror = True
+    data3 = d.figure.renderers[idx].data_source.data.copy()
+    assert len(data3["xs"]) == 2 * len(data2["xs"]) == 200
+
+    d.N = 20
+    data4 = d.figure.renderers[idx].data_source.data.copy()
+    assert len(data4["xs"]) == 40
+
+
+def test_shock_polar_errors():
+    d = ShockPolarDiagram()
+    assert d.error_log == ""
+
+    d.theta = 45
+    assert "ValueError: For M=5, gamma=1.4" in d.error_log

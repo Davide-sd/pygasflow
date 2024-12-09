@@ -17,7 +17,7 @@ class BasePlot(param.Parameterized):
     figure = param.ClassSelector(class_=figure,
         doc="The Bokeh figure to populate")
 
-    size = param.Tuple((800, 300), length=2, doc="""
+    size = param.Tuple((800, 300), allow_None=True, length=2, doc="""
         Size of the plot, (width, height) in pixel.""")
 
     error_log = param.String("", doc="""
@@ -55,12 +55,13 @@ class BasePlot(param.Parameterized):
 
         if self.figure is None:
             fig_kwargs = {
-                "height": self.size[1],
-                "width": self.size[0],
                 "x_axis_label": self.x_label,
                 "y_axis_label": self.y_label,
                 "title": self.title,
             }
+            if self.size is not None:
+                fig_kwargs["width"] = self.size[0]
+                fig_kwargs["height"] = self.size[1]
             if self.x_range is not None:
                 fig_kwargs["x_range"] = self.x_range
             if self.y_range is not None:
