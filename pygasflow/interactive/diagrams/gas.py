@@ -87,8 +87,10 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
     def __init__(self, **params):
         params.setdefault("x_label", "Mass-specific gas constant, R, [J / (Kg K)]")
         params.setdefault("y_label", "Specific Heats [J / K]")
+        params.setdefault("x_range", None)
         super().__init__(**params)
-        self.update_xlabel()
+        if self.select == 0:
+            self.update_xlabel()
 
     @param.depends(
         "select",
@@ -140,7 +142,7 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
                 tooltips=tooltips,
                 renderers=[line]
             ))
-        self.figure.x_range = Range1d(results[x_key][0], results[x_key][-1])
+        # self.figure.x_range = Range1d(results[x_key][0], results[x_key][-1])
         self.move_legend_outside()
 
     def _update_renderers(self):
@@ -234,7 +236,6 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
         doc="Tooltips used on each line of the plot.",
     )
 
-
     def __init__(self, **params):
         params.setdefault("x_label", "Ratio of specific heats, γ")
         params.setdefault("y_label", "Ratios")
@@ -276,7 +277,6 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
                 tooltips=self.tooltips,
                 renderers=[line]
             ))
-        self.figure.x_range = Range1d(*self.gamma_range)
         self.move_legend_outside()
 
     def _update_renderers(self):

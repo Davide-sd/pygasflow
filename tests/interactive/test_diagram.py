@@ -84,7 +84,7 @@ expected = {
         "title": "",
         "x_label": "Mass-specific gas constant, R, [J / (Kg K)]",
         "y_label": "Specific Heats [J / K]",
-        "x_range": (0, 5000),
+        "x_range": None,
         "y_range": None,
         "size": (800, 300),
     },
@@ -92,7 +92,7 @@ expected = {
         "title": "Sonic condition",
         "x_label": "Ratio of specific heats, γ",
         "y_label": "Ratios",
-        "x_range": (1.05, 2),
+        "x_range": None,
         "y_range": None,
         "size": (800, 300),
     },
@@ -110,7 +110,7 @@ expected = {
         "y_label": "Vy / a*",
         "x_range": None,
         "y_range": None,
-        "size": (600, 600),
+        "size": (600, 350),
     },
 }
 
@@ -156,7 +156,7 @@ def test_instantiation_no_params(DiagramClass):
         assert i1.x_range == expected[DiagramClass]["x_range"]
 
     if DiagramClass in [
-        ObliqueShockDiagram, ConicalShockDiagram, GasDiagram, SonicDiagram
+        ObliqueShockDiagram, ConicalShockDiagram
     ]:
         assert (i1.figure.x_range.start, i1.figure.x_range.end) == expected[DiagramClass]["x_range"]
     else:
