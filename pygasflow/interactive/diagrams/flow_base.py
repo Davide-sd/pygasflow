@@ -93,20 +93,21 @@ class BasePlot(param.Parameterized):
                 f"`location` must be one of the following: {allowed_locations}"
             )
 
-        if self.legend is None:
-            # hide original legend and create a new one outside of the plot area
-            self.figure.legend.visible = False
-            legend_items = self.figure.legend.items.copy()
-            # NOTE: if I don't clear the elements of the original legend,
-            # the hidden legend will still occupy vertical space, which will
-            # make hover tool not working over the region covered by the legend
-            self.figure.legend.items.clear()
-            legend = Legend(items=legend_items)
-            # interactive legend
-            legend.click_policy = "hide"
-            legend.ncols = ncols
-            self.figure.add_layout(legend, location)
-            self.legend = legend
+        if (self.legend is None):
+            if len(self.figure.renderers) > 0:
+                # hide original legend and create a new one outside of the plot area
+                self.figure.legend.visible = False
+                legend_items = self.figure.legend.items.copy()
+                # NOTE: if I don't clear the elements of the original legend,
+                # the hidden legend will still occupy vertical space, which will
+                # make hover tool not working over the region covered by the legend
+                self.figure.legend.items.clear()
+                legend = Legend(items=legend_items)
+                # interactive legend
+                legend.click_policy = "hide"
+                legend.ncols = ncols
+                self.figure.add_layout(legend, location)
+                self.legend = legend
         else:
             for l in allowed_locations:
                 if self.legend in getattr(self.figure, l):

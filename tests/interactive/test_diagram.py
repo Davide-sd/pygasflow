@@ -740,3 +740,24 @@ def test_shock_polar_errors():
 
     d.theta = 45
     assert "ValueError: For M=5, gamma=1.4" in d.error_log
+
+
+def test_isentropic_diagram_select():
+    d = IsentropicDiagram(select=0)
+    assert d.figure.yaxis.axis_label == ["Ratios", "Angles [deg]"]
+    assert len(d.figure.renderers) == 10
+    assert d.legend.items[-2].label.value == "Mach Angle"
+    assert d.legend.items[-1].label.value == "Prandtl-Meyer Angle"
+
+    d = IsentropicDiagram(select=1)
+    assert d.figure.yaxis.axis_label == "Ratios"
+    assert len(d.figure.renderers) == 8
+    legend_items = [t.label.value for t in d.legend.items]
+    assert "Mach Angle" not in legend_items
+    assert "Prandtl-Meyer Angle" not in legend_items
+
+    d = IsentropicDiagram(select=2)
+    assert d.figure.yaxis.axis_label == "Angles [deg]"
+    assert len(d.figure.renderers) == 2
+    assert d.legend.items[0].label.value == "Mach Angle"
+    assert d.legend.items[1].label.value == "Prandtl-Meyer Angle"
