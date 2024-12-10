@@ -34,6 +34,11 @@ future
     forever. On the other hand, this sub-module is part of pygasflow, and it
     will always be readily available should the user needs it.
 
+* Added a new sub-module, ``pygasflow.interactive.diagram``, which provides
+  functionalities to quickly creates diagram related to compressible flows,
+  like isentropic diagram, Fanno diagram, oblique shock diagram, shock polar
+  diagram, etc.
+
 * Added :class:`~pygasflow.shockwave.PressureDeflectionLocus` and
   :class:`~pygasflow.interactive.PressureDeflectionDiagram`
   to easily create pressure-deflection diagrams and compute related
@@ -41,6 +46,9 @@ future
 
 * Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.
+
+* Fixed bug with ``shock_polar`` and propagation of a parameter to other
+  functions.
 
 * Fixed functions that raised *RuntimeWarning: divide by zero encountered
   in divide*.

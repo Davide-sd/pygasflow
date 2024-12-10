@@ -12,6 +12,36 @@ from pygasflow.solvers import gas_solver, sonic_condition
 
 class GasDiagram(BasePlot, pn.viewable.Viewer):
     """Plot the relationships Cp=f(gamma, R) and Cv=f(gamma, R).
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 800,550
+
+        from pygasflow.interactive.diagrams import GasDiagram
+        GasDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 800,350
+
+        from pygasflow.interactive.diagrams import GasDiagram
+        from bokeh.plotting import show
+        d = GasDiagram(select=0, gamma_range=(1.2, 1.8), R=400)
+        show(d.figure)
+
+    .. panel-screenshot::
+        :large-size: 800,350
+
+        from pygasflow.interactive.diagrams import GasDiagram
+        from bokeh.plotting import show
+        d = GasDiagram(select=1, R_range=(0, 2000), gamma=1.8)
+        show(d.figure)
+
     """
 
     select = param.Selector(
@@ -20,6 +50,7 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
             "gamma - specific heats": 0,
             "R - specific heats": 1,
         },
+        doc="Chose which diagram to show.",
         default=1
     )
 
@@ -56,9 +87,8 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
     def __init__(self, **params):
         params.setdefault("x_label", "Mass-specific gas constant, R, [J / (Kg K)]")
         params.setdefault("y_label", "Specific Heats [J / K]")
-        params.setdefault("title", "")
-        params.setdefault("x_range", self.R_range)
         super().__init__(**params)
+        self.update_xlabel()
 
     @param.depends(
         "select",
@@ -110,7 +140,7 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
                 tooltips=tooltips,
                 renderers=[line]
             ))
-
+        self.figure.x_range = Range1d(results[x_key][0], results[x_key][-1])
         self.move_legend_outside()
 
     def _update_renderers(self):
@@ -163,6 +193,28 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
 class SonicDiagram(BasePlot, pn.viewable.Viewer):
     """Plot the sonic conditions T0/T*=f(gamma), a0/a*=f(gamma),
     p0/p*=f(gamma), rho0/rhoT*=f(gamma).
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 800,375
+
+        from pygasflow.interactive.diagrams import SonicDiagram
+        SonicDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 800,300
+
+        from pygasflow.interactive.diagrams import SonicDiagram
+        from bokeh.plotting import show
+        d = SonicDiagram(gamma_range=(1.2, 1.8))
+        show(d.figure)
+
     """
 
     gamma_range = param.Range((1.05, 2), bounds=(1, 2),
@@ -187,7 +239,6 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
         params.setdefault("x_label", "Ratio of specific heats, γ")
         params.setdefault("y_label", "Ratios")
         params.setdefault("title", "Sonic condition")
-        params.setdefault("x_range", self.gamma_range)
         params.setdefault("N", 10)
         super().__init__(**params)
 
@@ -225,7 +276,7 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
                 tooltips=self.tooltips,
                 renderers=[line]
             ))
-
+        self.figure.x_range = Range1d(*self.gamma_range)
         self.move_legend_outside()
 
     def _update_renderers(self):
@@ -246,7 +297,6 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
     def _plot_widgets(self):
         return [
             self.param.gamma_range,
-            self.param.N
         ]
 
     def __panel__(self):

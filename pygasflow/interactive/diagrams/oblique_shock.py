@@ -10,6 +10,35 @@ from pygasflow.shockwave import (
 class ObliqueShockDiagram(ShockCommon):
     """Interactive component to create a diagram for the properties of the
     flow as it crosses an oblique shock wave.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 700,650
+
+        from pygasflow.interactive.diagrams import ObliqueShockDiagram
+        ObliqueShockDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 700,450
+
+        from pygasflow.interactive.diagrams import ObliqueShockDiagram
+        from bokeh.plotting import show
+        d = ObliqueShockDiagram(
+            upstream_mach=[1.1, 1.35, 1.75, 2.25, 3.5, 6, 1e06],
+            gamma=1.2,
+            show_region_line=False,
+            show_sonic_line=False,
+            show_minor_grid=True,
+            title="Oblique Shock Properties for γ=1.2"
+        )
+        show(d.figure)
+
     """
 
     def __init__(self, **params):

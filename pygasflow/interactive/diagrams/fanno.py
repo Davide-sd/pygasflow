@@ -8,6 +8,28 @@ from pygasflow.solvers import fanno_solver
 class FannoDiagram(FlowCommon):
     """Interactive component to create a diagram for the Fanno flow,
     ie the 1D flow with head addition.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 800,500
+
+        from pygasflow.interactive.diagrams import FannoDiagram
+        FannoDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 600,350
+
+        from pygasflow.interactive.diagrams import FannoDiagram
+        from bokeh.plotting import show
+        d = FannoDiagram(mach_range=(0, 3), gamma=1.2, size=(600, 350))
+        show(d.figure)
+
     """
 
     def __init__(self, **params):

@@ -13,7 +13,7 @@ from pygasflow.interactive.diagrams.shock_polar import ShockPolarDiagram
 
 
 def diagram(select="isentropic", interactive=False, show=True, **params):
-    """Create the selected diagram.
+    """Create the selected diagram and show it on the screen.
 
     Parameters
     ----------
@@ -33,18 +33,20 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
     Returns
     -------
     diagram : :class:`~panel.layout.Column` or :class:`~bokeh.plotting.figure`
-        If ``interactive=True``, a panel's :class:`~panel.layout.Column` object
-        will be returned, containing the widgets and the figure. It will be
-        automatically rendered on Jupyter Notebook/Lab. If the interpreter
-        is unable to render it, execute the ``.show()`` method on the returned
-        object.
-        If ``interactive=False, show=True``, a panel's
-        :class:`~panel.pane.Bokeh` object will be returned, containing
-        the figure only. It will be automatically rendered on Jupyter
-        Notebook/Lab. If the interpreter is unable to render it, execute the
-        ``.show()`` method on the returned object.
-        If ``interactive=False, show=False`` it returns the Diagram
-        object, which can be used for further customizations.
+
+        * If ``interactive=True``, a panel's :class:`~panel.layout.Column`
+          object will be returned, containing the widgets and the figure.
+          It will be automatically rendered on Jupyter Notebook/Lab.
+          If the interpreter is unable to render it, execute the ``.show()``
+          method on the returned object.
+        * If ``interactive=False, show=True``, a panel's
+          :class:`~panel.pane.Bokeh` object will be returned, containing
+          the figure only. It will be automatically rendered on Jupyter
+          Notebook/Lab. If the interpreter is unable to render it, execute the
+          ``.show()`` method on the returned object.
+        * If ``interactive=False, show=False`` it returns the Diagram
+          object, which can be used for further customizations, like setting
+          attributes, moving the legend around, etc.
 
     Examples
     --------
@@ -60,6 +62,7 @@ def diagram(select="isentropic", interactive=False, show=True, **params):
     Visualize an interactive application about the isentropic relations:
 
     .. panel-screenshot::
+        :large-size: 800,500
 
         from pygasflow.interactive import diagram
         diagram("isentropic", interactive=True)

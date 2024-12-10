@@ -56,11 +56,23 @@ class ShockPolarDiagram(CommonParameters, BasePlot, pn.viewable.Viewer):
     Examples
     --------
 
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 600,525
+
+        from pygasflow.interactive.diagrams import ShockPolarDiagram
+        ShockPolarDiagram(mach_number=3, gamma=1.2, theta=10)
+
+    Set custom values to parameters and only show the figure:
+
     .. panel-screenshot::
         :large-size: 600,350
 
         from pygasflow.interactive.diagrams import ShockPolarDiagram
-        ShockPolarDiagram(mach_number=3, gamma=1.2, theta=10)
+        from bokeh.plotting import show
+        d = ShockPolarDiagram(mach_number=4, gamma=1.4, theta=30)
+        show(d.figure)
 
     """
     show_mach_at_infinity = param.Boolean(False,

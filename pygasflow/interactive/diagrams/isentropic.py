@@ -8,6 +8,28 @@ from pygasflow.solvers import isentropic_solver
 
 class IsentropicDiagram(FlowCommon):
     """Interactive component to create a diagram for the isentropic flow.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 800,500
+
+        from pygasflow.interactive.diagrams import IsentropicDiagram
+        IsentropicDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 600,350
+
+        from pygasflow.interactive.diagrams import IsentropicDiagram
+        from bokeh.plotting import show
+        d = IsentropicDiagram(mach_range=(0, 3), gamma=1.2, size=(600, 350))
+        show(d.figure)
+
     """
 
     y_label_right = param.String("Angles [deg]", label="Y Label right:")

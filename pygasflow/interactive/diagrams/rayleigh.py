@@ -8,6 +8,28 @@ from pygasflow.solvers import rayleigh_solver
 class RayleighDiagram(FlowCommon):
     """Interactive component to create a diagram for the Rayleigh flow,
     ie the 1D flow with friction.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 800,500
+
+        from pygasflow.interactive.diagrams import RayleighDiagram
+        RayleighDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 600,350
+
+        from pygasflow.interactive.diagrams import RayleighDiagram
+        from bokeh.plotting import show
+        d = RayleighDiagram(mach_range=(0, 3), gamma=1.2, size=(600, 350))
+        show(d.figure)
+
     """
 
     def __init__(self, **params):

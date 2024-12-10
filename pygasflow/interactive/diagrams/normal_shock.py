@@ -9,6 +9,29 @@ from pygasflow.solvers import normal_shockwave_solver
 class NormalShockDiagram(FlowCommon):
     """Interactive component to create a diagram for the properties of the
     flow as it crosses a normal shock wave.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 700,600
+
+        from pygasflow.interactive.diagrams import NormalShockDiagram
+        NormalShockDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 600,350
+
+        from pygasflow.interactive.diagrams import NormalShockDiagram
+        from bokeh.plotting import show
+        d = NormalShockDiagram(
+            mach_range=(1, 3), gamma=1.2, size=(600, 350), y_range=(0, 1.05))
+        show(d.figure)
+
     """
 
     mach_range = param.Range((1, 8), bounds=(1, 25),

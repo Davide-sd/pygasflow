@@ -12,6 +12,35 @@ class ConicalShockDiagram(ShockCommon):
     """Interactive component to create a diagram for the properties of the
     axisymmetric supersonic flow over a sharp cone at zero angle of attack
     to the free stream.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 700,650
+
+        from pygasflow.interactive.diagrams import ConicalShockDiagram
+        ConicalShockDiagram()
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 700,450
+
+        from pygasflow.interactive.diagrams import ConicalShockDiagram
+        from bokeh.plotting import show
+        d = ConicalShockDiagram(
+            upstream_mach=[1.1, 1.35, 1.75, 2.25, 3.5, 6, 1e06],
+            gamma=1.2,
+            show_region_line=False,
+            show_sonic_line=False,
+            show_minor_grid=True,
+            title="Conical Shock Properties for γ=1.2"
+        )
+        show(d.figure)
+
     """
 
     def __init__(self, **params):

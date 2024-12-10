@@ -16,13 +16,39 @@ from pygasflow.interactive.diagrams.flow_base import BasePlot
 
 class NozzleDiagram(BasePlot, pn.viewable.Viewer):
     """Draw a representation of a nozzle.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 600,600
+
+        from pygasflow.interactive.diagrams import NozzleDiagram
+        from pygasflow.nozzles import CD_TOP_Nozzle
+        nozzle = CD_TOP_Nozzle(Ri=0.2, Rt=0.1, Re=0.6, K=0.8)
+        NozzleDiagram(nozzle=nozzle, show_full_nozzle=True)
+
+    Set custom values to parameters and only show the figure:
+
+    .. panel-screenshot::
+        :large-size: 600,250
+
+        from bokeh.plotting import show
+        from pygasflow.interactive.diagrams import NozzleDiagram
+        from pygasflow.nozzles import CD_Min_Length_Nozzle
+        nozzle = CD_Min_Length_Nozzle(Ri=0.3, Rt=0.2, Re=0.6)
+        d = NozzleDiagram(nozzle=nozzle, show_characteristic_lines=True)
+        show(d.figure)
+
     """
     # NOTE: it would be nice to have a class able to accept multiple
     # nozzles, then user would chose the nozzle to be drawn with a
     # dropdown. At the time of writing this, this is a PITA, because
     # while it's possible to dinamically edit a param.Selector, the
     # edits don't get updated in the respecting pn.widgets.Select.
-    # So, design choice: this class only plots a single diagram.
+    # So, design choice: this class only plots a single nozzle.
 
     nozzle = param.ClassSelector(
         class_=Nozzle_Geometry,
@@ -31,7 +57,7 @@ class NozzleDiagram(BasePlot, pn.viewable.Viewer):
     show_area_ratio = param.Boolean(
         default=False,
         label="Show A/A*",
-        doc="If True, show A/A* otherwise shows the radius")
+        doc="If True show A/A*, otherwise shows the radius")
 
     show_full_nozzle = param.Boolean(
         default=False,

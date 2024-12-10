@@ -13,7 +13,27 @@ Diagrams
 
 .. automodule:: pygasflow.interactive.diagrams
 .. autofunction:: diagram
+.. autoclass:: IsentropicDiagram
+   :members:
+.. autoclass:: FannoDiagram
+   :members:
+.. autoclass:: RayleighDiagram
+   :members:
+.. autoclass:: NormalShockDiagram
+   :members:
+.. autoclass:: ObliqueShockDiagram
+   :members:
+.. autoclass:: ConicalShockDiagram
+   :members:
 .. autoclass:: ShockPolarDiagram
    :members:
 .. autoclass:: PressureDeflectionDiagram
+   :members:
+.. autoclass:: GasDiagram
+   :members:
+.. autoclass:: SonicDiagram
+   :members:
+.. autoclass:: NozzleDiagram
+   :members:
+.. autoclass:: DeLavalDiagram
    :members:

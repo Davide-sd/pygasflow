@@ -14,6 +14,46 @@ import itertools
 class DeLavalDiagram(BasePlot, pn.viewable.Viewer):
     """Plot M, P/P0, T/T0, rho/rho0 along the length of a convergent-divergent
     nozzle.
+
+    Examples
+    --------
+
+    Show an interactive application:
+
+    .. panel-screenshot::
+        :large-size: 700,850
+
+        from pygasflow.interactive.diagrams import DeLavalDiagram
+        from pygasflow.nozzles import CD_TOP_Nozzle
+        from pygasflow.solvers import De_Laval_Solver
+        nozzle = CD_TOP_Nozzle(Ri=0.2, Rt=0.1, Re=0.6, K=0.8)
+        solver = De_Laval_Solver(
+            gamma=1.4, R=287.05, T0=500, P0=101325,
+            Pb_P0_ratio=0.2, nozzle=nozzle
+        )
+        DeLavalDiagram(solver=solver)
+
+    Only show the figure the solutions along the length of the nozzle:
+
+    .. panel-screenshot::
+        :large-size: 700,250
+
+        from bokeh.plotting import show
+        from pygasflow.interactive.diagrams import DeLavalDiagram
+        from pygasflow.nozzles import CD_TOP_Nozzle
+        from pygasflow.solvers import De_Laval_Solver
+        nozzle = CD_TOP_Nozzle(Ri=0.2, Rt=0.1, Re=0.6, K=0.8)
+        solver = De_Laval_Solver(
+            gamma=1.4, R=287.05, T0=500, P0=101325,
+            Pb_P0_ratio=0.2, nozzle=nozzle
+        )
+        d = DeLavalDiagram(
+            solver=solver,
+            show_nozzle=False,
+            title="Flow in a Thrust Optimized Parabolic nozzle."
+        )
+        show(d.figure)
+
     """
 
     solver = param.ClassSelector(
