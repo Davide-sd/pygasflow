@@ -29,7 +29,8 @@ from pygasflow.shockwave import (
     PressureDeflectionLocus,
     max_theta_from_mach,
     shock_polar_equation,
-    shock_polar
+    shock_polar,
+    beta_theta_max_for_unit_mach_downstream
 )
 from tempfile import TemporaryDirectory
 from numbers import Number
@@ -1000,3 +1001,62 @@ def test_shock_polar():
 
     Vx_as, Vy_as = shock_polar(M1, gamma, include_mirror=True, N=50)
     assert len(Vx_as) == len(Vy_as) == 100
+
+
+class Test_beta_theta_max_for_unit_mach_downstream:
+    @pytest.mark.parametrize("gamma", [1+1e-05, 1+1e-03, 1.1, 1.4, 2])
+    def test_unit_upstream_mach(self, gamma):
+        b, t = beta_theta_max_for_unit_mach_downstream(1, gamma)
+        assert isinstance(b, Number)
+        assert isinstance(t, Number)
+        assert np.isclose(b, 90)
+        assert np.isclose(t, 0)
+
+    @pytest.mark.parametrize("gamma, expected_beta, expected_theta", [
+        (
+            1 + 1e-05,
+            [73.40706182, 63.92652624, 65.56716295, 71.86217534, 78.71253601,
+                84.28872169, 88.84710342, 89.41291498, 89.85965519, 89.87188325],
+            [1.85846746, 16.00735509, 32.25617092, 51.32787522, 66.94414137,
+                78.51941942, 87.69374538, 88.82577125, 89.71931026, 89.74376653]
+        ),
+        (
+            1 + 1e-03,
+            [73.40676156, 63.92193594, 65.55335387, 71.82959956, 78.64767961,
+                84.15156648, 88.28207186, 88.59717696, 88.71808132, 88.7193609],
+            [1.85742536, 15.99453105, 32.22318508, 51.25815935, 66.81159448,
+                78.24370602, 86.56345599, 87.19421359, 87.43616137, 87.4387218]
+        ),
+        (
+            1.1,
+            [73.3783383 , 63.4981278 , 64.3116682 , 69.04591853, 73.74360285,
+                76.56380691, 77.64260708, 77.67814023, 77.68989256, 77.69001134],
+            [1.75881645, 14.81068128, 29.25439142, 45.29498822, 56.78496857,
+                62.98902769, 65.28019062, 65.35502876, 65.37977261, 65.38002267]
+        ),
+        (
+            1.4,
+            [73.30801228, 62.53191731, 61.69290199, 63.82469504, 66.0919319 ,
+               67.33559104, 67.7736509 , 67.78766864, 67.79229892, 67.7923457],
+            [ 1.51516572, 12.11266889, 22.97353176, 34.07343978, 41.1176631 ,
+                44.42901938, 45.53793219, 45.57299736, 45.58457445, 45.5846914]
+        ),
+        (
+            2,
+            [73.21296438, 61.38072672, 58.8753591 , 58.78950118, 59.42142646,
+                59.83982763, 59.99339243, 59.99834654, 59.99998346, 60.],
+            [ 1.18660439,  8.89920691, 16.18170643, 23.19264155, 27.42418552,
+                29.34281595, 29.97354327, 29.99338449, 29.99993384, 30.]
+        )
+    ])
+    def test_low_values_of_gamma(self, gamma, expected_beta, expected_theta):
+        M1 = [1.1, 1.5, 2, 3, 5, 10, 50, 100, 1000, 1000000000.0]
+        b, t = beta_theta_max_for_unit_mach_downstream(M1, gamma)
+        assert np.allclose(b, expected_beta)
+        assert np.allclose(t, expected_theta)
+
+
+    # N = 100
+    # M1 = np.logspace(0, 3, 5 * N)
+
+    # gamma = 1 + 1e-05

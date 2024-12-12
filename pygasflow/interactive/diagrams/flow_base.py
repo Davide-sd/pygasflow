@@ -151,7 +151,7 @@ class BasePlot(param.Parameterized):
 
 
 class CommonParameters(param.Parameterized):
-    gamma = param.Number(1.4, bounds=(1, 2),
+    gamma = param.Number(1.4, bounds=(1, None), softbounds=(1, 2),
         inclusive_bounds=(False, True),
         step=0.05,
         label="Ratio of specific heats, γ",

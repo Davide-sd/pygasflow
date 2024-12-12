@@ -1,6 +1,6 @@
 import numpy as np
 import param
-from scipy.optimize import bisect, minimize_scalar
+from scipy.optimize import bisect, minimize_scalar, fsolve
 from scipy.integrate import solve_ivp
 
 from pygasflow.utils.common import ret_correct_vals
@@ -842,19 +842,37 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
         The maximum deflection angle in degrees corresponding to M2 = 1.
     """
 
-    def func(b, M, t):
-        return ((1 + (gamma - 1) / 2 * (M * np.sin(b))**2) / (gamma * (M * np.sin(b))**2 - (gamma - 1) / 2)) - np.sin(b - t)**2
+    # Start with the equation to compute M2 from M1 (normal shock case).
+    # In oblique shock, this relation is still valid for normal machs.
+    # Remember that Mn1 = M1 sin(beta) and Mn2 = M2 sin(beta - theta).
+    # Sustitute them into the aformentioned equation, and remember that
+    # M2 = 1. This is what you are going to get.
+    # NOTE: in the practical range of interest (1 < gamma < 2) and for M1 > 1,
+    # this function has from 2 to 4 zeros (inside the range 0 <= beta <= 90).
+    # We are interested in the closest zero to 90 deg, which is progressevely
+    # harder to compute as gamma -> 0 and M1 -> inf.
+    def func(b, M, t, g):
+        return ((1 + (g - 1) / 2 * (M * np.sin(b))**2) / (g * (M * np.sin(b))**2 - (g - 1) / 2)) - np.sin(b - t)**2
 
-    theta_max = np.deg2rad(max_theta_from_mach.__no_check__(M1, gamma))
-
+    theta_max = np.atleast_1d(
+        np.deg2rad(max_theta_from_mach.__no_check__(M1, gamma)))
     if M1.shape:
         beta = np.zeros_like(M1)
         for i, (m, t) in enumerate(zip(M1, theta_max)):
-            a = np.arcsin(1 / m)
+            if np.isclose(m, 1):
+                beta[i] = np.pi / 2
+                continue
+            # a = np.arcsin(1 / m)
             b = np.deg2rad(beta_from_mach_max_theta.__no_check__(m, gamma))
+            # TODO: I'm using fsolve over the entire gamma/mach range. It works
+            # fine but it is slow. For gamma>1.1 I believe it is possible to
+            # find a suitable interval where to run bisection, which is faster.
             try:
-                beta[i] = bisect(func, a, b, args=(m, t))
-            except ValueError:
+                # beta[i] = bisect(func, a, b, args=(m, t, gamma))
+                # this initial guess appears to work well over a wide range of
+                # gamma/mach
+                beta[i] = fsolve(func, x0=b + (np.pi/2 - b) / 2, args=(m, t, gamma))
+            except ValueError as err:
                 beta[i] = np.nan
         return np.rad2deg(beta), np.rad2deg(theta_max)
 
