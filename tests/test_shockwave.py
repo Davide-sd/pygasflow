@@ -30,7 +30,8 @@ from pygasflow.shockwave import (
     max_theta_from_mach,
     shock_polar_equation,
     shock_polar,
-    beta_theta_max_for_unit_mach_downstream
+    beta_theta_max_for_unit_mach_downstream,
+    beta_theta_c_for_unit_mach_downstream
 )
 from tempfile import TemporaryDirectory
 from numbers import Number
@@ -1049,14 +1050,121 @@ class Test_beta_theta_max_for_unit_mach_downstream:
                 29.34281595, 29.97354327, 29.99338449, 29.99993384, 30.]
         )
     ])
-    def test_low_values_of_gamma(self, gamma, expected_beta, expected_theta):
+    def test_gamma(self, gamma, expected_beta, expected_theta):
         M1 = [1.1, 1.5, 2, 3, 5, 10, 50, 100, 1000, 1000000000.0]
         b, t = beta_theta_max_for_unit_mach_downstream(M1, gamma)
         assert np.allclose(b, expected_beta)
         assert np.allclose(t, expected_theta)
 
+    @pytest.mark.parametrize("gamma, expected_beta, expected_theta", [
+        (
+            1+1e-05,
+            [90.        , 89.42709249, 88.18973789, 84.32049763],
+            [1.97247265e-06, 6.23717873e-05, 1.97133384e-03, 6.20119214e-02]
+        ),
+        (
+            1+1e-04,
+            [90.        , 89.42709249, 88.18973787, 84.32049686],
+            [1.97238389e-06, 6.23689803e-05, 1.97124502e-03, 6.20090937e-02]
+        ),
+        (
+            1+1e-03,
+            [90.        , 89.42709248, 88.18973763, 84.32048917],
+            [1.97149675e-06, 6.23409246e-05, 1.97035722e-03, 6.19808317e-02]
+        ),
+        (
+            1+1e-02,
+            [90.        , 89.42709241, 88.18973524, 84.32041265],
+            [1.96266904e-06, 6.20617491e-05, 1.96152302e-03, 6.16996221e-02]
+        ),
+    ])
+    def test_low_mach_numbers_low_gammas(
+        self, gamma, expected_beta, expected_theta
+    ):
+        M1 = [1+1e-05, 1+1e-04, 1+1e-03, 1.01]
+        b, t = beta_theta_max_for_unit_mach_downstream(M1, gamma)
+        assert np.allclose(b, expected_beta)
+        assert np.allclose(t, expected_theta)
 
-    # N = 100
-    # M1 = np.logspace(0, 3, 5 * N)
 
-    # gamma = 1 + 1e-05
+class Test_beta_theta_c_for_unit_mach_downstream:
+    @pytest.mark.parametrize("gamma", [1+1e-05, 1+1e-03, 1.1, 1.4, 2])
+    def test_unit_upstream_mach(self, gamma):
+        b, t = beta_theta_c_for_unit_mach_downstream(1, gamma)
+        assert isinstance(b, Number)
+        assert isinstance(t, Number)
+        assert np.isclose(b, 90)
+        assert np.isclose(t, 0)
+
+    @pytest.mark.parametrize("gamma, expected_beta, expected_theta", [
+        (
+            1 + 1e-05,
+            [73.33568019, 63.5703523 , 65.32302086, 71.81129717, 78.70809338,
+                84.28857923, 88.84710337, 89.41291499, 89.85965521, 89.87188328],
+            [14.91490426, 33.51142025, 46.8052855 , 61.14084513, 72.75046478,
+                81.39537235, 88.27035619, 89.11933413, 89.78948262, 89.80782482]
+        ),
+        (
+            1 + 1e-03,
+            [73.33542133, 63.5660194 , 65.30929301, 71.77866314, 78.64321346,
+                84.15142065, 88.28207179, 88.59717695, 88.71808133, 88.7193609],
+            [14.91102672, 33.49803714, 46.77800499, 61.08724595, 72.65042011,
+                81.18829549, 87.4225385 , 87.89557266, 88.0770278 , 88.07894808]
+        ),
+        (
+            1.1,
+            [73.31090841, 63.16626139, 64.07633017, 68.99076775, 73.73748484,
+                76.56348366, 77.6426066 , 77.6781402 , 77.68989256, 77.69001134],
+            [14.53796586, 32.24136001, 44.29017356, 56.46024026, 65.02644011,
+                69.65835236, 71.37271021, 71.42874685, 71.44727489, 71.44746213]
+        ),
+        (
+            1.4,
+            [73.25018825, 62.25682634, 61.48537164, 63.76660294, 66.08399728,
+                67.33509986, 67.77365012, 67.78766859, 67.79229892, 67.7923457],
+            [13.56046129, 29.19088281, 38.76391346, 47.43563417, 52.75239581,
+                55.2344517 , 56.06480654, 56.09106073, 56.09972877, 56.09981634]
+        ),
+        (
+            2,
+            [73.16796426, 61.17622428, 58.71234448, 58.73683092, 59.41325286,
+                59.83928575, 59.99339155, 59.99834648, 59.99998346, 60.],
+            [12.0859751 , 25.09107788, 32.16239666, 37.97708512, 41.27967915,
+                42.74678107, 43.22595653, 43.24100795, 43.24597594, 43.24602613]
+        )
+    ])
+    def test_gamma(self, gamma, expected_beta, expected_theta):
+        M1 = [1.1, 1.5, 2, 3, 5, 10, 50, 100, 1000, 1000000000.0]
+        b, t = beta_theta_c_for_unit_mach_downstream(M1, gamma)
+        assert np.allclose(b, expected_beta)
+        assert np.allclose(t, expected_theta)
+
+    @pytest.mark.parametrize("gamma, expected_beta, expected_theta", [
+        (
+            1+1e-05,
+            [90.        , 89.42708995, 88.18965765, 84.31798341],
+            [0.        , 0.48779034, 1.53794607, 4.81421665]
+        ),
+        (
+            1+1e-04,
+            [90.        , 89.42708995, 88.18965763, 84.31798275],
+            [0.        , 0.48743173, 1.53786795, 4.81410516]
+        ),
+        (
+            1+1e-03,
+            [90.        , 89.42708994, 88.18965743, 84.31797621],
+            [0.        , 0.48720442, 1.53751244, 4.81303127]
+        ),
+        (
+            1+1e-02,
+            [90.        , 89.42708988, 88.1896554 , 84.31791115],
+            [0.        , 0.48606956, 1.534073  , 4.80237455]
+        ),
+    ])
+    def test_low_mach_numbers_low_gammas(
+        self, gamma, expected_beta, expected_theta
+    ):
+        M1 = [1+1e-05, 1+1e-04, 1+1e-03, 1.01]
+        b, t = beta_theta_c_for_unit_mach_downstream(M1, gamma)
+        assert np.allclose(b, expected_beta)
+        assert np.allclose(t, expected_theta)

@@ -819,7 +819,8 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     """
     Compute the shock maximum deflection angle, theta_max, as well as the
     wave angle beta corresponding to the unitary downstream Mach
-    number, M2 = 1.
+    number, M2 = 1. This function is useful to compute the location of the
+    sonic line.
 
     Notes
     -----
@@ -1971,8 +1972,9 @@ def max_theta_c_from_mach(M1, gamma=1.4):
 
 @check_shockwave
 def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
-    """ Given an upstream Mach number, compute the point (beta, theta_c)
-    where the downstream Mach number is sonic.
+    """Given an upstream Mach number, compute the point (beta, theta_c)
+    where the downstream Mach number is sonic. This function is useful to
+    compute the location of the sonic line.
 
     **WARNING:** this procedure is really slow!
 
@@ -1986,11 +1988,12 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
 
     Returns
     -------
-    theta_c : ndarray
-        Cone angle theta_c in degrees.
     beta : ndarray
         Shockwave angle corresponding in degrees.
+    theta_c : ndarray
+        Cone angle theta_c in degrees.
     """
+    # TODO: can this be done faster?
     def function(M1):
         def func(theta_c):
             Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag="weak")
@@ -1998,12 +2001,15 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
             MN2 = mach_downstream(MN1, gamma)
             # delta is the flow deflection angle (Anderson's Figure 10.4)
             delta = theta_from_mach_beta(M1, beta, gamma)
-            M2 = MN2 /  np.sin(np.deg2rad(beta - delta))
+            M2 = MN2 / np.sin(np.deg2rad(beta - delta))
             return M2 - 1
+
+        if np.isclose(M1, 1):
+            return 90, 0
+
         # theta_c search interval
-        # TODO: is a=1 reasonable for very low M1???
-        a = 1
         b = max_theta_c_from_mach(M1, gamma)[1]
+        a = b / 2
         theta_c = bisect(func, a, b)
         Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag="weak")
         return beta, theta_c
@@ -2012,9 +2018,10 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
         theta_c = np.zeros_like(M1)
         beta = np.zeros_like(M1)
         for i, m in enumerate(M1):
-            theta_c, beta = function(m)
-        return theta_c, beta
+            beta[i], theta_c[i] = function(m)
+        return beta, theta_c
     return function(M1)
+
 
 def load_data(gamma=1.4):
     """ The :func:`beta_theta_c_for_unit_mach_downstream` function is really

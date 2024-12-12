@@ -44,6 +44,10 @@ future
   to easily create pressure-deflection diagrams and compute related
   quantities.
 
+* Improved reliability of
+  :func:`~pygasflow.shockwave.beta_theta_max_for_unit_mach_downstream` and
+  :func:`~pygasflow.shockwave.beta_theta_c_for_unit_mach_downstream`.
+
 * Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.
 
