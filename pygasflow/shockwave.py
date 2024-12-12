@@ -824,8 +824,9 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
 
     Notes
     -----
-    This function relies on root-finding algorithms. If a root can't be found,
-    np.nan will be used as the result.
+    * This function relies on root-finding algorithms. If a root can't be
+      found, np.nan will be used as the result.
+    * An alias of this function is ``sonic_line_oblique_shock``.
 
     Parameters
     ----------
@@ -884,6 +885,10 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     except ValueError:
         res = np.nan
     return res, np.rad2deg(theta_max)
+
+
+sonic_line_oblique_shock = beta_theta_max_for_unit_mach_downstream
+
 
 @check_shockwave([0, 1])
 def mach_from_theta_beta(theta, beta, gamma=1.4):
@@ -1978,6 +1983,10 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
 
     **WARNING:** this procedure is really slow!
 
+    Notes
+    -----
+    An alias of this function is ``sonic_line_conical_shock``.
+
     Parameters
     ----------
     M1 : array_like
@@ -2021,6 +2030,9 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
             beta[i], theta_c[i] = function(m)
         return beta, theta_c
     return function(M1)
+
+
+sonic_line_conical_shock = beta_theta_c_for_unit_mach_downstream
 
 
 def load_data(gamma=1.4):
