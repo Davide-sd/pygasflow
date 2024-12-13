@@ -318,14 +318,14 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
     >>> Ri, Re, Rt = 0.4, 1.2, 0.2
     >>> nozzle = CD_Conical_Nozzle(Ri, Re, Rt, theta_c=30, theta_N=25)
     >>> nozzle.length
-    np.float64(2.5666763867738522)
+    np.float64(2.53988146753074)
 
     Change the angle of the divergent section and retrieve the new length
     of the nozzle:
 
     >>> nozzle.theta_N = 60
     >>> nozzle.length
-    np.float64(1.0350852961085883)
+    np.float64(1.0082903768654763)
 
     Visualize the nozzle:
 
@@ -366,14 +366,14 @@ class CD_Min_Length_Nozzle(Nozzle_Geometry):
         points lying on the same left-running characteristic.""")
 
     def __init__(
-        self, Ri=0.4, Re=1.2, Rt=0.2, Rj=0.1, R0=0.1, theta_c=40,
+        self, Ri=0.4, Re=1.2, Rt=0.2, Rj=0.1, R0=0, theta_c=40,
         n_lines=10, gamma=1.4, **params
     ):
         params.setdefault("title", "MOC Nozzle")
         params["geometry_type"] = "planar"
         super().__init__(
             Ri, Re, Rt, theta_c=theta_c, n_lines=n_lines,
-            gamma=gamma, **params
+            gamma=gamma, R0=R0, **params
         )
 
     @param.depends(

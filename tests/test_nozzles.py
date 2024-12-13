@@ -14,15 +14,15 @@ def test_rao_loading_data():
 
 
 @pytest.mark.parametrize("NozzleClass, Lc, Ld", [
-    (CD_Conical_Nozzle, 0.31114476537208247, 3.7452160573276165),
-    (CD_TOP_Nozzle, 0.383938812225323, 2.993687246707643)
+    (CD_Conical_Nozzle, 0.27474774194546225, 3.7452160573276165),
+    (CD_TOP_Nozzle, 0.3475417887987028, 2.993687246707643)
 ])
 def test_defaults(NozzleClass, Lc, Ld):
     n = NozzleClass()
     assert np.isclose(n.inlet_radius, 0.4)
     assert np.isclose(n.outlet_radius, 1.2)
     assert np.isclose(n.throat_radius, 0.2)
-    assert np.isclose(n.junction_radius_0, 0.1)
+    assert np.isclose(n.junction_radius_0, 0)
     assert np.isclose(n.junction_radius_j, 0.1)
     assert np.isclose(n.theta_c, 40)
     if NozzleClass is CD_Conical_Nozzle:

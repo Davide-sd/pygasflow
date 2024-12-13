@@ -19,14 +19,14 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
     >>> Ri, Re, Rt = 0.4, 1.2, 0.2
     >>> nozzle = CD_Conical_Nozzle(Ri, Re, Rt, theta_c=30, theta_N=25)
     >>> nozzle.length
-    np.float64(2.5666763867738522)
+    np.float64(2.53988146753074)
 
     Change the angle of the divergent section and retrieve the new length
     of the nozzle:
 
     >>> nozzle.theta_N = 60
     >>> nozzle.length
-    np.float64(1.0350852961085883)
+    np.float64(1.0082903768654763)
 
     Visualize the nozzle:
 
@@ -49,7 +49,7 @@ class CD_Conical_Nozzle(Nozzle_Geometry):
     ]
 
     def __init__(
-        self, Ri=0.4, Re=1.2, Rt=0.2, Rj=0.1, R0=0.1,
+        self, Ri=0.4, Re=1.2, Rt=0.2, Rj=0.1, R0=0,
         theta_c=40, theta_N=15, **params
     ):
         params.setdefault("title", "Conical Nozzle")

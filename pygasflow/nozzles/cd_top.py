@@ -62,13 +62,13 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
     >>> Ri, Rt = 0.4, 0.2
     >>> nozzle = CD_TOP_Nozzle(Ri, Rt, theta_c=30, K=0.9)
     >>> nozzle.length
-    np.float64(3.821487991032325)
+    np.float64(3.7946930717892124)
 
     Change the fractional length of the nozzle and retrieve the new length:
 
     >>> nozzle.fractional_length = 0.7
     >>> nozzle.length
-    np.float64(3.073066179355414)
+    np.float64(3.0462712601123014)
 
     Visualize the nozzle:
 
@@ -90,7 +90,7 @@ class CD_TOP_Nozzle(Nozzle_Geometry):
         "shockwave_location"
     ]
 
-    def __init__(self, Ri=0.4, Rt=0.2, R0=0.1, theta_c=40, K=0.8, **params):
+    def __init__(self, Ri=0.4, Rt=0.2, R0=0, theta_c=40, K=0.8, **params):
         params.setdefault("title", "TOP Nozzle")
         Re = params.pop("Re", 6*Rt)
         super().__init__(

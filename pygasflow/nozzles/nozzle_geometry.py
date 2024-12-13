@@ -30,7 +30,7 @@ class Nozzle_Geometry(param.Parameterized):
             Radius of the junction between convergent and divergent.
             Alias ``Rj`` in the constructor.""")
     junction_radius_0 = param.Number(
-        default=0.1, bounds=(0, None), softbounds=(0, 0.5), step=0.01,
+        default=0, bounds=(0, None), softbounds=(0, 0.5), step=0.01,
         label="R0 [m]",
         doc="""
             Radius of the junction between combustion chamber and convergent.
