@@ -473,11 +473,11 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
     # TODO: with the current check_shockwave decorator, flag can only be 'weak'
     # or 'strong'. If 'both' an error will be raised.
     if (beta is None) and (theta is None):
-        raise ValueError("To compute the normal " +
-        "component of the upstream Mach number, you have to provide " +
-        "either theta or beta.")
+        raise ValueError(
+            "To compute the downstream Mach number you have to provide"
+            " either theta or beta.")
     flag = flag.lower()
-    if flag not in ["weak", "strong", "both"]:
+    if flag not in ["weak", "strong"]:
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
 
     if beta is not None:
@@ -548,7 +548,7 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
     gamma : float, optional
         Specific heats ratio. Default to 1.4. Must be gamma > 1.
     flag : string, optional
-        Can be either ``'weak'`` or ``'strong'``. Default to ``'weak'``.
+        Possible options: ``'weak', 'strong', 'both'``. Default to ``'weak'``.
         Chose what value to compute if theta is provided.
 
     Returns
@@ -561,9 +561,9 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
     # TODO: with the current check_shockwave decorator, flag can only be 'weak'
     # or 'strong'. If 'both' an error will be raised.
     if (beta is None) and (theta is None):
-        raise ValueError("To compute the normal " +
-        "component of the upstream Mach number, you have to provide " +
-        "either theta or beta.")
+        raise ValueError(
+            "To compute the normal component of the upstream Mach number,"
+            " you have to provide either theta or beta.")
     flag = flag.lower()
     if flag not in ["weak", "strong", "both"]:
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")

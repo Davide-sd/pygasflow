@@ -376,15 +376,55 @@ def test_conical_shockwave_solver_to_dict():
     check_val(r2["Tc_T1"], r1[11], tol)
 
 
-def test_oblique_mach_downstream():
-    expected_results = ss("m1", [1.5, 3], "beta", [60, 60], to_dict=True)
-    expected_mach_downstream = expected_results["m2"]
-    actual_mach_downstream_results = oblique_mach_downstream(
-        expected_results["m1"],
-        expected_results["beta"],
-        expected_results["theta"]
+@pytest.mark.parametrize("beta, expected_mach_downstream", [
+    (60, [1.04454822, 1.12256381]),
+    ([60, 30], [1.04454822, 2.36734555])
+])
+def test_oblique_mach_downstream_input_beta(beta, expected_mach_downstream):
+    M1 = [1.5, 3]
+    solver_results = ss(
+        "m1", M1, "beta", beta, to_dict=True)
+    actual_mach_downstream = oblique_mach_downstream(
+        M1,
+        beta=beta,
     )
-    assert np.allclose(expected_mach_downstream, actual_mach_downstream_results)
+    assert np.allclose(solver_results["m2"], expected_mach_downstream)
+    assert np.allclose(actual_mach_downstream, expected_mach_downstream)
+
+
+
+@pytest.mark.parametrize("theta, flag, expected_mach_downstream", [
+    (10, "weak", [2.50500068, 3.99916193]),
+    (10, "strong", [0.48924158, 0.42546429]),
+    ([10, 20], "weak", [2.50500068, 3.02215165]),
+    ([10, 20], "strong", [0.48924158, 0.46018705])
+])
+def test_oblique_mach_downstream_input_theta(theta, flag, expected_mach_downstream):
+    M1 = [3, 5]
+    solver_results = ss(
+        "m1", M1, "theta", theta, to_dict=True, flag=flag)
+    actual_mach_downstream = oblique_mach_downstream(
+        M1,
+        theta=theta,
+        flag=flag
+    )
+    assert np.allclose(solver_results["m2"], expected_mach_downstream)
+    assert np.allclose(actual_mach_downstream, expected_mach_downstream)
+
+
+def test_oblique_mach_downstream_errors():
+    M1 = [3, 5]
+    pytest.raises(ValueError, lambda: oblique_mach_downstream(
+        M1,
+        theta=None,
+        beta=None,
+    ))
+
+    pytest.raises(ValueError, lambda: oblique_mach_downstream(
+        M1,
+        theta=10,
+        flag="both"
+    ))
 
 
 def test_beta_from_mach_max_theta():
