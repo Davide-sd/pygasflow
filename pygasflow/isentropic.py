@@ -41,6 +41,7 @@ def critical_velocity_ratio(M, gamma=1.4):
     ratio[idx] = 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M[idx] * (1 + (gamma - 1) / 2 * M[idx]**2)**0.5)
     return ratio
 
+
 @check
 def critical_temperature_ratio(M, gamma=1.4):
     """
@@ -61,6 +62,7 @@ def critical_temperature_ratio(M, gamma=1.4):
     """
     # return Temperature_Ratio.__no_check__(M, gamma) * 0.5 * (gamma + 1)
     return ((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2)
+
 
 @check
 def critical_pressure_ratio(M, gamma=1.4):
@@ -83,6 +85,7 @@ def critical_pressure_ratio(M, gamma=1.4):
     # return Pressure_Ratio.__no_check__(M, gamma) * (0.5 * (gamma + 1))**(gamma / (gamma - 1))
     return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(gamma / (gamma - 1))
 
+
 @check
 def critical_density_ratio(M, gamma=1.4):
     """
@@ -104,6 +107,7 @@ def critical_density_ratio(M, gamma=1.4):
     # TODO: this first version appears to be faster!
     return density_ratio.__no_check__(M, gamma) * (0.5 * (gamma + 1))**(1 / (gamma - 1))
     # return (((gamma + 1) / 2) / (1 + (gamma - 1) / 2 * M**2))**(1 / (gamma - 1))
+
 
 @check
 def critical_area_ratio(M, gamma=1.4):
@@ -150,6 +154,7 @@ def pressure_ratio(M, gamma=1.4):
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-gamma / (gamma - 1))
 
+
 @check
 def temperature_ratio(M, gamma=1.4):
     """
@@ -170,6 +175,7 @@ def temperature_ratio(M, gamma=1.4):
     """
     return 1 / (1 + (gamma - 1) / 2 * M**2)
 
+
 @check
 def density_ratio(M, gamma=1.4):
     """
@@ -187,6 +193,7 @@ def density_ratio(M, gamma=1.4):
         Density ratio rho/rho0.
     """
     return (1 + (gamma - 1) / 2 * M**2)**(-1 / (gamma - 1))
+
 
 @check
 def m_from_temperature_ratio(ratio, gamma=1.4):
@@ -210,6 +217,7 @@ def m_from_temperature_ratio(ratio, gamma=1.4):
         raise ValueError("Temperature ratio must be 0 <= T/T0 <= 1.")
     return np.sqrt(2 * (1 / ratio - 1) / (gamma - 1))
 
+
 @check
 def m_from_pressure_ratio(ratio, gamma=1.4):
     """
@@ -231,6 +239,7 @@ def m_from_pressure_ratio(ratio, gamma=1.4):
     if np.any(ratio < 0) or np.any(ratio > 1):
         raise ValueError("Pressure ratio must be 0 <= P/P0 <= 1.")
     return np.sqrt(2 / (gamma - 1) * (1 / ratio**((gamma - 1) / gamma) - 1))
+
 
 @check
 def m_from_density_ratio(ratio, gamma=1.4):
@@ -256,6 +265,7 @@ def m_from_density_ratio(ratio, gamma=1.4):
     idx = ratio != 0
     m[idx] = np.sqrt(2 / (gamma - 1) * (1 / ratio[idx]**(gamma - 1) - 1))
     return m
+
 
 @check
 def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
@@ -284,6 +294,7 @@ def m_from_critical_area_ratio(ratio, flag="sub", gamma=1.4):
     func = lambda M, r: r - (((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))) / M
     # func = lambda M, r: r - Critical_Area_Ratio.__no_check__(M, gamma)
     return apply_bisection(ratio, func, flag=flag)
+
 
 # I want to convert to np.ndarray the first two parameters
 @check([0, 1])
@@ -321,6 +332,7 @@ def m_from_critical_area_ratio_and_pressure_ratio(a_ratio, p_ratio, gamma=1.4):
     m[idx] = np.sqrt(-1 / (gamma - 1) + np.sqrt(1 / (gamma - 1)**2 + 2 / (gamma - 1) * (2 / (gamma + 1))**((gamma + 1) / (gamma - 1)) / a_ratio[idx]**2 / p_ratio[idx]**2))
     return m
 
+
 @check
 def m_from_mach_angle(angle, gamma=1.4):
     """
@@ -346,6 +358,7 @@ def m_from_mach_angle(angle, gamma=1.4):
     m[idx] = 1 / np.sin(np.deg2rad(angle[idx]))
     return m
 
+
 @check
 def mach_angle(M):
     """
@@ -368,6 +381,7 @@ def mach_angle(M):
     angle[M == 1] = 90
     angle[M < 1] = np.nan
     return angle
+
 
 @check
 def m_from_prandtl_meyer_angle(angle, gamma=1.4):
@@ -394,6 +408,7 @@ def m_from_prandtl_meyer_angle(angle, gamma=1.4):
     func = lambda M, a: a - (np.sqrt((gamma + 1) / (gamma - 1)) * np.arctan(np.sqrt((gamma - 1) / (gamma + 1) * (M**2 - 1))) - np.arctan(np.sqrt(M**2 - 1)))
 
     return apply_bisection(angle, func, flag="sup")
+
 
 @check
 def prandtl_meyer_angle(M, gamma=1.4):
@@ -422,6 +437,7 @@ def prandtl_meyer_angle(M, gamma=1.4):
     nu[M == 1] = 0
     nu[M < 1] = np.nan
     return nu
+
 
 @check
 def get_ratios_from_mach(M, gamma):

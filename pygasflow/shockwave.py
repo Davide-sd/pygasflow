@@ -40,6 +40,7 @@ def pressure_ratio(M1, gamma=1.4):
     """
     return (2 * gamma * M1**2 - gamma + 1) / (gamma + 1)
 
+
 @check_shockwave
 def temperature_ratio(M1, gamma=1.4):
     """ Compute the static temperature ratio T2/T1.
@@ -60,6 +61,7 @@ def temperature_ratio(M1, gamma=1.4):
     return ((2 * gamma * M1**2 - gamma + 1) * (2 + (gamma - 1) * M1**2)
             / ((gamma + 1)**2 * M1**2))
 
+
 @check_shockwave
 def density_ratio(M1, gamma=1.4):
     """ Compute the density ratio rho2/rho1.
@@ -78,6 +80,7 @@ def density_ratio(M1, gamma=1.4):
         Density Ratio rho2/rho1
     """
     return ((gamma + 1) * M1**2) / ((gamma - 1) * M1**2 + 2)
+
 
 @check_shockwave
 def total_pressure_ratio(M1, gamma=1.4):
@@ -100,6 +103,7 @@ def total_pressure_ratio(M1, gamma=1.4):
     b = (gamma + 1) / (2 * gamma * M1**2 - gamma + 1)
     return a**(gamma / (gamma - 1)) * b**(1 / (gamma - 1))
 
+
 @check_shockwave
 def total_temperature_ratio(M1, gamma=1.4):
     """ Compute the total temperature ratio T02/T01.
@@ -118,6 +122,7 @@ def total_temperature_ratio(M1, gamma=1.4):
         Total Temperature Ratio T02/T01 (spoiler: always equal to 1 :P )
     """
     return np.ones_like(M1)
+
 
 @check_shockwave
 def rayleigh_pitot_formula(M1, gamma=1.4):
@@ -144,6 +149,7 @@ def rayleigh_pitot_formula(M1, gamma=1.4):
     """
     return ((gamma + 1) * M1**2 / 2)**(gamma / (gamma - 1)) * ((gamma + 1) / (2 * gamma * M1**2 - (gamma - 1)))**(1 / (gamma - 1))
 
+
 @check_shockwave
 def entropy_difference(M1, gamma=1.4):
     """ Compute the dimensionless entropy difference, (s2 - s1) / C_p.
@@ -165,6 +171,7 @@ def entropy_difference(M1, gamma=1.4):
     a = np.log((1 + 2 * gamma / (gamma + 1) * (M1**2 - 1)) * ((2 + (gamma - 1) * M1**2) / ((gamma + 1) * M1**2)))
     b = (gamma - 1) / gamma * np.log(1 + 2 * gamma / (gamma + 1) * (M1**2 - 1))
     return a - b
+
 
 # TODO: here I can't use the decorator @check_shockwave to perform
 # the argument checks, because it would check for M1 >= 1. But this
@@ -196,6 +203,7 @@ def mach_downstream(M1, gamma=1.4):
     return ((1 + (gamma - 1) / 2 * M1**2) / (gamma * M1**2 -
             (gamma - 1) / 2))**(0.5)
 
+
 @check_shockwave
 def m1_from_pressure_ratio(ratio, gamma=1.4):
     """ Compute M1 from the pressure ratio.
@@ -217,6 +225,7 @@ def m1_from_pressure_ratio(ratio, gamma=1.4):
         raise ValueError("The pressure ratio must be P2/P1 >= 1")
 
     return np.sqrt((ratio * (gamma + 1) + gamma - 1) / (2 * gamma))
+
 
 @check_shockwave
 def m1_from_temperature_ratio(ratio, gamma=1.4):
@@ -243,6 +252,7 @@ def m1_from_temperature_ratio(ratio, gamma=1.4):
     c = -2.0 * (gamma - 1)
     return np.sqrt((-b + np.sqrt(b**2 - 4.0 * a * c)) / 2.0 / a)
 
+
 @check_shockwave
 def m1_from_density_ratio(ratio, gamma=1.4):
     """ Compute M1 from the density ratio.
@@ -266,6 +276,7 @@ def m1_from_density_ratio(ratio, gamma=1.4):
         raise ValueError("The density ratio must be 1 < rho2/rho1 < " + str(gr))
 
     return np.sqrt(2.0 * ratio / (gamma + 1 - ratio * (gamma - 1)))
+
 
 @check_shockwave
 def m1_from_total_pressure_ratio(ratio, gamma=1.4):
@@ -291,6 +302,7 @@ def m1_from_total_pressure_ratio(ratio, gamma=1.4):
 
     return apply_bisection(ratio, func, "sup")
 
+
 @check_shockwave
 def m1_from_m2(M2, gamma=1.4):
     """ Compute M1 from the downstream Mach number M2.
@@ -315,9 +327,11 @@ def m1_from_m2(M2, gamma=1.4):
 
     return mach_downstream(M2, gamma)
 
+
 #######################################################################################
 ############## The following methods are specific for oblique shock waves #############
 #######################################################################################
+
 
 @check_shockwave
 def theta_from_mach_beta(M1, beta, gamma=1.4):
@@ -444,6 +458,7 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
     beta_strong = ret_correct_vals(np.rad2deg(beta_strong))
     return { "weak": beta_weak, "strong": beta_strong }
 
+
 @check_shockwave
 def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
     """Compute the downstream Mach number M2 accordingly from the input
@@ -530,6 +545,7 @@ def beta_from_upstream_mach(M1, MN1):
         raise ValueError("Upstream Mach number must be >= of the normal upstream Mach number.")
     return np.rad2deg(np.arcsin(MN1 / M1))
 
+
 @check_shockwave
 def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
     """ Compute the upstream normal Mach Number, which can then be used
@@ -590,6 +606,7 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
 
     return MN1
 
+
 @check_shockwave([1])
 def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
     """
@@ -635,6 +652,7 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
     # TODO: should I implement the necessary checks and then call __no_check?
     return ratios[ratioName](ratio, gamma)
 
+
 @check_shockwave
 def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
     """
@@ -668,6 +686,7 @@ def get_ratios_from_normal_mach_upstream(Mn, gamma=1.4):
     mn2 = mach_downstream.__no_check__(Mn, gamma)
 
     return pr, dr, tr, tpr, mn2
+
 
 @check_shockwave
 def maximum_mach_from_deflection_angle(theta, gamma=1.4):
@@ -706,6 +725,7 @@ def maximum_mach_from_deflection_angle(theta, gamma=1.4):
         Max_M[i] = function(t)
     return Max_M
 
+
 @check_shockwave
 def mimimum_beta_from_mach(M1):
     """
@@ -722,6 +742,7 @@ def mimimum_beta_from_mach(M1):
         Shock wave angle in degrees
     """
     return np.rad2deg(np.arcsin(1 / M1))
+
 
 @check_shockwave
 def max_theta_from_mach(M1, gamma=1.4):
@@ -773,6 +794,7 @@ def max_theta_from_mach(M1, gamma=1.4):
         theta_max[i] = function(m)
     return theta_max
 
+
 @check_shockwave
 def beta_from_mach_max_theta(M1, gamma=1.4):
     """
@@ -801,6 +823,7 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
         # here I chose 'weak', but in this case it's the same as 'strong'!
         beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
     return beta
+
 
 @check_shockwave
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
@@ -1048,6 +1071,7 @@ def pressure_deflection(M1, gamma=1.4, N=100):
     """
     locus = PressureDeflectionLocus(M=M1, gamma=gamma)
     return locus.pressure_deflection(N=N, include_mirror=False)
+
 
 class _BasePDLocus:
     """I need this base class in order to initialize `upstream_locus`
@@ -1599,6 +1623,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 ################################# Conical Flow Relations ##################################
 ###########################################################################################
 
+
 def taylor_maccoll(theta, V, gamma=1.4):
     """
     Taylor-Maccoll differential equation for conical shock wave.
@@ -1631,6 +1656,7 @@ def taylor_maccoll(theta, V, gamma=1.4):
 
     return dV_dtheta
 
+
 @check_shockwave
 def nondimensional_velocity(M, gamma=1.4):
     """
@@ -1651,6 +1677,7 @@ def nondimensional_velocity(M, gamma=1.4):
     """
     # Anderson's equation 10.16
     return np.sqrt((gamma - 1) * M**2 / (2 + (gamma - 1) * M**2))
+
 
 @check_shockwave
 def mach_from_nondimensional_velocity(V, gamma=1.4):
@@ -1682,6 +1709,7 @@ def mach_from_nondimensional_velocity(V, gamma=1.4):
     if is_scalar:
         return M[0]
     return M
+
 
 # @check
 def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
@@ -1775,6 +1803,7 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     return Mc, theta_c
 
+
 @check_shockwave
 def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     """
@@ -1837,6 +1866,7 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     for i, m in enumerate(M1):
         Mc[i], theta_c_comp[i], beta[i] = function(m)
     return ret_correct_vals(Mc), ret_correct_vals(theta_c_comp), ret_correct_vals(beta)
+
 
 @check_shockwave
 def shock_angle_from_machs(M1, Mc, gamma=1.4, flag="weak"):
@@ -1951,6 +1981,7 @@ def max_theta_c_from_mach(M1, gamma=1.4):
     for i, m in enumerate(M1):
         Mc[i], theta_c_max[i], beta[i] = function(m)
     return ret_correct_vals(Mc), ret_correct_vals(theta_c_max), ret_correct_vals(beta)
+
 
 @check_shockwave
 def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):

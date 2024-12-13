@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def nozzle_length(Rt, Re, R, K=1, alpha=15):
     """
     Compute the length of the nozzle, from the throat section to the
@@ -226,38 +227,3 @@ def convergent(theta, Ri, R0, Rt, factor):
             " geometrically unfeasible.")
 
     return x0, y0, x1, y1, xc, yc
-
-def main():
-    Rt = 1
-    Ri = 3 * Rt
-    R0 = 0.5 * Rt
-    R0 = 0.5
-    factor = 1
-    N = 1000
-    theta_c = 50
-
-    x0, y0, x1, y1, xc, yc = convergent(theta_c, Ri, R0, Rt, factor)
-    theta_c = np.deg2rad(theta_c)
-    x0 -= xc
-    x1 -= xc
-    q = y1 + x1 * np.tan(theta_c)
-
-    # Compute the points
-    x = np.linspace(-xc, 0, N)
-    y = np.zeros_like(x)
-
-    # junction between combustion chamber and convergent
-    y[x <= x0] = np.sqrt(R0**2 - (x[x <= x0] + xc)**2) + (Ri - R0)
-    # straight line in the convergent
-    y[(x > x0) & (x < x1)] = -np.tan(theta_c) * x[(x > x0) & (x < x1)] + q
-    # junction between convergent and divergent
-    y[x >= x1] = -np.sqrt((factor * Rt)**2 - x[x >= x1]**2) + (1 + factor) * Rt
-
-    import matplotlib.pyplot as plt
-    plt.plot(x, y)
-    plt.grid()
-    plt.axis('equal')
-    plt.show()
-
-if __name__ == "__main__":
-    main()

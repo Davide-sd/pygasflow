@@ -35,6 +35,7 @@ def critical_total_temperature_ratio(M, gamma=1.4):
     """
     return 2 * (1 + gamma) * M**2 / (1 + gamma * M**2)**2 * (1 + ((gamma - 1) / 2) * M**2)
 
+
 @check
 def critical_temperature_ratio(M, gamma=1.4):
     """
@@ -55,6 +56,7 @@ def critical_temperature_ratio(M, gamma=1.4):
     """
     return M**2 * (1 + gamma)**2 / (1 + gamma * M**2)**2
 
+
 @check
 def critical_pressure_ratio(M, gamma=1.4):
     """
@@ -74,6 +76,7 @@ def critical_pressure_ratio(M, gamma=1.4):
         Critical Pressure Ratio P/P*.
     """
     return (1 + gamma) / (1 + gamma * M**2)
+
 
 @check
 def critical_density_ratio(M, gamma=1.4):
@@ -98,6 +101,7 @@ def critical_density_ratio(M, gamma=1.4):
     ratio[idx] = (1 + gamma * M[idx]**2) / ((gamma + 1) * M[idx]**2)
     return ratio
 
+
 @check
 def critical_total_pressure_ratio(M, gamma=1.4):
     """
@@ -115,6 +119,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
         Critical Total Pressure Ratio P0/P0*.
     """
     return (1 + gamma) / (1 + gamma * M**2) * ((1 + (gamma - 1) / 2 * M**2) / ((gamma + 1 ) / 2))**(gamma / (gamma - 1))
+
 
 @check
 def critical_velocity_ratio(M, gamma=1.4):
@@ -135,6 +140,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         Critical Velocity Ratio U/U*.
     """
     return (1 + gamma) * M**2 / (1 + gamma * M**2)
+
 
 @check
 def critical_entropy_parameter(M, gamma=1.4):
@@ -158,6 +164,7 @@ def critical_entropy_parameter(M, gamma=1.4):
     idx = M != 0
     cep[idx] = -gamma /(gamma - 1) * np.log(M[idx]**2 * ((gamma + 1) / (1 + gamma * M[idx]**2))**((gamma + 1) / gamma))
     return cep
+
 
 @check
 def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
@@ -197,6 +204,7 @@ def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
         r[idx] = np.sqrt(-(ratio[idx] * gamma**2 + 1 - gamma**2) * (ratio[idx] * gamma - 1 - gamma - np.sqrt(-2 * ratio[idx] * gamma - ratio[idx] * gamma**2 + 1 + 2 * gamma + gamma**2 - ratio[idx]))) / den
     r[ratio == 1] = 1
     return r
+
 
 @check
 def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
@@ -240,6 +248,7 @@ def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
         M[ratio != 0] = np.sqrt(-2 * ratio[ratio != 0] * (2 * ratio[ratio != 0] * gamma - 1 - 2 * gamma - gamma**2 - np.sqrt(1 - 4 * ratio[ratio != 0] * gamma - 8 * ratio[ratio != 0] * gamma**2 - 4 * ratio[ratio != 0] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[ratio != 0] * gamma)
     return M
 
+
 @check
 def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     """
@@ -266,6 +275,7 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     M[ratio == 0] = np.inf
     M[ratio != 0] = np.sqrt(ratio[ratio != 0] * gamma * (1 + gamma - ratio[ratio != 0])) / (ratio[ratio != 0] * gamma)
     return M
+
 
 @check
 def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
@@ -304,6 +314,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
 
     return apply_bisection(ratio, func, flag=flag)
 
+
 @check
 def m_from_critical_density_ratio(ratio, gamma=1.4):
     """
@@ -328,6 +339,7 @@ def m_from_critical_density_ratio(ratio, gamma=1.4):
         raise ValueError("It must be rho/rho* > {}.".format(lower_lim))
     return np.sqrt(1 / (ratio * (gamma + 1) - gamma))
 
+
 @check
 def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     """
@@ -351,6 +363,7 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     if np.any(ratio >= upper_lim) or np.any(ratio <= 0):
         raise ValueError("It must be 0 < U/U* < {}.".format(upper_lim))
     return -np.sqrt(-(ratio * gamma - 1 - gamma) * ratio) / (ratio * gamma - 1 - gamma)
+
 
 @check
 def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
@@ -383,6 +396,7 @@ def m_from_critical_entropy(ratio, flag="sub", gamma=1.4):
     # If I try M_From_Critical_Entropy(1000) I get:
     # ValueError: f(a) and f(b) must have different signs
     return apply_bisection(ratio, func, flag=flag)
+
 
 @check
 def get_ratios_from_mach(M, gamma):

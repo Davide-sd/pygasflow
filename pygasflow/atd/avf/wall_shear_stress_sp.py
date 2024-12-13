@@ -5,6 +5,7 @@ flow**.
 
 import numpy as np
 
+
 def velocity_gradient(R, pinf, ps, rhos, k=1.33, phi=0):
     """Compute the gradient of the inviscid velocity along the stagnation point
     or a stagnation line.

@@ -36,6 +36,7 @@ def critical_temperature_ratio(M, gamma=1.4):
     """
     return ((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2)
 
+
 @check
 def critical_pressure_ratio(M, gamma=1.4):
     """
@@ -58,6 +59,7 @@ def critical_pressure_ratio(M, gamma=1.4):
     idx = M != 0
     ratio[idx] = (1 / M[idx]) * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M[idx]**2))
     return ratio
+
 
 @check
 def critical_density_ratio(M, gamma=1.4):
@@ -82,6 +84,7 @@ def critical_density_ratio(M, gamma=1.4):
     ratio[idx] = (1 / M[idx]) * np.sqrt((2 + (gamma - 1) * M[idx]**2) / (gamma + 1))
     return ratio
 
+
 @check
 def critical_total_pressure_ratio(M, gamma=1.4):
     """
@@ -105,6 +108,7 @@ def critical_total_pressure_ratio(M, gamma=1.4):
     ratio[idx] = (1 / M[idx]) * ((1 + ((gamma - 1) / 2) * M[idx]**2) / ((gamma + 1) / 2))**((gamma + 1) / (2 * (gamma - 1)))
     return ratio
 
+
 @check
 def critical_velocity_ratio(M, gamma=1.4):
     """
@@ -124,6 +128,7 @@ def critical_velocity_ratio(M, gamma=1.4):
         Critical Velocity Ratio U/U*.
     """
     return M * np.sqrt(((gamma + 1) / 2) / (1 + ((gamma - 1) / 2) * M**2))
+
 
 # Fanno's Maximum Limit Friction Parameter (4 f Lmax / D)
 @check
@@ -150,6 +155,7 @@ def critical_friction_parameter(M, gamma=1.4):
     f[M != 0] = ((gamma + 1) / (2 * gamma)) * np.log(((gamma + 1) / 2) * M[M != 0]**2 / (1 + ((gamma - 1) / 2) * M[M != 0]**2)) + (1 / gamma) * (1 / M[M != 0]**2 - 1)
     return f
 
+
 @check
 def critical_entropy_parameter(M, gamma=1.4):
     """
@@ -172,6 +178,7 @@ def critical_entropy_parameter(M, gamma=1.4):
     idx = M != 0
     cep[idx] = np.log((1 / M[idx]) * ((1 + ((gamma - 1) / 2) * M[idx]**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
     return cep
+
 
 @check
 def m_from_critical_temperature_ratio(ratio, gamma=1.4):
@@ -197,6 +204,7 @@ def m_from_critical_temperature_ratio(ratio, gamma=1.4):
         raise ValueError("It must be 0 < T/T* < {}.".format(upper_lim))
     return np.sqrt(-ratio * (gamma - 1) * (2 * ratio - gamma - 1)) / (ratio * gamma - ratio)
 
+
 @check
 def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     """
@@ -216,6 +224,7 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
         Mach Number.
     """
     return np.sqrt(-ratio * (gamma - 1) * (ratio - np.sqrt(ratio**2 + gamma**2 - 1))) / (ratio * gamma - ratio)
+
 
 @check
 def m_from_critical_density_ratio(ratio, gamma=1.4):
@@ -272,6 +281,7 @@ def m_from_critical_total_pressure_ratio(ratio, flag="sub", gamma=1.4):
 
     return apply_bisection(ratio, func, flag=flag)
 
+
 @check
 def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     """
@@ -299,6 +309,7 @@ def m_from_critical_velocity_ratio(ratio, gamma=1.4):
     if np.any(ratio < 0) or np.any(ratio >= upper_lim):
         raise ValueError("It must be 0 <= U/U* < {}.".format(upper_lim))
     return 2 * ratio / np.sqrt(2 * gamma + 2 - 2 * ratio**2 * gamma + 2 * ratio**2)
+
 
 @check
 def m_from_critical_friction(fp, flag="sub", gamma=1.4):
@@ -341,6 +352,7 @@ def m_from_critical_friction(fp, flag="sub", gamma=1.4):
 
     return apply_bisection(fp, func, flag=flag)
 
+
 @check
 def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     """
@@ -370,6 +382,7 @@ def m_from_critical_entropy(ep, flag="sub", gamma=1.4):
     func = lambda M, r: r - np.log((1 / M) * ((1 + ((gamma - 1) / 2) * M**2) / (1 + ((gamma - 1) / 2)))**((gamma + 1) / (2 * (gamma - 1))))
 
     return apply_bisection(ep, func, flag=flag)
+
 
 @check
 def get_ratios_from_mach(M, gamma):

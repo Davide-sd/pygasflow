@@ -6,6 +6,7 @@ import numpy as np
 from scipy.optimize import bisect
 from scipy.constants import sigma
 
+
 def wall_temperature(L, x, Reinf_L, Ts_Tinf, Tr, Pr, kinf, eps, sigma=sigma, laminar=True, omega=0.65):
     """Compute the wall temperature (the radiation adiabatic temperature) for
     a radiation cooled flat plate with a prescribed heat flux for a

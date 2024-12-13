@@ -8,6 +8,7 @@ to estimates all thicknesses with a single call.
 
 import numpy as np
 
+
 def delta_lam_ic(x, Re, c=5):
     """Boundary-layer thickness of the incompressible laminar flat plate.
 

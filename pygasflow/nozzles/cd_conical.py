@@ -6,6 +6,7 @@ from pygasflow.nozzles.utils import (
     nozzle_length
 )
 
+
 class CD_Conical_Nozzle(Nozzle_Geometry):
     """
     Convergent-Divergent nozzle with conical divergent.

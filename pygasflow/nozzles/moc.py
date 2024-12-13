@@ -8,8 +8,8 @@ from pygasflow.isentropic import (
     m_from_critical_area_ratio,
     mach_angle
 )
-
 from scipy import interpolate
+
 
 def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
     """

@@ -2,6 +2,7 @@ import numpy as np
 from pygasflow.utils.decorators import check
 from pygasflow.shockwave import rayleigh_pitot_formula
 
+
 def sound_speed(*args, **kwargs):
     """Compute the sound speed.
 

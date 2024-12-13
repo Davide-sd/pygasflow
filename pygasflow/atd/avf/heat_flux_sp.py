@@ -6,6 +6,7 @@ import numpy as np
 from scipy.optimize import bisect
 from scipy.constants import sigma
 
+
 def wall_temperature(eps, R, uinf, u_grad, Reinf_R, pe_pinf, Ts_Tinf, Tr, Pr, kinf, laminar=True, omega=0.65, sphere=True, phi=0):
     """Compute the wall temperature at a stagnation point or stagnation line
     for a sphere, a cylinder or a swept-cylinder. The wall temperature

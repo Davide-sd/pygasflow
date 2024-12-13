@@ -29,6 +29,7 @@ from pygasflow.utils.decorators import check_shockwave
 # detachment detection, when provided theta > theta_max for the specified Mach
 # number
 
+
 @check_shockwave([1, 3])
 def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak", to_dict=False):
     """

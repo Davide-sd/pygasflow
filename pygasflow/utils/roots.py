@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import bisect
 
+
 def apply_bisection(ratio, func, flag="sub"):
     """ Helper function used for applying the bisection method to find the
     roots of a given function.

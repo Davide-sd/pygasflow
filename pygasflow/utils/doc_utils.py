@@ -209,12 +209,14 @@ def _modify_diagram_show_only_figure(code):
     new_code = "\n".join(lines)
     return new_code
 
+
 def _modify_diagram_show_interactive_app(code):
     lines = code.split("\n")
     lines[-1] = "d = " + lines[-1]
     lines.append("d.__panel__()")
     new_code = "\n".join(lines)
     return new_code
+
 
 def modify_panel_code(code):
     if "compressible_app" in code:
