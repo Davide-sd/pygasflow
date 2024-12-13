@@ -761,3 +761,19 @@ def test_isentropic_diagram_select():
     assert len(d.figure.renderers) == 2
     assert d.legend.items[0].label.value == "Mach Angle"
     assert d.legend.items[1].label.value == "Prandtl-Meyer Angle"
+
+
+def test_min_length_supersonic_nozzle_moc_custom_rendering_keywords():
+    nozzle = CD_Min_Length_Nozzle()
+    d1 = NozzleDiagram(nozzle=nozzle, show_characteristic_lines=True)
+    assert d1.figure.renderers[-1].glyph.marker == "circle"
+    p1 = d1.figure.renderers[-1].glyph.line_color.transform.palette
+
+    d2 = NozzleDiagram(nozzle=nozzle, show_characteristic_lines=True,
+        characteristic_scatter_kwargs=dict(marker="^"),
+        characteristic_cmap="Plasma256")
+    assert d2.figure.renderers[-1].glyph.marker == "triangle"
+    p2 = d2.figure.renderers[-1].glyph.line_color.transform.palette
+
+    # they are two different palettes
+    assert len(set(p1).difference(p2)) > 0

@@ -74,6 +74,18 @@ class NozzleDiagram(BasePlot, pn.viewable.Viewer):
         doc="Only used in MOC nozzles."
     )
 
+    characteristic_scatter_kwargs = param.Dict({}, doc="""
+        Rendering keywords for the scatter about characteristi lines.""")
+
+    characteristic_cmap = param.ClassSelector(
+        class_=(list, tuple, str), doc="""
+        A sequence of colors to use as the target palette for mapping.
+
+        This property can also be set as a String, to the name of any of the
+        palettes shown in :ref:`bokeh.palettes`.
+
+        If not provided, colorcet.bmy will be used.""")
+
     def __init__(self, **params):
         params.setdefault("x_label", "Length [m]")
         params.setdefault("y_label",
@@ -192,17 +204,24 @@ class NozzleDiagram(BasePlot, pn.viewable.Viewer):
             line_width=0.75,
             line_color="black"
         )
+        cmap = self.characteristic_cmap
+        if not cmap:
+            cmap = colorcet.bmy
         mapper = LinearColorMapper(
-            palette=colorcet.bmy,
+            palette=cmap,
             low=min(data["p"]),
             high=max(data["p"])
         )
+        kwargs = dict(
+            size=8,
+            marker="circle"
+        )
+        kwargs.update(self.characteristic_scatter_kwargs)
         scat = self.figure.scatter(
             "x", "y",
             source=ColumnDataSource(data),
-            size=8,
             color={'field': 'p', 'transform': mapper},
-            marker="circle"
+            **kwargs
         )
         tooltips = [("Mach number", "@p"), ("x", "@x"), ("y", "@y")]
         self.figure.add_tools(HoverTool(
