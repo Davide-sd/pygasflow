@@ -472,8 +472,6 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
     """
     # TODO: with the current check_shockwave decorator, flag can only be 'weak'
     # or 'strong'. If 'both' an error will be raised.
-    if np.any(M1 < 1):
-        raise ValueError("The upstream Mach number must be M1 >= 1.")
     if (beta is None) and (theta is None):
         raise ValueError("To compute the normal " +
         "component of the upstream Mach number, you have to provide " +
@@ -562,8 +560,6 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
     """
     # TODO: with the current check_shockwave decorator, flag can only be 'weak'
     # or 'strong'. If 'both' an error will be raised.
-    # if np.any(M1 < 1):
-    #     raise ValueError("The upstream Mach number must be M1 >= 1.")
     if (beta is None) and (theta is None):
         raise ValueError("To compute the normal " +
         "component of the upstream Mach number, you have to provide " +
@@ -687,7 +683,7 @@ def maximum_mach_from_deflection_angle(theta, gamma=1.4):
 
     Returns
     -------
-    M : float
+    Max_M : float
         The maximum Mach number for the specified theta.
     """
     upper_lim = max_theta_from_mach(np.finfo(np.float32).max, gamma)
@@ -700,19 +696,15 @@ def maximum_mach_from_deflection_angle(theta, gamma=1.4):
             return theta_max - t
 
         # TODO:
-        # 0. Do I really need to do a = 1 + 1e-08 ????
-        # 1. what if the actual M is > 1000???
-        # 2. this is a slow procedure, can it be done faster, differently?
-        a = 1 + 1e-08
-        b = 1000
+        # 1. this is a slow procedure, can it be done faster, differently?
+        a = 1
+        b = 1e06
         return bisect(func, a, b)
 
-    if theta.shape:
-        Max_M = np.zeros_like(theta)
-        for i, t in enumerate(theta):
-            Max_M[i] = function(t)
-        return Max_M
-    return function(theta)
+    Max_M = np.zeros_like(theta)
+    for i, t in enumerate(theta):
+        Max_M[i] = function(t)
+    return Max_M
 
 @check_shockwave
 def mimimum_beta_from_mach(M1):
@@ -746,7 +738,7 @@ def max_theta_from_mach(M1, gamma=1.4):
 
     Returns
     -------
-    Theta_max : ndarray
+    theta_max : ndarray
         Maximum deflection angle theta in degrees
     """
     # http://www.pdas.com/maxwedge.xml
@@ -776,12 +768,10 @@ def max_theta_from_mach(M1, gamma=1.4):
         # Therefore theta_max = arctan(1 / func(beta_min))
         return np.rad2deg(np.arctan(1 / func(res.x)))
 
-    if M1.shape:
-        theta_max = np.zeros_like(M1)
-        for i, m in enumerate(M1):
-            theta_max[i] = function(m)
-        return theta_max
-    return function(M1)
+    theta_max = np.zeros_like(M1)
+    for i, m in enumerate(M1):
+        theta_max[i] = function(m)
+    return theta_max
 
 @check_shockwave
 def beta_from_mach_max_theta(M1, gamma=1.4):
@@ -806,13 +796,11 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
     theta_max = max_theta_from_mach.__no_check__(M1, gamma)
     theta_max = np.atleast_1d(theta_max)
 
-    if M1.shape:
-        beta = np.zeros_like(M1)
-        for i, (m, t) in enumerate(zip(M1, theta_max)):
-            # here I chose 'weak', but in this case it's the same as 'strong'!
-            beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
-        return beta
-    return beta_from_mach_theta(M1, theta_max, gamma=gamma)["weak"]
+    beta = np.zeros_like(M1)
+    for i, (m, t) in enumerate(zip(M1, theta_max)):
+        # here I chose 'weak', but in this case it's the same as 'strong'!
+        beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
+    return beta
 
 @check_shockwave
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
@@ -858,33 +846,28 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
 
     theta_max = np.atleast_1d(
         np.deg2rad(max_theta_from_mach.__no_check__(M1, gamma)))
-    if M1.shape:
-        beta = np.zeros_like(M1)
-        for i, (m, t) in enumerate(zip(M1, theta_max)):
-            if np.isclose(m, 1):
-                beta[i] = np.pi / 2
-                continue
-            # a = np.arcsin(1 / m)
-            b = np.deg2rad(beta_from_mach_max_theta.__no_check__(m, gamma))
-            # TODO: I'm using fsolve over the entire gamma/mach range. It works
-            # fine but it is slow. For gamma>1.1 I believe it is possible to
-            # find a suitable interval where to run bisection, which is faster.
-            try:
-                # beta[i] = bisect(func, a, b, args=(m, t, gamma))
-                # this initial guess appears to work well over a wide range of
-                # gamma/mach
-                beta[i] = fsolve(func, x0=b + (np.pi/2 - b) / 2, args=(m, t, gamma))
-            except ValueError as err:
-                beta[i] = np.nan
-        return np.rad2deg(beta), np.rad2deg(theta_max)
 
-    a = np.arcsin(1 / M1)
+    beta = np.zeros_like(M1)
+    # interval where to search for the root
+    # a = np.arcsin(1 / M1)
     b = np.deg2rad(beta_from_mach_max_theta.__no_check__(M1, gamma))
-    try:
-        res = np.rad2deg(bisect(func, a, b, args=(M1, theta_max)))
-    except ValueError:
-        res = np.nan
-    return res, np.rad2deg(theta_max)
+    # this initial guess appears to work well over a wide range of
+    # gamma/mach
+    x0 = b + (np.pi/2 - b) / 2
+
+    for i, (m, t) in enumerate(zip(M1, theta_max)):
+        if np.isclose(m, 1):
+            beta[i] = np.pi / 2
+            continue
+        # TODO: I'm using fsolve over the entire gamma/mach range. It works
+        # fine but it is slow. For gamma>1.1 I believe it is possible to
+        # find a suitable interval where to run bisection, which is faster.
+        try:
+            # beta[i] = bisect(func, a[i], b[i], args=(m, t, gamma))
+            beta[i] = fsolve(func, x0=x0[i], args=(m, t, gamma))
+        except ValueError as err:
+            beta[i] = np.nan
+    return np.rad2deg(beta), np.rad2deg(theta_max)
 
 
 sonic_line_oblique_shock = beta_theta_max_for_unit_mach_downstream
@@ -1848,14 +1831,12 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
         Mc, theta_c_comp = mach_cone_angle_from_shock_angle(M, beta)
         return Mc, theta_c, beta
 
-    if M1.shape:
-        theta_c_comp = np.zeros_like(M1)
-        beta = np.zeros_like(M1)
-        Mc = np.zeros_like(M1)
-        for i, m in enumerate(M1):
-            Mc[i], theta_c_comp[i], beta[i] = function(m)
-        return ret_correct_vals(Mc), ret_correct_vals(theta_c_comp), ret_correct_vals(beta)
-    return function(M1)
+    theta_c_comp = np.zeros_like(M1)
+    beta = np.zeros_like(M1)
+    Mc = np.zeros_like(M1)
+    for i, m in enumerate(M1):
+        Mc[i], theta_c_comp[i], beta[i] = function(m)
+    return ret_correct_vals(Mc), ret_correct_vals(theta_c_comp), ret_correct_vals(beta)
 
 @check_shockwave
 def shock_angle_from_machs(M1, Mc, gamma=1.4, flag="weak"):
@@ -1888,7 +1869,7 @@ def shock_angle_from_machs(M1, Mc, gamma=1.4, flag="weak"):
     def function(M):
         # find the theta_c_max associated to the given Mach number in order to
         # chose the correct bisection interval for 'weak' or 'strong' solution.
-        _, tcmax, bmax = max_theta_c_from_mach(M)
+        _, tcmax, bmax = max_theta_c_from_mach(M, gamma)
         # need to add a small offset to avoid stalling the integration process
         bmin = np.rad2deg(np.arcsin(1 / M)) + 1e-08
         if flag == "strong":
@@ -1913,14 +1894,12 @@ def shock_angle_from_machs(M1, Mc, gamma=1.4, flag="weak"):
 
         return Mc_comp, theta_c_comp, beta
 
-    if M1.shape:
-        theta_c_comp = np.zeros_like(M1)
-        beta_comp = np.zeros_like(M1)
-        Mc_comp = np.zeros_like(M1)
-        for i, m1 in enumerate(M1):
-            Mc_comp[i], theta_c_comp[i], beta_comp[i] = function(m1)
-        return ret_correct_vals(Mc_comp), ret_correct_vals(theta_c_comp), ret_correct_vals(beta_comp)
-    return function(M1)
+    theta_c_comp = np.zeros_like(M1)
+    beta_comp = np.zeros_like(M1)
+    Mc_comp = np.zeros_like(M1)
+    for i, m1 in enumerate(M1):
+        Mc_comp[i], theta_c_comp[i], beta_comp[i] = function(m1)
+    return ret_correct_vals(Mc_comp), ret_correct_vals(theta_c_comp), ret_correct_vals(beta_comp)
 
 
 @check_shockwave
@@ -1966,14 +1945,12 @@ def max_theta_c_from_mach(M1, gamma=1.4):
         Mc, theta_c_max = mach_cone_angle_from_shock_angle(M, beta, gamma)
         return Mc, theta_c_max, beta
 
-    if M1.shape:
-        theta_c_max = np.zeros_like(M1)
-        beta = np.zeros_like(M1)
-        Mc = np.zeros_like(M1)
-        for i, m in enumerate(M1):
-            Mc[i], theta_c_max[i], beta[i] = function(m)
-        return ret_correct_vals(Mc), ret_correct_vals(theta_c_max), ret_correct_vals(beta)
-    return function(M1)
+    theta_c_max = np.zeros_like(M1)
+    beta = np.zeros_like(M1)
+    Mc = np.zeros_like(M1)
+    for i, m in enumerate(M1):
+        Mc[i], theta_c_max[i], beta[i] = function(m)
+    return ret_correct_vals(Mc), ret_correct_vals(theta_c_max), ret_correct_vals(beta)
 
 @check_shockwave
 def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
@@ -2023,13 +2000,11 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
         Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag="weak")
         return beta, theta_c
 
-    if M1.shape:
-        theta_c = np.zeros_like(M1)
-        beta = np.zeros_like(M1)
-        for i, m in enumerate(M1):
-            beta[i], theta_c[i] = function(m)
-        return beta, theta_c
-    return function(M1)
+    theta_c = np.zeros_like(M1)
+    beta = np.zeros_like(M1)
+    for i, m in enumerate(M1):
+        beta[i], theta_c[i] = function(m)
+    return beta, theta_c
 
 
 sonic_line_conical_shock = beta_theta_c_for_unit_mach_downstream
