@@ -8,12 +8,12 @@
 
 **pygasflow** is a Python package that provides a few handful functions to quickly perform:
 
-* Quasi-1D ideal gasdynamic (perfect gas). The following solvers are implemented:
-  * ``isentropic_solver`` (or ``ise``).
-  * ``fanno_solver`` (or ``fan``).
-  * ``rayleigh_solver`` (or ``ray``).
-  * ``shockwave_solver`` (or ``ss``) for normal and oblique shock waves.
-  * ``conical_shockwave_solver`` (or ``css``).
+* Compressible flow computation in the quasi-1D ideal gasdynamic (perfect gas) regime. The following solvers are implemented:
+  * ``isentropic_solver``.
+  * ``fanno_solver``.
+  * ``rayleigh_solver``.
+  * ``shockwave_solver`` for normal and oblique shock waves.
+  * ``conical_shockwave_solver``.
   * ``De_Laval_solver`` and the ``nozzles`` sub-module, containing functions and classes to understand convergent-divergent nozzles, Rao's TOP nozzles (Thrust Optmizie Parabolic), Minimum Length nozzle with Method of Characteristics. Nozzles can be used to quickly visualize their geometric differences or to solve the isentropic expansion with the `De_Laval_Solver` class.
 
 * Aerothermodynamic computations (``pygasflow.atd`` module):
@@ -25,8 +25,8 @@ The following charts has been generated with the functions included in this pack
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/isentropic.png" width=250/>
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/fanno.png" width=250/>
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/rayleigh.png" width=250/>
-<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/mach-beta-theta.png" width=250/>
-<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/conical-flow.png" width=250/>
+<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/oblique-shock.png" width=250/>
+<img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/conical-shock.png" width=250/>
 <img src="https://raw.githubusercontent.com/Davide-sd/pygasflow/master/imgs/shock-reflection.png" width=250/>
 </div>
 

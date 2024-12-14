@@ -6,21 +6,24 @@
 Welcome to pygasflow's documentation!
 =====================================
 
-pygasflow provides a few handful functions to quickly perform:
+pygasflow is a Python package that provides a few handful functions to quickly perform:
 
-* Quasi-1D ideal gasdynamic (perfect gas) computations with Python. The
+* Compressible flow computation in the quasi-1D ideal gasdynamic (perfect gas) regime. The
   following solvers are implemented:
 
-  * Isentropic flow: ``isentropic_solver`` (or ``ise``).
-  * Fanno flow: ``fanno_solver`` (or ``fan``).
-  * Rayleigh flow: ``rayleigh_solver`` (or ``ray``).
-  * Normal/Oblique shock waves: ``shockwave_solver`` (or ``ss``).
-  * Conical shock waves: ``conical_shockwave_solver`` (or ``css``).
+  * Isentropic flow: :func:`~pygasflow.solvers.isentropic.isentropic_solver`.
+  * Fanno flow: :func:`~pygasflow.solvers.fanno.fanno_solver`.
+  * Rayleigh flow: :func:`~pygasflow.solvers.rayleigh.rayleigh_solver`.
+  * Normal shock waves: :func:`~pygasflow.solvers.shockwave.normal_shockwave_solver`.
+  * Oblique shock waves: :func:`~pygasflow.solvers.shockwave.shockwave_solver`.
+  * Conical shock waves: :func:`~pygasflow.solvers.shockwave.conical_shockwave_solver`.
+  * Pressure-deflection diagrams: :class:`~pygasflow.shockwave.PressureDeflectionLocus` and
+    :class:`~pygasflow.interactive.diagrams.PressureDeflectionDiagram`.
 
   If a solver doesn't suit your needs, try and search into the submodules
   for a suitable function.
 
-* Aerothermodynamic Computations with Python (``pygasflow.atd`` module):
+* Aerothermodynamic computations (``pygasflow.atd`` module):
 
   * Correlations to estimate boundary layer thickness, heat flux and wall
     shear stress over a flat plate or a stagnation region.
@@ -41,11 +44,11 @@ The following charts has been generated with the functions included in this pack
    :width: 200
    :alt: Rayleigh Flow
 
-.. image:: _static/conical-flow.png
+.. image:: _static/conical-shock.png
    :width: 200
    :alt: Conical Flow
 
-.. image:: _static/mach-beta-theta.png
+.. image:: _static/oblique-shock.png
    :width: 200
    :alt: Shockwave relations
 
