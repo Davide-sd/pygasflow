@@ -17,6 +17,7 @@ from pygasflow.interactive.diagrams.flow_base import (
     BasePlot,
     BasePlot
 )
+import numpy as np
 import panel as pn
 import param
 
@@ -46,6 +47,14 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
         [("Variable", "@v"), ("θ", "@xs"), ("β", "@ys")],
         doc="Tooltips used on each line of the plot.",
     )
+
+    sonic_ann_location = param.Number(0.1, bounds=(0, 1), doc="""
+        Location (in percentage) of the sonic annotation with respect to the
+        current maximum deflection angle shown on the plot.""")
+
+    region_ann_location = param.Number(0.55, bounds=(0, 1), doc="""
+        Location (in percentage) of the region annotation with respect to the
+        current maximum deflection angle shown on the plot.""")
 
     _ann_arrow_length = param.Number(8, bounds=(1, None),
         doc="Length of the arrow for the sonic annotation.")
@@ -129,8 +138,8 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
                 renderers=[line]
             ))
         # adjust x_range
-        max_theta = round(max_theta + 5 - (max_theta % 5))
-        self.figure.x_range = Range1d(0, max_theta)
+        self.figure.x_range = Range1d(
+            0, round(max_theta + 5 - (max_theta % 5)))
 
         # plot the line M2 = 1
         source = self.results[-4]
@@ -146,6 +155,7 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
 
         vh = VeeHead(size=6, fill_color=ann_color, line_color=ann_color)
         idx = self.results[-3]
+
         a1 = Arrow(
             end=vh,
             x_start=source["xs"][idx],

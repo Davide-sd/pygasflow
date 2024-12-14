@@ -35,7 +35,8 @@ class ObliqueShockDiagram(ShockCommon):
             show_region_line=False,
             show_sonic_line=False,
             show_minor_grid=True,
-            title="Oblique Shock Properties for γ=1.2"
+            title="Oblique Shock Properties for γ=1.2",
+            N=1000
         )
         show(d.figure)
 
@@ -82,7 +83,9 @@ class ObliqueShockDiagram(ShockCommon):
 
         # annotations
         # index of the sonic line where to place the annotation
-        results.append(int(self.N / 5))
+        desired_x = theta_max.max() * self.sonic_ann_location
+        idx = np.where(source["xs"] <= desired_x)[0][-1]
+        results.append(idx)
 
         ############################### PART 3 ###############################
 
@@ -96,6 +99,8 @@ class ObliqueShockDiagram(ShockCommon):
         results.append(source)
 
         # index of the region line where to place the annotation
-        results.append(int(self.N / 2))
+        desired_x = theta_max.max() * self.region_ann_location
+        idx = np.where(source["xs"] <= desired_x)[0][-1]
+        results.append(idx)
 
         return results

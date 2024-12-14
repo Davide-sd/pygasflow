@@ -51,6 +51,8 @@ class ConicalShockDiagram(ShockCommon):
         params.setdefault("x_range", (0, 60))
         params.setdefault("y_range", (0, 90))
         params.setdefault("size", (700, 400))
+        params.setdefault("sonic_ann_location", 0.35)
+        params.setdefault("region_ann_location", 0.55)
         super().__init__(**params)
 
     def _compute_results(self):
@@ -100,11 +102,14 @@ class ConicalShockDiagram(ShockCommon):
                     beta[i], theta_c[i] = np.nan, np.nan
             i2 = int(len(beta) / 4)
 
+        theta_c = np.asarray(theta_c)
         results.append({
-            "xs": np.asarray(theta_c),
+            "xs": theta_c,
             "ys": np.asarray(beta)
         })
-        results.append(i2)
+        desired_x = theta_c.max() * self.sonic_ann_location
+        idx = np.where(theta_c <= desired_x)[0][-1]
+        results.append(idx)
 
         ############################### PART 3 ###############################
 
@@ -123,5 +128,7 @@ class ConicalShockDiagram(ShockCommon):
             "ys": b,
             "v": [""] * len(b)
         })
-        results.append(16)
+        desired_x = tc.max() * self.region_ann_location
+        idx = np.where(tc <= desired_x)[0][-1]
+        results.append(idx)
         return results
