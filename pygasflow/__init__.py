@@ -8,6 +8,7 @@ from pygasflow.solvers import (
     conical_shockwave_solver,
     gas_solver,
     ideal_gas_solver,
+    sonic_condition,
     De_Laval_Solver
 )
 
@@ -37,6 +38,7 @@ __all__ = [
     "fanno_solver",
     "rayleigh_solver",
     "shockwave_solver",
+    "normal_shockwave_solver",
     "conical_shockwave_solver",
     "De_Laval_Solver",
     "CD_Conical_Nozzle",
@@ -44,5 +46,8 @@ __all__ = [
     "CD_TOP_Nozzle",
     "Rao_Parabola_Angles",
     "pressure_coefficient",
-    "sound_speed"
+    "sound_speed",
+    "gas_solver",
+    "ideal_gas_solver",
+    "sonic_condition",
 ]
