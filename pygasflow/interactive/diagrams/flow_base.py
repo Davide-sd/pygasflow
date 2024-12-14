@@ -41,6 +41,11 @@ class BasePlot(param.Parameterized):
 
     show_minor_grid = param.Boolean(False, doc="Toggle minor grid visibility.")
 
+    show_legend_outside = param.Boolean(True, doc="""
+        If True, the legend will be moved outside of the plotting area.
+        In doing so, the legend items will become clickable, allowing user
+        to hide a particular line.""")
+
     _theme = param.String("default", doc="""
         Theme used by the overall application. Useful to choose which
         color to apply to elements of the plot.""")

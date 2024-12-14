@@ -81,7 +81,8 @@ class NormalShockDiagram(FlowCommon):
                 renderers=[line]
             ))
 
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     def _update_renderers(self):
         for i, (l, r, renderer) in enumerate(zip(

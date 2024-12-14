@@ -138,7 +138,8 @@ class ShockPolarDiagram(CommonParameters, BasePlot, pn.viewable.Viewer):
         params.setdefault("title", "Shock Polar Diagram")
         super().__init__(**params)
         self.figure.match_aspect = True
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     @param.depends("mach_number", "gamma", watch=True, on_init=True)
     def _update_upstream_char_mach_number(self):

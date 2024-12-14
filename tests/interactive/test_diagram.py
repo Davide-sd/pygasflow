@@ -777,3 +777,31 @@ def test_min_length_supersonic_nozzle_moc_custom_rendering_keywords():
 
     # they are two different palettes
     assert len(set(p1).difference(p2)) > 0
+
+
+@pytest.mark.parametrize("DiagramClass, show_legend_outside", [
+    (IsentropicDiagram, True),
+    (IsentropicDiagram, False),
+    (FannoDiagram, True),
+    (FannoDiagram, False),
+    (RayleighDiagram, True),
+    (RayleighDiagram, False),
+    (NormalShockDiagram, True),
+    (NormalShockDiagram, False),
+    (ObliqueShockDiagram, True),
+    (ObliqueShockDiagram, False),
+    (ConicalShockDiagram, True),
+    (ConicalShockDiagram, False),
+    (GasDiagram, True),
+    (GasDiagram, False),
+    (SonicDiagram, True),
+    (SonicDiagram, False),
+])
+def test_legend_outside(DiagramClass, show_legend_outside):
+    d = DiagramClass(show_legend_outside=show_legend_outside)
+    if show_legend_outside:
+        assert d.legend is not None
+        assert d.figure.legend.visible == [True, False]
+    else:
+        assert d.legend is None
+        assert d.figure.legend.visible is True

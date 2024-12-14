@@ -118,7 +118,8 @@ class IsentropicDiagram(FlowCommon):
         else:
             self._add_angles(colors)
 
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     def _add_ratios(self, colors):
         for l, r in zip(self.labels[:-2], self.results[1:-2]):

@@ -59,4 +59,5 @@ class FannoDiagram(FlowCommon):
                 renderers=[line]
             ))
 
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()

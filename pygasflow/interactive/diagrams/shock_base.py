@@ -238,7 +238,8 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
         self._ann_arrows = [a1, a2, a3, a4]
         self._ann_labels = [l1, l2]
 
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     def _update_renderers(self):
         # update mach lines

@@ -143,7 +143,8 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
                 renderers=[line]
             ))
         # self.figure.x_range = Range1d(results[x_key][0], results[x_key][-1])
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     def _update_renderers(self):
         results = self._compute_results()
@@ -277,7 +278,8 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
                 tooltips=self.tooltips,
                 renderers=[line]
             ))
-        self.move_legend_outside()
+        if self.show_legend_outside:
+            self.move_legend_outside()
 
     def _update_renderers(self):
         results = self._compute_results()
