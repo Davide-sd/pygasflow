@@ -1085,8 +1085,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
     oblique shock wave for given upstream conditions.
 
     This class implements the logic to deal with pressure-deflection locus
-    from a numerical standpoint.
-    Take a look at
+    from a numerical standpoint. It is meant to be used together with
     :class:`~pygasflow.interactive.diagrams.pressure_deflection.PressureDeflectionDiagram`
     in order to draw pressure-deflection locuses.
 
@@ -1105,14 +1104,23 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
     pr_to_freestream = param.Number(1, bounds=(1, None), doc="""
         Pressure ratio multiplier between the pressure at the current state
         (M, theta_origin) and the free-stream pressure.""")
+    tr_to_freestream = param.Number(1, bounds=(1, None), doc="""
+        Temperature ratio multiplier between the pressure at the current state
+        (M, theta_origin) and the free-stream temperature.""")
+    dr_to_freestream = param.Number(1, bounds=(1, None), doc="""
+        Density ratio multiplier between the pressure at the current state
+        (M, theta_origin) and the free-stream density.""")
+    tpr_to_freestream = param.Number(1, bounds=(0, 1), doc="""
+        Total pressure ratio multiplier between the pressure at the current
+        state (M, theta_origin) and the free-stream total pressure.""")
     theta_max = param.Number(constant=True, doc="""
         The maximum deflection angle possible with this pressure-deflection
         locus. Note that `theta_max` is considered relative to `theta_origin`
         along the left-running branch.""")
-    eval_at_theta = param.Parameter(constant=True, doc="""
-        A numerical function whose only argument is the deflection angle (taken
-        from a pressure-deflection diagram), returning two pressure ratios
-        (weak and strong) associated with this pressure-deflection locus.""")
+    _eval_at_theta = param.Parameter(constant=True, doc="""
+        A numerical function used to evaluate the quantities across a
+        shockwave located at the specified theta. This function will be wrapped
+        by ``shockwave_at_theta`` in order to add appropriate docstring.""")
     upstream_locus = param.ClassSelector(
         class_=_BasePDLocus, constant=True, doc="""
         The locus associated with the upstream condition.""")
@@ -1140,17 +1148,27 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             "m1", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
         M2 = res["m2"]
         pr_to_freestream = res["pr"] * self.pr_to_freestream
+        tr_to_freestream = res["tr"] * self.tr_to_freestream
+        dr_to_freestream = res["dr"] * self.dr_to_freestream
+        tpr_to_freestream = res["tpr"] * self.tpr_to_freestream
         theta_origin = self.theta_origin + theta
         return type(self)(
             M=M2, gamma=self.gamma, label=label,
-            theta_origin=theta_origin, pr_to_freestream=pr_to_freestream,
+            theta_origin=theta_origin,
+            pr_to_freestream=pr_to_freestream,
+            tr_to_freestream=tr_to_freestream,
+            dr_to_freestream=dr_to_freestream,
+            tpr_to_freestream=tpr_to_freestream,
             upstream_locus=self)
 
     def __str__(self):
         s = f"Pressure-Deflection Locus of {self.label}\n"
         s += f"M\t\t{self.M}\n"
         s += f"p/p_inf\t\t{self.pr_to_freestream}\n"
-        s += f"th_orig\t\t{self.theta_origin}\n"
+        s += f"T/T_inf\t\t{self.tr_to_freestream}\n"
+        s += f"rho/rho_inf\t{self.dr_to_freestream}\n"
+        s += f"P0/P0_inf\t{self.tpr_to_freestream}\n"
+        s += f"th_orig\t\t{self.theta_origin} [deg]\n"
         return s
 
     @param.depends(
@@ -1160,20 +1178,73 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
     def update_func(self):
         theta_max = max_theta_from_mach(self.M, self.gamma)
 
-        def func(theta):
+        def func(theta, region="weak"):
             actual_theta = abs(self.theta_origin - theta)
-            betas = beta_from_mach_theta(self.M, actual_theta, self.gamma)
-            betas = [betas["weak"], betas["strong"]]
-            Mn = self.M * np.sin(np.deg2rad(betas))
+            beta = beta_from_mach_theta(
+                self.M, actual_theta, self.gamma)[region]
+            Mn_up = self.M * np.sin(np.deg2rad(beta))
             # avoid rounding errors that would make Mn < 1
-            idx = np.isclose(Mn, 1)
-            Mn[idx] = 1
-            pr = pressure_ratio(Mn, self.gamma) * self.pr_to_freestream
-            return pr
+            if np.isclose(Mn_up, 1):
+                Mn_up = 1
+
+            # compute the ratios across the shockwave
+            pr, dr, tr, tpr, Mn_down = get_ratios_from_normal_mach_upstream(
+                Mn_up, self.gamma)
+            pr *= self.pr_to_freestream
+            tr *= self.tr_to_freestream
+            dr *= self.dr_to_freestream
+            tpr *= self.tpr_to_freestream
+            M_down = Mn_down /  np.sin(np.deg2rad(beta - actual_theta))
+
+            keys = [
+                "mu", "mnu", "md", "mnd", "beta", "theta",
+                "pr", "tr", "dr", "tpr"
+            ]
+            values = [
+                self.M, Mn_up, M_down, Mn_down, beta, actual_theta,
+                pr, tr, dr, tpr
+            ]
+            res = {k: v for k, v in zip(keys, values)}
+            return res
 
         with param.edit_constant(self):
             self.theta_max = theta_max
-            self.eval_at_theta = func
+            self._eval_at_theta = func
+
+    def shockwave_at_theta(self, theta, region="weak"):
+        """Evaluates the current pression-deflection locus at a specified
+        flow-deflection angle in the specified region for the current locus.
+
+        Parameters
+        ----------
+        theta : float
+            The flow deflection angle in degrees. This quantity is not relative
+            to the origin of the current locus. Instead, it must be an angle
+            taken from a pressure-deflection diagram.
+        region : str
+            Possible values are ``"weak", "strong"``.
+
+        Returns
+        -------
+        res : dict
+            Contains the the ratios and mach numbers across the shockwave.
+            The following keys will be used:
+
+            * ``"mu"``: upstream Mach number.
+            * ``"mnu"``: upstream normal Mach number.
+            * ``"md"``: downstream Mach number.
+            * ``"mnd"``: downstream normal Mach number.
+            * ``"beta"``: shock wave angle [degrees] relative to the upstream
+              locus.
+            * ``"theta"``: flow deflection angle [degrees] relative to the
+              upstream locus.
+            * ``"pr"``: pressure ratio to freestream.
+            * ``"tr"``: temperature ratio to freestream.
+            * ``"dr"``: density ratio to freestream.
+            * ``"tpr"``: total pressure ratio to freestream.
+        """
+        return self._eval_at_theta(theta, region)
+
 
     @staticmethod
     def create_path(*segments, concatenate=True, **kwargs):
@@ -1307,11 +1378,11 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         if self.theta_origin < other.theta_origin:
             theta_origin1, theta_origin2 = self.theta_origin, other.theta_origin
             theta_max1, theta_max2 = self.theta_max, other.theta_max
-            f1, f2 = self.eval_at_theta, other.eval_at_theta
+            f1, f2 = self.shockwave_at_theta, other.shockwave_at_theta
         else:
             theta_origin1, theta_origin2 = other.theta_origin, self.theta_origin
             theta_max1, theta_max2 = other.theta_max, self.theta_max
-            f1, f2 = other.eval_at_theta, self.eval_at_theta
+            f1, f2 = other.shockwave_at_theta, self.shockwave_at_theta
 
         if theta_origin1 + theta_max1 < theta_origin2 - theta_max2:
             # no intersection found
@@ -1321,19 +1392,18 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         # between the weak region in one locus and the strong region in
         # the other. Maybe I should run a bisection with func(pressure_ratio)..
         def func(theta, region="weak"):
-            pr1 = f1(theta)
-            pr2 = f2(theta)
-            if region == "weak":
-                return pr1[0] - pr2[0]
-            return pr1[1] - pr2[1]
+            res1 = f1(theta, region)
+            res2 = f2(theta, region)
+            pr1 = res1["pr"]
+            pr2 = res2["pr"]
+            return pr1 - pr2
 
         if a is None:
             a = min(theta_origin1 + theta_max1, theta_origin2 - theta_max2)
         if b is None:
             b = max(theta_origin1 + theta_max1, theta_origin2 - theta_max2)
         theta_intersection = bisect(func, a=a, b=b, args=(region,))
-        pr_intersection = f1(theta_intersection)
-        pr_intersection = pr_intersection[0] if region == "weak" else pr_intersection[1]
+        pr_intersection = f1(theta_intersection, region=region)["pr"]
         return theta_intersection, pr_intersection
 
     def pressure_deflection(self, N=100, include_mirror=True):
