@@ -199,7 +199,7 @@ class PressureDeflectionDiagram(BasePlot):
         if show_state and locus.label:
             lbl, circle_rend = self.add_state(
                 locus.theta_origin,
-                locus.pr_to_freestream,
+                locus.pr_to_fs_at_origin,
                 locus.label,
                 primary_line=line_rend
             )
@@ -260,7 +260,7 @@ class PressureDeflectionDiagram(BasePlot):
         if show_state and locus.label:
             lbl, circle_rend = self.add_state(
                 locus.theta_origin,
-                locus.pr_to_freestream,
+                locus.pr_to_fs_at_origin,
                 locus.label,
                 primary_line=line_rend_weak
             )

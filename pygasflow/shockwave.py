@@ -1101,23 +1101,23 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         Specific heats ratio.""")
     theta_origin = param.Number(0, doc="""
         Deflection angle at which `M` occurs.""")
-    pr_to_freestream = param.Number(1, bounds=(1, None), doc="""
-        Pressure ratio multiplier between the pressure at the current state
-        (M, theta_origin) and the free-stream pressure.""")
-    tr_to_freestream = param.Number(1, bounds=(1, None), doc="""
-        Temperature ratio multiplier between the pressure at the current state
-        (M, theta_origin) and the free-stream temperature.""")
-    dr_to_freestream = param.Number(1, bounds=(1, None), doc="""
-        Density ratio multiplier between the pressure at the current state
-        (M, theta_origin) and the free-stream density.""")
-    tpr_to_freestream = param.Number(1, bounds=(0, 1), doc="""
-        Total pressure ratio multiplier between the pressure at the current
-        state (M, theta_origin) and the free-stream total pressure.""")
+    pr_to_fs_at_origin = param.Number(1, bounds=(1, None), doc="""
+        Pressure ratio multiplier between the pressure at the current locus
+        origin and the free-stream pressure.""")
+    tr_to_fs_at_origin = param.Number(1, bounds=(1, None), doc="""
+        Temperature ratio multiplier between the temperature at the current
+        locus origin and the free-stream temperature.""")
+    dr_to_fs_at_origin = param.Number(1, bounds=(1, None), doc="""
+        Density ratio multiplier between the density at the current locus
+        origin and the free-stream density.""")
+    tpr_to_fs_at_origin = param.Number(1, bounds=(0, 1), doc="""
+        Total pressure ratio multiplier between the total pressure at the
+        current locus origin and the free-stream total pressure.""")
     theta_max = param.Number(constant=True, doc="""
         The maximum deflection angle possible with this pressure-deflection
         locus. Note that `theta_max` is considered relative to `theta_origin`
         along the left-running branch.""")
-    _eval_at_theta = param.Parameter(constant=True, doc="""
+    _shockwave_at_theta = param.Parameter(constant=True, doc="""
         A numerical function used to evaluate the quantities across a
         shockwave located at the specified theta. This function will be wrapped
         by ``shockwave_at_theta`` in order to add appropriate docstring.""")
@@ -1146,33 +1146,27 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 
         res = shockwave_solver(
             "m1", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
-        M2 = res["m2"]
-        pr_to_freestream = res["pr"] * self.pr_to_freestream
-        tr_to_freestream = res["tr"] * self.tr_to_freestream
-        dr_to_freestream = res["dr"] * self.dr_to_freestream
-        tpr_to_freestream = res["tpr"] * self.tpr_to_freestream
-        theta_origin = self.theta_origin + theta
         return type(self)(
-            M=M2, gamma=self.gamma, label=label,
-            theta_origin=theta_origin,
-            pr_to_freestream=pr_to_freestream,
-            tr_to_freestream=tr_to_freestream,
-            dr_to_freestream=dr_to_freestream,
-            tpr_to_freestream=tpr_to_freestream,
+            M=res["m2"], gamma=self.gamma, label=label,
+            theta_origin=self.theta_origin + theta,
+            pr_to_fs_at_origin=res["pr"] * self.pr_to_fs_at_origin,
+            tr_to_fs_at_origin=res["tr"] * self.tr_to_fs_at_origin,
+            dr_to_fs_at_origin=res["dr"] * self.dr_to_fs_at_origin,
+            tpr_to_fs_at_origin=res["tpr"] * self.tpr_to_fs_at_origin,
             upstream_locus=self)
 
     def __str__(self):
         s = f"Pressure-Deflection Locus of {self.label}\n"
         s += f"M\t\t{self.M}\n"
-        s += f"p/p_inf\t\t{self.pr_to_freestream}\n"
-        s += f"T/T_inf\t\t{self.tr_to_freestream}\n"
-        s += f"rho/rho_inf\t{self.dr_to_freestream}\n"
-        s += f"P0/P0_inf\t{self.tpr_to_freestream}\n"
+        s += f"p/p_inf\t\t{self.pr_to_fs_at_origin}\n"
+        s += f"T/T_inf\t\t{self.tr_to_fs_at_origin}\n"
+        s += f"rho/rho_inf\t{self.dr_to_fs_at_origin}\n"
+        s += f"P0/P0_inf\t{self.tpr_to_fs_at_origin}\n"
         s += f"th_orig\t\t{self.theta_origin} [deg]\n"
         return s
 
     @param.depends(
-        "M", "gamma", "theta_origin", "pr_to_freestream",
+        "M", "gamma", "theta_origin", "pr_to_fs_at_origin",
         watch=True, on_init=True
     )
     def update_func(self):
@@ -1190,18 +1184,21 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             # compute the ratios across the shockwave
             pr, dr, tr, tpr, Mn_down = get_ratios_from_normal_mach_upstream(
                 Mn_up, self.gamma)
-            pr *= self.pr_to_freestream
-            tr *= self.tr_to_freestream
-            dr *= self.dr_to_freestream
-            tpr *= self.tpr_to_freestream
+            pr *= self.pr_to_fs_at_origin
+            tr *= self.tr_to_fs_at_origin
+            dr *= self.dr_to_fs_at_origin
+            tpr *= self.tpr_to_fs_at_origin
             M_down = Mn_down /  np.sin(np.deg2rad(beta - actual_theta))
+
+            sign = 1 if theta >= self.theta_origin else -1
+            theta_corrected = sign * actual_theta
 
             keys = [
                 "mu", "mnu", "md", "mnd", "beta", "theta",
                 "pr", "tr", "dr", "tpr"
             ]
             values = [
-                self.M, Mn_up, M_down, Mn_down, beta, actual_theta,
+                self.M, Mn_up, M_down, Mn_down, beta, theta_corrected,
                 pr, tr, dr, tpr
             ]
             res = {k: v for k, v in zip(keys, values)}
@@ -1209,7 +1206,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 
         with param.edit_constant(self):
             self.theta_max = theta_max
-            self._eval_at_theta = func
+            self._shockwave_at_theta = func
 
     def shockwave_at_theta(self, theta, region="weak"):
         """Evaluates the current pression-deflection locus at a specified
@@ -1237,14 +1234,161 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             * ``"beta"``: shock wave angle [degrees] relative to the upstream
               locus.
             * ``"theta"``: flow deflection angle [degrees] relative to the
-              upstream locus.
+              locus' origin. Note that this value can be negative.
             * ``"pr"``: pressure ratio to freestream.
             * ``"tr"``: temperature ratio to freestream.
             * ``"dr"``: density ratio to freestream.
             * ``"tpr"``: total pressure ratio to freestream.
-        """
-        return self._eval_at_theta(theta, region)
 
+        Examples
+        --------
+
+        This is a simple regular reflection from a solid boundary
+        (refer to figure 4.18 of "Modern Compressible Flow, Anderson"):
+
+        >>> gamma = 1.4
+        >>> M1 = 2.8
+        >>> theta1 = 16  # deg
+        >>> T1 = 519     # °R
+        >>> p1 = 1       # atm
+        >>> l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
+        >>> l2 = l1.new_locus_from_shockwave(theta1, label="2")
+
+        First shock wave:
+
+        >>> shock_1 = l1.shockwave_at_theta(theta1)
+        >>> shock_1["theta"]
+        16
+        >>> shock_1["beta"]
+        np.float64(34.9226304011263)
+
+        Reflected shock wave:
+
+        >>> shock_2 = l2.shockwave_at_theta(0)
+        >>> shock_2["theta"]
+        -16
+        >>> shock_2["beta"]
+        np.float64(45.33424941323747)
+
+        """
+        return self._shockwave_at_theta(theta, region)
+
+    def flow_quantities_after_shockwave(
+        self, theta, p_fs=None, T_fs=None, rho_fs=None, region="weak"
+    ):
+        """Compute the flow quantities after a shock wave.
+
+        Parameters
+        ----------
+        theta : float
+            The flow deflection angle in degrees. This quantity is not relative
+            to the origin of the current locus. Instead, it must be an angle
+            taken from a pressure-deflection diagram.
+        p_fs : float or None
+            Freestream pressure.
+        T_fs : float or None
+            Freestream temperature.
+        rho_fs : float or None
+            Freestream density.
+        region : str
+            Possible values are ``"weak", "strong"``.
+
+        Returns
+        -------
+        res : dict
+            Contains the quantities just downstream of the specified shock
+            wave. The following keys will be used:
+
+            * ``"M"``: Mach number downstream of the shock wave.
+            * ``"T"``: Temperature downstream of the shock wave.
+            * ``"p"``: Pressure downstream of the shock wave.
+            * ``"rho"``: Density downstream of the shock wave.
+            * ``"T0"``: Total temperature downstream of the shock wave.
+            * ``"p0"``: Total pressure downstream of the shock wave.
+            * ``"rho0"``: Total density downstream of the shock wave.
+
+        Examples
+        --------
+
+        This is a simple regular reflection from a solid boundary:
+
+        >>> gamma = 1.4
+        >>> M1 = 2.8
+        >>> theta1 = 16  # deg
+        >>> T1 = 519     # °R
+        >>> p1 = 1       # atm
+        >>> l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
+        >>> l2 = l1.new_locus_from_shockwave(theta1, label="2")
+
+        To compute the missing flow quantities in the free stream region,
+        one could use the isentropic relations. However, this function already
+        implementes the procedure: just select `theta=0`, which corresponds to
+        a situation in which the flow state behind the oblique shock wave is
+        identical to the flow state ahead of it:
+
+        >>> region1 = l1.flow_quantities_after_shockwave(0, p1, T1, None)
+        >>> region1["M"]
+        2.8
+        >>> region1["T"]
+        519
+        >>> region1["p"]
+        1
+        >>> region1["p0"]
+        np.float64(27.13829555269978)
+        >>> region1["T0"]
+        np.float64(1332.7919999999997)
+
+        To compute the quantities downstream of the first shock wave:
+
+        >>> region2 = l1.flow_quantities_after_shockwave(theta1, p1, T1, None)
+
+        To compute quantities downstream of the second shock wave:
+
+        >>> region3 = l2.flow_quantities_after_shockwave(0, p1, T1, None)
+
+        """
+        from pygasflow.isentropic import (
+            pressure_ratio as ise_pressure_ratio,
+            temperature_ratio as ise_temperature_ratio,
+            density_ratio as ise_density_ratio,
+        )
+
+        # retrieve the freestream Mach number.
+        M_fs = None
+        locus = self
+        while locus is not None:
+            M_fs = locus.M
+            locus = locus.upstream_locus
+
+        M_fs, T_fs, p_fs, rho_fs = [
+            t if t is not None else np.nan for t in [M_fs, T_fs, p_fs, rho_fs]]
+
+        if (
+            (self.upstream_locus is None)
+            and np.isclose(theta, 0)
+            and (region == "weak")
+        ):
+            M_d = M_fs
+            T_d = T_fs
+            p_d = p_fs
+            rho_d = rho_fs
+        else:
+            shock = self.shockwave_at_theta(theta, region)
+            M_d = shock["md"]
+            T_d = shock["tr"] * T_fs
+            p_d = shock["pr"] * p_fs
+            rho_d = shock["dr"] * rho_fs
+
+        p0_d = 1 / ise_pressure_ratio(M_d, self.gamma) * p_d
+        rho0_d = 1 / ise_density_ratio(M_d, self.gamma) * rho_d
+        # total temperature doesn't change across a shock wave
+        T0_d = 1 / ise_temperature_ratio(M_fs, self.gamma) * T_fs
+
+        res = {
+            "M": M_d, "T": T_d, "p": p_d, "rho": rho_d,
+            "T0": T0_d, "p0": p0_d, "rho0": rho0_d
+        }
+        return res
 
     @staticmethod
     def create_path(*segments, concatenate=True, **kwargs):
@@ -1501,7 +1645,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             pr = np.append(pr, pr[::-1])
 
         theta += self.theta_origin
-        pr *= self.pr_to_freestream
+        pr *= self.pr_to_fs_at_origin
 
         return theta, pr
 
@@ -1684,7 +1828,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             theta = -theta
 
         theta += self.theta_origin
-        pr *= self.pr_to_freestream
+        pr *= self.pr_to_fs_at_origin
 
         return theta, pr
 

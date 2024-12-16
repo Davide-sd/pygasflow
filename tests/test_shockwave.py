@@ -528,12 +528,12 @@ def test_create_mach_beta_theta_c_csv_file():
 
 class Test_PressureDeflectionLocus:
     def _do_test_instantion(
-        self, obj, M, gamma, theta_origin, pr_to_freestream, label
+        self, obj, M, gamma, theta_origin, pr_to_fs_at_origin, label
     ):
         assert obj.M == M
         assert obj.gamma == gamma
         assert obj.theta_origin == theta_origin
-        assert obj.pr_to_freestream == pr_to_freestream
+        assert obj.pr_to_fs_at_origin == pr_to_fs_at_origin
         assert obj.label == label
         assert callable(obj.shockwave_at_theta)
         assert np.isclose(obj.theta_max, max_theta_from_mach(M, gamma))
@@ -550,7 +550,7 @@ class Test_PressureDeflectionLocus:
 
     def test_instantiation_advanced(self):
         p = PressureDeflectionLocus(
-            M=2, gamma=1.4, theta_origin=10, pr_to_freestream=3, label="test")
+            M=2, gamma=1.4, theta_origin=10, pr_to_fs_at_origin=3, label="test")
         self._do_test_instantion(p, 2, 1.4, 10, 3, "test")
 
     def test_new_locus_from_shockwave(self):
@@ -586,7 +586,7 @@ class Test_PressureDeflectionLocus:
         assert np.isclose(tm3, tm4)
         assert id(f3) != id(f4)
 
-        p.pr_to_freestream = 3
+        p.pr_to_fs_at_origin = 3
         f5 = p.shockwave_at_theta
         tm5 = p.theta_max
         assert np.isclose(tm4, tm5)
@@ -756,7 +756,7 @@ class Test_PressureDeflectionLocus_pressure_deflection:
             3.64575071, 3.5872617 , 3.45277315, 2.95556551, 1.
         ]))
 
-    def test_theta_origin_pr_to_freestream(self):
+    def test_theta_origin_pr_to_fs_at_origin(self):
         gamma = 1.4
         M1 = 3
         theta_2 = 20
@@ -866,7 +866,7 @@ class Test_PressureDeflectionLocus_pressure_deflection_split_regions:
             4.5       , 4.10913375, 3.81560199, 3.70192379, 3.64575192
         ]))
 
-    def test_theta_origin_pr_to_freestream(self):
+    def test_theta_origin_pr_to_fs_at_origin(self):
         gamma = 1.4
         M1 = 3
         theta_2 = 20
@@ -945,7 +945,7 @@ class Test_PressureDeflectionLocus_pressure_deflection_segment:
         assert np.allclose(pr, np.array(
             [1.        , 1.14913345, 1.31540694, 1.50052358, 1.7065786 ]))
 
-    def test_theta_origin_pr_to_freestream(self):
+    def test_theta_origin_pr_to_fs_at_origin(self):
         gamma = 1.4
         M1 = 3
         theta_2 = 20
@@ -981,6 +981,100 @@ class Test_PressureDeflectionLocus_pressure_deflection_segment:
             [-15.  , -16.25, -17.5 , -18.75, -20.  ]))
         assert np.allclose(pr3, np.array(
             [2.82156232, 3.04502121, 3.28216195, 3.53357527, 3.79985865 ]))
+
+
+def test_pressure_deflection_locus_example_4_10():
+    # Example 4.10 from "Modern Compressible Flow, Anderson"
+
+    gamma = 1.4
+    M1 = 2.8
+    theta1 = 16  # deg (positive because it creates a left running shock wave)
+    T1 = 519     # °R
+    p1 = 1       # atm
+
+    l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
+    l2 = l1.new_locus_from_shockwave(theta1, label="2")
+
+    res1 = l1.flow_quantities_after_shockwave(0, p1, T1, None)
+    assert np.isclose(res1["M"], 2.8)
+    assert np.isclose(res1["T"], 519)
+    assert np.isclose(res1["p"], 1)
+    assert np.isnan(res1["rho"])
+    assert np.isclose(res1["p0"], 27.13829555269978)
+    assert np.isclose(res1["T0"], 1332.7919999999997)
+    assert np.isnan(res1["rho0"])
+
+    res2 = l1.flow_quantities_after_shockwave(theta1, p1, T1, None)
+    assert np.isclose(res2["M"], 2.0585267920301744)
+    assert np.isclose(res2["T"], 721.4004347373847)
+    assert np.isclose(res2["p"], 2.830893893824571)
+    assert np.isnan(res2["rho"])
+    assert np.isclose(res2["p0"], 24.264676915994347)
+    assert np.isclose(res2["T0"], 1332.7919999999997)
+    assert np.isnan(res2["rho0"])
+
+    res3 = l2.flow_quantities_after_shockwave(0, p1, T1, None)
+    assert np.isclose(res3["M"], 1.457847510395878)
+    assert np.isclose(res3["T"], 935.2507108767023)
+    assert np.isclose(res3["p"], 6.607497448853544)
+    assert np.isnan(res3["rho"])
+    assert np.isclose(res3["p0"], 22.82743737842192)
+    assert np.isclose(res3["T0"], 1332.7919999999997)
+    assert np.isnan(res3["rho0"])
+
+    shock1 = l1.shockwave_at_theta(theta1, region="weak")
+    assert np.isclose(shock1["theta"], theta1)
+    assert np.isclose(shock1["beta"], 34.9226304011263)
+
+    shock2 = l2.shockwave_at_theta(0, region="weak")
+    assert np.isclose(shock2["theta"], -theta1)
+    assert np.isclose(shock2["beta"], 45.33424941323747)
+
+
+def test_pressure_deflection_locus_intersection_shocks_opposite_families():
+    # This example reproduces Figure 4.24 from
+    # "Modern Compressible Flow, Anderson", using data found in
+    # http://mae-nas.eng.usu.edu/MAE_5420_Web/section9/section9.1.pdf
+
+    M1 = 3
+    theta_2 = 20
+    theta_3 = -15
+
+    l1 = PressureDeflectionLocus(M=M1, label="1")
+    l2 = l1.new_locus_from_shockwave(theta_2, label="2")
+    l3 = l1.new_locus_from_shockwave(theta_3, label="3")
+
+    phi, p4_p1 = l2.intersection(l3)
+    theta_4 = phi - l3.theta_origin
+    theta_4p = phi - l2.theta_origin
+
+    res1 = l1.flow_quantities_after_shockwave(0, None, None, None)
+    res2 = l1.flow_quantities_after_shockwave(theta_2, None, None, None)
+    res3 = l1.flow_quantities_after_shockwave(theta_3, None, None, None)
+    res4p = l2.flow_quantities_after_shockwave(phi, None, None, None)
+    res4 = l3.flow_quantities_after_shockwave(phi, None, None, None)
+
+    assert np.isclose(phi, 4.795958931693682)
+    assert np.isclose(theta_4, 19.795958931693683)
+    assert np.isclose(theta_4p, -15.204041068306317)
+    assert np.isclose(res1["M"], 3)
+    assert np.isclose(res2["M"], 1.9941316655645605)
+    assert np.isclose(res3["M"], 2.25490231226494)
+    assert np.isclose(res4["M"], 1.4605040215769651)
+    assert np.isclose(res4p["M"], 1.431700680823202)
+
+    shock_A = l1.shockwave_at_theta(theta_2)
+    shock_B = l1.shockwave_at_theta(theta_3)
+    shock_C = l2.shockwave_at_theta(phi)
+    shock_D = l3.shockwave_at_theta(phi)
+    assert np.isclose(shock_A["theta"], 20)
+    assert np.isclose(shock_A["beta"], 37.76363414837576)
+    assert np.isclose(shock_B["theta"], -15)
+    assert np.isclose(shock_B["beta"], 32.24040018274467)
+    assert np.isclose(shock_C["theta"], -15.204041068306317)
+    assert np.isclose(shock_C["beta"], 45.763301527634496)
+    assert np.isclose(shock_D["theta"], 19.795958931693683)
+    assert np.isclose(shock_D["beta"], 46.5550175823021)
 
 
 @pytest.mark.parametrize("M", [
