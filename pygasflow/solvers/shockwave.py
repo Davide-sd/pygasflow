@@ -177,7 +177,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
         if not isinstance(beta, np.ndarray):
             beta = beta * np.ones_like(theta)
-        M1 = mach_from_theta_beta.__no_check__(theta, beta)
+        M1 = mach_from_theta_beta.__no_check__(theta, beta, gamma)
     elif p1_name == "beta":
         if theta is None:
             raise ValueError("If you provide p1_name='beta', it must be p2_name='theta'.")
@@ -186,7 +186,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
         if not isinstance(theta, np.ndarray):
             theta = theta * np.ones_like(beta)
-        M1 = mach_from_theta_beta.__no_check__(theta, beta)
+        M1 = mach_from_theta_beta.__no_check__(theta, beta, gamma)
     else:   # 'm2'
         # TODO:
         # Is it even possible to solve it knowing only M2, beta or M2, theta?????

@@ -185,6 +185,48 @@ def test_oblique_shockwave():
     do_test("m1", 5, "theta", 20, expected_res, 1.4, flag="strong")
     do_test("m1", 5, "beta", 84.5562548, expected_res, 1.4, flag="strong")
     do_test("m1", 5, "mn1", 4.97744911, expected_res, 1.4, flag="strong")
+    do_test("beta", 84.5562548, "theta", 20, expected_res, 1.4, flag="strong")
+    do_test("theta", 20, "beta", 84.5562548, expected_res, 1.4, flag="strong")
+
+    gamma = 1.2
+    # weak oblique shock
+    expected_res = [
+        5.0,
+        2.328000412282412,
+        3.639365388144191,
+        0.4907129773582181,
+        27.749065268990808,
+        20.0,
+        5.821366457731361,
+        3.866215696475352,
+        1.5057014183244946,
+        0.49956474525543926
+    ]
+    do_test("m1", 5, "theta", 20, expected_res, gamma, flag="weak")
+    do_test("m1", 5, "beta", 27.749065268990808, expected_res, gamma, flag="weak")
+    do_test("m1", 5, "mn1", 2.328000412282412, expected_res, gamma, flag="weak")
+    do_test("beta", 27.749065268990808, "theta", 20, expected_res, gamma, flag="weak")
+    do_test("theta", 20, "beta", 27.749065268990808, expected_res, gamma, flag="weak")
+
+    # strong oblique shock
+    expected_res = [
+        5.0,
+        4.992627989196466,
+        0.37215012062223435,
+        0.34228183553244257,
+        86.88829093968721,
+        20.0,
+        27.101455532917754,
+        7.850514020486018,
+        3.452188667161941,
+        0.016011258932630855
+    ]
+    do_test("m1", 5, "theta", 20, expected_res, gamma, flag="strong")
+    do_test("m1", 5, "beta", 86.88829093968721, expected_res, gamma, flag="strong")
+    do_test("m1", 5, "mn1", 4.992627989196466, expected_res, gamma, flag="strong")
+    do_test("beta", 86.88829093968721, "theta", 20, expected_res, gamma, flag="strong")
+    do_test("theta", 20, "beta", 86.88829093968721, expected_res, gamma, flag="strong")
+
 
 
 def test_conical_shockwave():

@@ -48,6 +48,10 @@ future
   :func:`~pygasflow.shockwave.beta_theta_max_for_unit_mach_downstream` and
   :func:`~pygasflow.shockwave.beta_theta_c_for_unit_mach_downstream`.
 
+* Fixed bug with ``shockwave_solver`` and propagation of the specific heats
+  ratio when the flow deflection angle and the shock wave angle were provided
+  as input arguments.
+
 * Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.
 
