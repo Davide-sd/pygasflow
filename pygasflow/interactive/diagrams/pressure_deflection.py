@@ -120,14 +120,16 @@ class PressureDeflectionDiagram(BasePlot):
         pass
 
     def add_state(
-        self, x, y, text, primary_line=None, circle_kw=None, **kwargs
+        self, theta, pr, text, primary_line=None, circle_kw=None, **kwargs
     ):
         """Add `text` to the specified point `(x, y)` in the diagram.
 
         Parameters
         ----------
-        x : float
-        y : float
+        theta : float
+            Flow deflection angle in degrees.
+        pr : float
+            Pressure ratio to freestream.
         text : str
         primary_line : None or Renderer
             If a Bokeh renderer is provided, its visibility will be linked to
@@ -147,14 +149,14 @@ class PressureDeflectionDiagram(BasePlot):
         kwargs.setdefault("y_offset", 15)
         kwargs.setdefault("text_align", "center")
         kwargs.setdefault("text_baseline", "middle")
-        lbl = Label(x=x, y=y, text=text, **kwargs)
+        lbl = Label(x=theta, y=pr, text=text, **kwargs)
         circle_kw = {} if circle_kw is None else circle_kw
         circle_kw.setdefault("radius", 4)
         circle_kw.setdefault("radius_units", "screen")
         circle_kw.setdefault("line_color", "#000000")
         circle_kw.setdefault("fill_color", "#000000")
         self.figure.add_layout(lbl)
-        circle_rend = self.figure.add_glyph(Circle(x=x, y=y, **circle_kw))
+        circle_rend = self.figure.add_glyph(Circle(x=theta, y=pr, **circle_kw))
 
         if primary_line is not None:
             # bind all handles' visibility to the primary_line's visibility
