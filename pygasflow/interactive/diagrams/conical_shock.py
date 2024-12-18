@@ -4,8 +4,8 @@ from pygasflow.interactive.diagrams.shock_base import ShockCommon
 from pygasflow.shockwave import (
     load_data,
     mach_cone_angle_from_shock_angle,
-    beta_theta_c_for_unit_mach_downstream,
-    max_theta_c_from_mach
+    sonic_point_conical_shock,
+    detachment_point_conical_shock
 )
 
 class ConicalShockDiagram(ShockCommon):
@@ -96,7 +96,7 @@ class ConicalShockDiagram(ShockCommon):
             theta_c = np.zeros_like(M)
             for i, m in enumerate(M):
                 try:
-                    beta[i], theta_c[i] = beta_theta_c_for_unit_mach_downstream(
+                    beta[i], theta_c[i] = sonic_point_conical_shock(
                         m, self.gamma)
                 except ValueError:
                     beta[i], theta_c[i] = np.nan, np.nan
@@ -120,7 +120,7 @@ class ConicalShockDiagram(ShockCommon):
         b = np.zeros_like(M)
         tc = np.zeros_like(M)
         for i, m in enumerate(M):
-            _, tc[i], b[i] = max_theta_c_from_mach(m, self.gamma)
+            b[i], tc[i] = detachment_point_conical_shock(m, self.gamma)
         tc = np.insert(tc, 0, 0)
         b = np.insert(b, 0, 90)
         results.append({

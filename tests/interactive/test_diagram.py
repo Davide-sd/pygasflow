@@ -579,11 +579,11 @@ class Test_PressureDeflectionDiagram:
             assert circle is None
 
     @pytest.mark.parametrize("show_state", [True, False])
-    def test_add_locus_split_regions(self, show_state):
+    def test_add_locus_split(self, show_state):
         pdl1, pdl2, pdl3, th, pr = self.setup()
         d = PressureDeflectionDiagram()
 
-        line_w, line_s, label, circle =  d.add_locus_split_regions(
+        line_w, line_s, label, circle =  d.add_locus_split(
             pdl1, show_state=show_state)
         for line in [line_w, line_s]:
             assert isinstance(line, GlyphRenderer)

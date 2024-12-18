@@ -205,9 +205,9 @@ class PressureDeflectionDiagram(BasePlot):
             )
         return line_rend, lbl, circle_rend
 
-    def add_locus_split_regions(
+    def add_locus_split(
         self, locus, weak_kwargs={}, strong_kwargs={}, same_color=True,
-        show_state=True
+        show_state=True, mode="region"
     ):
         """Add the locus to the diagram, with two lines, one for the weak
         region and the other for the strong region.
@@ -227,6 +227,13 @@ class PressureDeflectionDiagram(BasePlot):
             Wheter the two lines uses the same color.
         show_state : bool
             If True, also add a text on the diagram at the start of the locus.
+        mode : str
+            Split the locus at some point. It can be:
+
+            * ``"region"``: the locus is splitted at the detachment point,
+              where ``theta=theta_max``.
+            * ``"sonic"``: the locus is splitted at the sonic point (where
+              the downstream Mach number is 1).
 
         Returns
         -------
@@ -249,7 +256,8 @@ class PressureDeflectionDiagram(BasePlot):
         strong_kwargs.setdefault(
             "line_color", color if same_color else next(self.color_iterator))
 
-        theta_w, pr_w, theta_s, pr_s = locus.pressure_deflection_split_regions()
+        theta_w, pr_w, theta_s, pr_s = locus.pressure_deflection_split(
+            mode=mode)
         source_w = ColumnDataSource({"x": theta_w, "y": pr_w})
         source_s = ColumnDataSource({"x": theta_s, "y": pr_s})
         line_rend_weak = self.figure.line(

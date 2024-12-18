@@ -6,7 +6,7 @@ from io import StringIO
 from itertools import product
 from bokeh.models.widgets.tables import NumberFormatter
 from pygasflow.interactive.diagrams.flow_base import BasePlot
-from pygasflow.shockwave import max_theta_from_mach, beta_from_mach_max_theta
+from pygasflow.shockwave import max_theta_from_mach
 
 
 pn.extension()
@@ -325,6 +325,11 @@ class ShockSection(BaseSection):
 
     input_flag = param.String("both")
 
+    sonic_point_func = param.Callable(doc="""
+        A function used to compute the sonic point of a curve in the
+        Mach-theta-beta plane (for oblique shocks) or in the
+        Mach-theta_c-beta plane (for conical shocks).""")
+
     @param.depends(
         "input_parameter_1", "input_value_1",
         "input_parameter_2", "input_value_2",
@@ -363,7 +368,7 @@ class ShockSection(BaseSection):
                     results = self.run_solver(v1, v2, g, f)
                     if postprocess_results:
                         m1 = results["m1"]
-                        beta_crit = beta_from_mach_max_theta(m1, gamma=g)
+                        beta_crit, _ = self.sonic_point_func(m1, gamma=g)
                         sol = "weak" if results["beta"] <= beta_crit else "strong"
                         results["Solution"] = [sol]
                 except ValueError as err:

@@ -3,6 +3,7 @@ from pygasflow.utils.common import convert_to_ndarray, ret_correct_vals
 from timeit import default_timer as timer
 from functools import wraps
 import inspect
+import warnings
 
 # NOTE:
 # Decorators are used to get rid of repetitive code. For example, consider
@@ -290,3 +291,16 @@ def average_execution_time(N=10):
         return decorator(N)
     else:
         return decorator
+
+
+def deprecated(message):
+    def deprecated_decorator(func):
+        def deprecated_func(*args, **kwargs):
+            warnings.warn(
+                f"{func.__name__} is a deprecated function. {message}",
+                category=DeprecationWarning,
+                stacklevel=2)
+            warnings.simplefilter('default', DeprecationWarning)
+            return func(*args, **kwargs)
+        return deprecated_func
+    return deprecated_decorator

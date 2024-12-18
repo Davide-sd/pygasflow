@@ -4,6 +4,13 @@ Changelog
 future
 ======
 
+* DEPRECATIONS: here is a list of functions that have been deprecated.
+  See :ref:`deprecations-page` to understand the motivations.
+
+  * ``beta_theta_max_for_unit_mach_downstream``
+  * ``beta_from_mach_max_theta``
+  * ``beta_theta_c_for_unit_mach_downstream``
+
 * BREAKING:
 
   * Removed classes ``Ideal_Gas`` and ``Flow_State`` from
@@ -51,6 +58,9 @@ future
 * Fixed bug with ``shockwave_solver`` and propagation of the specific heats
   ratio when the flow deflection angle and the shock wave angle were provided
   as input arguments.
+
+* Fixed bug with ``mach_from_theta_beta``, which computed a wrong Mach number
+  for the special case beta=90, theta=0.
 
 * Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.

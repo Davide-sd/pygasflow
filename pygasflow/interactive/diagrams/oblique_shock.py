@@ -3,8 +3,8 @@ import numpy as np
 from pygasflow.interactive.diagrams.shock_base import ShockCommon
 from pygasflow.shockwave import (
     theta_from_mach_beta,
-    beta_theta_max_for_unit_mach_downstream,
-    beta_from_mach_max_theta
+    sonic_point_oblique_shock,
+    detachment_point_oblique_shock
 )
 
 class ObliqueShockDiagram(ShockCommon):
@@ -72,25 +72,25 @@ class ObliqueShockDiagram(ShockCommon):
 
         # compute the line M2 = 1
         M1 = np.logspace(0, 3, 5 * self.N)
-        beta_M2_equal_1, theta_max = beta_theta_max_for_unit_mach_downstream(
+        beta_sonic, theta_sonic = sonic_point_oblique_shock(
             M1, self.gamma)
         source = {
-            "xs": theta_max,
-            "ys": beta_M2_equal_1,
+            "xs": theta_sonic,
+            "ys": beta_sonic,
             "v": [""] * len(M1)
         }
         results.append(source)
 
         # annotations
         # index of the sonic line where to place the annotation
-        desired_x = theta_max.max() * self.sonic_ann_location
+        desired_x = theta_sonic.max() * self.sonic_ann_location
         idx = np.where(source["xs"] <= desired_x)[0][-1]
         results.append(idx)
 
         ############################### PART 3 ###############################
 
         # compute the line passing through (M,theta_max)
-        beta = beta_from_mach_max_theta(M1, self.gamma)
+        beta, theta_max = detachment_point_oblique_shock(M1, self.gamma)
         source = {
             "xs": theta_max,
             "ys": beta,

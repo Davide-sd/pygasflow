@@ -9,6 +9,7 @@ from pygasflow.interactive.pages.base import (
     _parse_input_string,
     stylesheet,
 )
+from pygasflow.shockwave import sonic_point_oblique_shock
 from pygasflow.solvers import shockwave_solver
 from itertools import product
 
@@ -20,6 +21,7 @@ class ObliqueShockSection(ShockSection):
     def __init__(self, **params):
         params.setdefault("solver", shockwave_solver)
         params.setdefault("title", "Oblique Shock Wave Section")
+        params.setdefault("sonic_point_func", sonic_point_oblique_shock)
         params.setdefault("diagrams", [ObliqueShockDiagram])
         params.setdefault("tabulators", [
             dict(

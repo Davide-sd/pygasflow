@@ -105,6 +105,7 @@ sponsoring this project with either one of these options:
    install.rst
    examples/index.rst
    modules/index.rst
+   deprecations.rst
    changelog.rst
 
 

@@ -54,9 +54,9 @@ Oblique Shock Waves
 
 .. autofunction:: max_theta_from_mach
 
-.. autofunction:: beta_from_mach_max_theta
+.. autofunction:: detachment_point_oblique_shock
 
-.. autofunction:: beta_theta_max_for_unit_mach_downstream
+.. autofunction:: sonic_point_oblique_shock
 
 .. autofunction:: mach_from_theta_beta
 
@@ -87,6 +87,8 @@ Conical Flow
 
 .. autofunction:: max_theta_c_from_mach
 
-.. autofunction:: beta_theta_c_for_unit_mach_downstream
+.. autofunction:: detachment_point_conical_shock
+
+.. autofunction:: sonic_point_conical_shock
 
 .. autofunction:: load_data

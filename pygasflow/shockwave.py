@@ -6,7 +6,7 @@ from scipy.integrate import solve_ivp
 from pygasflow.utils.common import ret_correct_vals
 from pygasflow.utils.roots import apply_bisection
 from pygasflow.generic import characteristic_mach_number
-from pygasflow.utils.decorators import check_shockwave, check
+from pygasflow.utils.decorators import check_shockwave, check, deprecated
 import warnings
 from numbers import Number
 
@@ -350,20 +350,35 @@ def theta_from_mach_beta(M1, beta, gamma=1.4):
 
     Returns
     -------
-    out : ndarray
-        Flow angle Theta [degrees]
+    theta : ndarray
+        Flow angle Theta [degrees]. If detachment is detected, np.nan will be
+        returned and a warning message will be raised.
     """
+    M1 = np.atleast_1d(M1)
     beta = np.deg2rad(beta)
+    # it must be len(beta)=len(theta) for indexing
+    if isinstance(beta, Number):
+        beta *= np.ones_like(M1)
+    elif (len(M1) > 1) and (len(beta) == 1):
+        beta = beta[0] * np.ones_like(M1)
 
     num = M1**2 * np.sin(beta)**2 - 1
+    # prevents numerical errors which will cause negative num values,
+    # when M1 being too close to 1 and beta is too close to 90
+    num[np.isclose(num, 0)] = 0
     den = M1**2 * (gamma + np.cos(2 * beta)) + 2
-    theta = np.asarray(np.arctan(2 / np.tan(beta) * num / den))
+    # avoid `RuntimeWarning: divide by zero encountered in divide` when beta=0.
+    theta = np.zeros_like(num)
+    idx = np.isclose(beta, 0, atol=1e-10)
+    theta[~idx] = np.arctan(2 / np.tan(beta[~idx]) * num[~idx] / den[~idx])
+    theta[idx] = -np.inf
     # need to take into account that we are considering only positive
     # values of the Flow Angle Theta.
     theta[theta < 0] = np.nan
     if np.any(np.isnan(theta)):
-        warnings.warn("WARNING: detachment detected in at least one element of " +
-        "the flow turning angle theta array. Be careful!")
+        warnings.warn(
+            "WARNING: detachment detected in at least one element of"
+            " the flow turning angle theta array. Be careful!")
 
     return ret_correct_vals(np.rad2deg(theta))
 
@@ -436,9 +451,6 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
             beta_strong = np.pi / 2
         else:
             beta_strong = np.arctan(np.sqrt(Xs / (1 - Xs)))
-
-        # beta_weak = np.arctan(np.sqrt(Xw / (1 - Xw)))
-        # beta_strong = np.arctan(np.sqrt(Xs / (1 - Xs)))
 
         return beta_weak, beta_strong
 
@@ -796,6 +808,44 @@ def max_theta_from_mach(M1, gamma=1.4):
 
 
 @check_shockwave
+def detachment_point_oblique_shock(M1, gamma=1.4):
+    """
+    Compute the detachment point, ie the shock wave angle beta corresponding
+    to the maximum deflection angle theta given an upstream Mach number.
+
+    Parameters
+    ----------
+    M1 : array_like
+        Mach number. If float, list, tuple is given as input, a conversion
+        will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    beta : array_like
+        The shock angle in degrees.
+    theta_max : array_like
+        The maximum deflection angle in degrees associated to the provided
+        upstream Mach number.
+
+    See Also
+    --------
+    sonic_point_oblique_shock
+    """
+
+    theta_max = np.atleast_1d(
+        max_theta_from_mach.__no_check__(M1, gamma))
+
+    beta = np.zeros_like(M1)
+    for i, (m, t) in enumerate(zip(M1, theta_max)):
+        # here I chose 'weak', but in this case it's the same as 'strong'!
+        beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
+    return beta, theta_max
+
+
+@deprecated("Use ``detachment_point_oblique_shock`` instead.")
+@check_shockwave
 def beta_from_mach_max_theta(M1, gamma=1.4):
     """
     Compute the shock wave angle beta corresponding to the maximum deflection
@@ -814,17 +864,11 @@ def beta_from_mach_max_theta(M1, gamma=1.4):
     Beta : array_like
         The shock angle in degrees.
     """
-
-    theta_max = max_theta_from_mach.__no_check__(M1, gamma)
-    theta_max = np.atleast_1d(theta_max)
-
-    beta = np.zeros_like(M1)
-    for i, (m, t) in enumerate(zip(M1, theta_max)):
-        # here I chose 'weak', but in this case it's the same as 'strong'!
-        beta[i] = beta_from_mach_theta(m, t, gamma=gamma)["weak"]
+    beta, _ = detachment_point_oblique_shock(M1, gamma)
     return beta
 
 
+@deprecated("Use ``sonic_point_oblique_shock`` instead.")
 @check_shockwave
 def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     """
@@ -833,11 +877,8 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     number, M2 = 1. This function is useful to compute the location of the
     sonic line.
 
-    Notes
-    -----
-    * This function relies on root-finding algorithms. If a root can't be
-      found, np.nan will be used as the result.
-    * An alias of this function is ``sonic_line_oblique_shock``.
+    This function relies on root-finding algorithms. If a root can't be
+    found, np.nan will be used as the result.
 
     Parameters
     ----------
@@ -854,52 +895,92 @@ def beta_theta_max_for_unit_mach_downstream(M1, gamma=1.4):
     Theta max : array_like
         The maximum deflection angle in degrees corresponding to M2 = 1.
     """
+    theta_max = np.atleast_1d(max_theta_from_mach.__no_check__(M1, gamma))
+    beta, _ = sonic_point_oblique_shock(M1, gamma)
+    return beta, theta_max
 
-    # Start with the equation to compute M2 from M1 (normal shock case).
-    # In oblique shock, this relation is still valid for normal machs.
-    # Remember that Mn1 = M1 sin(beta) and Mn2 = M2 sin(beta - theta).
-    # Sustitute them into the aformentioned equation, and remember that
-    # M2 = 1. This is what you are going to get.
-    # NOTE: in the practical range of interest (1 < gamma < 2) and for M1 > 1,
-    # this function has from 2 to 4 zeros (inside the range 0 <= beta <= 90).
-    # We are interested in the closest zero to 90 deg, which is progressevely
-    # harder to compute as gamma -> 0 and M1 -> inf.
-    def func(b, M, t, g):
-        return ((1 + (g - 1) / 2 * (M * np.sin(b))**2) / (g * (M * np.sin(b))**2 - (g - 1) / 2)) - np.sin(b - t)**2
 
-    theta_max = np.atleast_1d(
-        np.deg2rad(max_theta_from_mach.__no_check__(M1, gamma)))
+@check_shockwave
+def sonic_point_oblique_shock(M1, gamma=1.4):
+    """
+    Compute the wave angle, beta, and the shock deflection angle, theta,
+    corresponding to the unitary downstream Mach number, M2 = 1.
 
-    beta = np.zeros_like(M1)
-    # interval where to search for the root
-    # a = np.arcsin(1 / M1)
-    b = np.deg2rad(beta_from_mach_max_theta.__no_check__(M1, gamma))
-    # this initial guess appears to work well over a wide range of
-    # gamma/mach
-    x0 = b + (np.pi/2 - b) / 2
+    This function is useful to compute the location of the sonic line.
+    It relies on root-finding algorithms: if a root can't be found, np.nan
+    will be used as the result.
 
-    for i, (m, t) in enumerate(zip(M1, theta_max)):
+    Parameters
+    ----------
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    beta : array_like
+        The shock angle in degrees corresponding to M2 = 1.
+    theta : array_like
+        The deflection angle in degrees corresponding to M2 = 1.
+
+    See Also
+    --------
+    detachment_point_oblique_shock
+    """
+
+    # TODO: this approach is wrong. why?
+    # # Start with the equation to compute M2 from M1 (normal shock case).
+    # # In oblique shock, this relation is still valid for normal machs.
+    # # Remember that Mn1 = M1 sin(beta) and Mn2 = M2 sin(beta - theta).
+    # # Sustitute them into the aformentioned equation, and remember that
+    # # M2 = 1. This is what you are going to get.
+    # # NOTE: in the practical range of interest (1 < gamma < 2) and for M1 > 1,
+    # # this function has from 2 to 4 zeros (inside the range 0 <= beta <= 90).
+    # # We are interested in the closest zero to 90 deg, which is progressevely
+    # # harder to compute as gamma -> 0 and M1 -> inf.
+    # def func(b, M, t, g):
+    #     return ((1 + (g - 1) / 2 * (M * np.sin(b))**2) / (g * (M * np.sin(b))**2 - (g - 1) / 2)) - np.sin(b - t)**2
+
+    def func(beta, M1, gamma):
+        MN1 = M1 * np.sin(np.deg2rad(beta))
+        MN2 = mach_downstream.__no_check__(MN1, gamma)
+        # delta is the flow deflection angle (Anderson's Figure 10.4)
+        delta = theta_from_mach_beta.__no_check__(M1, beta, gamma)
+        M2 = MN2 / np.sin(np.deg2rad(beta - delta))
+        return M2 - 1
+
+    beta_sonic = np.zeros_like(M1)
+    theta_sonic = np.zeros_like(M1)
+    for i, m in enumerate(M1):
         if np.isclose(m, 1):
-            beta[i] = np.pi / 2
+            beta_sonic[i] = 90
+            theta_sonic[i] = 0
             continue
-        # TODO: I'm using fsolve over the entire gamma/mach range. It works
-        # fine but it is slow. For gamma>1.1 I believe it is possible to
-        # find a suitable interval where to run bisection, which is faster.
         try:
-            # beta[i] = bisect(func, a[i], b[i], args=(m, t, gamma))
-            beta[i] = fsolve(func, x0=x0[i], args=(m, t, gamma))
+            a = mimimum_beta_from_mach.__no_check__(m)
+            # TODO: I should be able to run a bisection from this upper limit.
+            # However, for high Mach numbers the bisection fails with
+            # `ValueError f(a) and f(b) must have different signs`. Why?
+            # b = beta_from_mach_max_theta.__no_check__([m], gamma)
+            b = 90
+            beta_sonic[i] = bisect(func, a=a, b=b, args=(m, gamma))
+            # TODO: figure it out a better way to skip check and to deal with
+            # scalar input to functions that requires arrays
+            theta_sonic[i] = theta_from_mach_beta(m, beta_sonic[i], gamma)
         except ValueError as err:
-            beta[i] = np.nan
-    return np.rad2deg(beta), np.rad2deg(theta_max)
+            beta_sonic[i] = np.nan
+            theta_sonic[i] = np.nan
 
-
-sonic_line_oblique_shock = beta_theta_max_for_unit_mach_downstream
+    return beta_sonic, theta_sonic
 
 
 @check_shockwave([0, 1])
 def mach_from_theta_beta(theta, beta, gamma=1.4):
     """
-    Compute the upstream Mach number given the flow deflection angle and the shock wave angle.
+    Compute the upstream Mach number given the flow deflection angle and the
+    shock wave angle.
 
     Parameters
     ----------
@@ -918,25 +999,25 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
         The upstream Mach number.
     """
     if beta.shape != theta.shape:
-        raise ValueError("Flow deflection angle and Shock wave angle must have the same shape.")
+        raise ValueError(
+            "Flow deflection angle and Shock wave angle must have"
+            " the same shape.")
 
     # make sure (beta, theta) is in the allowable space: consider for example
     # M1 = inf and the Oblique Shock Diagram. Then, there exis a theta_max
     # corresponding to the provided beta. If theta > theta_max, there is no
     # solution.
-    theta_max = np.zeros_like(beta)
-    for i, b in enumerate(beta):
-        # I approximate Mach = inf with 100000.
-        theta_max[i] = theta_from_mach_beta(100000, b, gamma)
+    M1_inf = 1000000000 * np.ones_like(beta)
+    theta_max = theta_from_mach_beta(M1_inf, beta, gamma)
     if np.any(theta > theta_max):
         raise ValueError("There is no solution for the current choice of" +
         " parameters. Please check the Oblique Shock diagram with the following"
         " parameters:\n" +
         "beta = {}\n".format(beta) +
         "theta = {}\n".format(theta))
-    # case beta == 90 and theta == 0, which leaves M to be indeterminate, NaN
+    # case beta == 90 and theta == 0, from which M = 1
     idx0 = np.bitwise_and(beta == 90, theta == 0)
-    # if beta == 0 and theta == 0, mach goes to infinity. But out num and den both
+    # if beta == 0 and theta == 0, mach goes to infinity. But num and den both
     # go to infinity resulting in NaN. Need to catch it.
     idx1 = np.bitwise_and(beta == 0, theta == 0)
 
@@ -956,7 +1037,7 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
     mach[den > 0] = np.sqrt(num[den > 0] / den[den > 0])
     mach[den <= 0] = np.nan
 
-    mach[idx0] = np.nan
+    mach[idx0] = 1
     mach[idx1] = np.inf
     return mach
 
@@ -1124,6 +1205,15 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
     upstream_locus = param.ClassSelector(
         class_=_BasePDLocus, constant=True, doc="""
         The locus associated with the upstream condition.""")
+    sonic_point = param.Tuple(constant=True, doc="""
+        Coordinates (theta, pr_to_fs) where the Mach downstream of the shock
+        wave is sonic. `theta` (in degrees) is considered relative to
+        ``theta_origin``.""")
+    detachment_point = param.Tuple(constant=True, doc="""
+        Coordinates (theta_max, pr_to_fs) indicating the maximum deflection
+        by which a given supersonic flow can be deflected by an oblique
+        shock wave. `theta` (in degrees) is considered relative to
+        ``theta_origin``.""")
 
     def new_locus_from_shockwave(self, theta, label=""):
         """Create a new PressureDeflectionLocus object using the upstream
@@ -1170,7 +1260,8 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         watch=True, on_init=True
     )
     def update_func(self):
-        theta_max = max_theta_from_mach(self.M, self.gamma)
+        beta_detachment, theta_max = detachment_point_oblique_shock(
+            self.M, self.gamma)
 
         def func(theta, region="weak"):
             actual_theta = abs(self.theta_origin - theta)
@@ -1204,9 +1295,20 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             res = {k: v for k, v in zip(keys, values)}
             return res
 
+        # sonic point
+        beta_sonic, theta_sonic = sonic_point_oblique_shock(self.M, self.gamma)
+        Mn_sonic = self.M * np.sin(np.deg2rad(beta_sonic))
+        pr_sonic = pressure_ratio(Mn_sonic, self.gamma) * self.pr_to_fs_at_origin
+        # detachment point
+        Mn_detachment = self.M * np.sin(np.deg2rad(beta_detachment))
+        pr_detachment = pressure_ratio(
+            Mn_detachment, self.gamma) * self.pr_to_fs_at_origin
+
         with param.edit_constant(self):
             self.theta_max = theta_max
             self._shockwave_at_theta = func
+            self.sonic_point = (theta_sonic + self.theta_origin, pr_sonic)
+            self.detachment_point = (theta_max + self.theta_origin, pr_detachment)
 
     def shockwave_at_theta(self, theta, region="weak"):
         """Evaluates the current pression-deflection locus at a specified
@@ -1649,31 +1751,51 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
 
         return theta, pr
 
-    def pressure_deflection_split_regions(self, N=100, include_mirror=False):
+    def pressure_deflection_split(
+        self, N=100, include_mirror=False, mode="region"
+    ):
         """
         Helper function to build Pressure-Deflection plots. Computes the locus
         of all possible static pressure values behind oblique shock wave for
-        given upstream conditions, and split them between weak and strong regions.
+        given upstream conditions, and split them according to the user
+        selected mode.
 
-        Parameters are the same of
-        :func:`~PressureDeflectionLocus.pressure_deflection`.
+        Parameters
+        ----------
+        N : int, optional
+            Number of points discretizing the range [0, theta_max].
+            This function compute N points in the range [0, theta_max] for
+            the `'weak'` solution, then compute N points in the range
+            [theta_max, 0] for the `'strong'` solution.
+            If ``include_mirror=False``, the length of the returned arrays is
+            2*N, otherwise is 4*N.
+        include_mirror : bool
+            If False, return numerical arrays for 0 <= theta <= theta_max.
+            If True, mirror the arrays in order to get data from
+            -theta_max <= theta <= theta_max.
+        mode : str
+            Split the locus at some point. It can be:
+
+            * ``"region"``: the locus is splitted at the detachment point,
+              where ``theta=theta_max``.
+            * ``"sonic"``: the locus is splitted at the sonic point (where
+              the downstream Mach number is 1).
 
         Returns
         -------
-        theta_weak : array_like
-            Deflection angles for the weak region.
-        pr_weak : array_like
-            Pressure ratios for the weak region.
-        theta_strong : array_like
-            Deflection angles for the strong region.
-        pr_strong : array_like
-            Pressure ratios for the strong region.
+        theta_split_1 : array_like
+        pr_split_1 : array_like
+        theta_split_2 : array_like
+        pr_split_2 : array_like
 
         Examples
         --------
 
-        Plot half locus for the upstream condition, and the full locus for the
-        downstream condition:
+        Consider a simple regular reflection process, in which there
+        are two shock waves.
+        Plot half locus for the upstream condition and split it between the
+        weak and strong regions. Also plot another full locus, splitted between
+        the subsonic and supersonic region:
 
         .. plot::
             :context: reset
@@ -1688,16 +1810,16 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             locus1 = PressureDeflectionLocus(M=M1, gamma=gamma)
             locus2 = locus1.new_locus_from_shockwave(theta)
 
-            theta_1w, pr_1w, theta_1s, pr_1s = locus1.pressure_deflection_split_regions(
-                include_mirror=False)
-            theta_2w, pr_2w, theta_2s, pr_2s = locus2.pressure_deflection_split_regions(
-                include_mirror=True)
+            theta_1w, pr_1w, theta_1s, pr_1s = locus1.pressure_deflection_split(
+                include_mirror=False, mode="region")
+            theta_2sup, pr_2sup, theta_2sub, pr_2sub = locus2.pressure_deflection_split(
+                include_mirror=True, mode="sonic")
 
             fig, ax = plt.subplots()
             ax.plot(theta_1w, pr_1w, label="M1 weak")
             ax.plot(theta_1s, pr_1s, label="M1 strong")
-            ax.plot(theta_2w, pr_2w, label="M2 weak")
-            ax.plot(theta_2s, pr_2s, label="M2 strong")
+            ax.plot(theta_2sup, pr_2sup, label="M2 (M3 supersonic)")
+            ax.plot(theta_2sub, pr_2sub, label="M2 (M3 subsonic)")
             ax.set_xlabel(r"Deflection Angle $\theta$ [deg]")
             ax.set_ylabel("Pressure Ratio to Freestream")
             ax.legend()
@@ -1707,28 +1829,40 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             plt.show()
 
         """
+        mode = mode.lower()
+        allowed_modes = ["region", "sonic"]
+        if mode not in allowed_modes:
+            raise ValueError(
+                f"`mode='{mode}' not recognized. Available modes are:"
+                f" {allowed_modes}")
+
         t, pr = self.pressure_deflection(N=N, include_mirror=False)
 
-        idx = np.array(list(range(len(t))), dtype=int)
-        n = len(t) / 2
-        weak_idx = idx[idx < n]
-        strong_idx = idx[idx >= n]
-        theta_weak, pr_weak = t[weak_idx], pr[weak_idx]
-        theta_strong, pr_strong = t[strong_idx], pr[strong_idx]
+        if mode == "region":
+            idx = np.array(list(range(len(t))), dtype=int)
+            n = len(t) / 2
+            weak_idx = idx[idx < n]
+            strong_idx = idx[idx >= n]
+            theta_split_1, pr_split_1 = t[weak_idx], pr[weak_idx]
+            theta_split_2, pr_split_2 = t[strong_idx], pr[strong_idx]
+        else:
+            idx = (pr <= self.sonic_point[1])
+            theta_split_1, pr_split_1 = t[idx], pr[idx]
+            theta_split_2, pr_split_2 = t[~idx], pr[~idx]
 
         if include_mirror:
-            theta_weak -= self.theta_origin
-            theta_strong -= self.theta_origin
+            theta_split_1 -= self.theta_origin
+            theta_split_2 -= self.theta_origin
 
-            theta_weak = np.concatenate([-theta_weak[::-1], theta_weak])
-            pr_weak = np.concatenate([pr_weak[::-1], pr_weak])
-            theta_strong = np.concatenate([theta_strong, -theta_strong[::-1]])
-            pr_strong = np.concatenate([pr_strong, pr_strong[::-1]])
+            theta_split_1 = np.concatenate([-theta_split_1[::-1], theta_split_1])
+            pr_split_1 = np.concatenate([pr_split_1[::-1], pr_split_1])
+            theta_split_2 = np.concatenate([theta_split_2, -theta_split_2[::-1]])
+            pr_split_2 = np.concatenate([pr_split_2, pr_split_2[::-1]])
 
-            theta_weak += self.theta_origin
-            theta_strong += self.theta_origin
+            theta_split_1 += self.theta_origin
+            theta_split_2 += self.theta_origin
 
-        return theta_weak, pr_weak, theta_strong, pr_strong
+        return theta_split_1, pr_split_1, theta_split_2, pr_split_2
 
     def pressure_deflection_segment(self, theta, region="weak", N=100):
         """
@@ -1859,6 +1993,10 @@ def taylor_maccoll(theta, V, gamma=1.4):
     -------
     dV_dtheta : list
         Taylor-Maccoll differential equation.
+
+    See Also
+    --------
+    mach_cone_angle_from_shock_angle
     """
     # Reorganizing Anderson's equation 10.15:
     V_r, V_theta = V
@@ -1950,6 +2088,11 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
         Mach number at the surface of the cone
     theta_c : float
         Half-cone angle in degrees.
+
+
+    See Also
+    --------
+    taylor_maccoll
     """
     # NOTE:
     # Here we implement the first 3-ish steps of Anderson's "Modern Compressible
@@ -2198,16 +2341,45 @@ def max_theta_c_from_mach(M1, gamma=1.4):
 
 
 @check_shockwave
-def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
+def detachment_point_conical_shock(M1, gamma=1.4):
+    """
+    Compute the maximum cone angle and the corresponding shockwave angle for a
+    given upstream Mach number.
+
+    Note: this is a wrapper function to
+    :func:`~pygasflow.shockwave.max_theta_c_from_mach`.
+
+    Parameters
+    ----------
+    M1 : array_like
+        Upstream Mach number. If float, list, tuple is given as input,
+        a conversion will be attempted. Must be M1 >= 1.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    beta : ndarray
+        Shockwave angle corresponding to the maximum cone angle and provided
+        Mach number.
+    theta_c_max : ndarray
+        Maximum cone angle theta_c in degrees
+
+    See Also
+    --------
+    max_theta_c_from_mach, sonic_point_conical_shock
+    """
+    _, theta_c_max, beta = max_theta_c_from_mach.__no_check__(M1, gamma)
+    return beta, theta_c_max
+
+
+@check_shockwave
+def sonic_point_conical_shock(M1, gamma=1.4):
     """Given an upstream Mach number, compute the point (beta, theta_c)
     where the downstream Mach number is sonic. This function is useful to
     compute the location of the sonic line.
 
     **WARNING:** this procedure is really slow!
-
-    Notes
-    -----
-    An alias of this function is ``sonic_line_conical_shock``.
 
     Parameters
     ----------
@@ -2223,6 +2395,10 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
         Shockwave angle corresponding in degrees.
     theta_c : ndarray
         Cone angle theta_c in degrees.
+
+    See Also
+    --------
+    detachment_point_conical_shock
     """
     # TODO: can this be done faster?
     def function(M1):
@@ -2252,11 +2428,16 @@ def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
     return beta, theta_c
 
 
-sonic_line_conical_shock = beta_theta_c_for_unit_mach_downstream
+@deprecated("Use ``sonic_point_conical_shock`` instead.")
+@check_shockwave
+def beta_theta_c_for_unit_mach_downstream(M1, gamma=1.4):
+    """Alias of ``sonic_point_conical_shock``.
+    """
+    return sonic_point_conical_shock(M1, gamma)
 
 
 def load_data(gamma=1.4):
-    """ The :func:`beta_theta_c_for_unit_mach_downstream` function is really
+    """ The :func:`sonic_point_conical_shock` function is really
     slow in computing the data. Often, that data is needed in a plot.
     Here, a few precomputed tables has been provided.
 
@@ -2327,7 +2508,7 @@ def create_mach_beta_theta_c_csv_file(
         theta_c = np.zeros_like(M)
         for i, m in enumerate(M):
             try:
-                beta[i], theta_c[i] = beta_theta_c_for_unit_mach_downstream(m, g)
+                beta[i], theta_c[i] = sonic_point_conical_shock(m, g)
             except ValueError:
                 beta[i], theta_c[i] = np.nan, np.nan
         df = pd.DataFrame.from_dict({
