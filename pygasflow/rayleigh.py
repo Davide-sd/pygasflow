@@ -202,7 +202,7 @@ def m_from_critical_total_temperature_ratio(ratio, flag="sub", gamma=1.4):
         r[idx] = np.sqrt(-(ratio[idx] * gamma**2 + 1 - gamma**2) * (ratio[idx] * gamma - 1 - gamma + np.sqrt(-2 * ratio[idx] * gamma - ratio[idx] * gamma**2 + 1 + 2 * gamma + gamma**2 - ratio[idx]))) / den
     else:
         r[idx] = np.sqrt(-(ratio[idx] * gamma**2 + 1 - gamma**2) * (ratio[idx] * gamma - 1 - gamma - np.sqrt(-2 * ratio[idx] * gamma - ratio[idx] * gamma**2 + 1 + 2 * gamma + gamma**2 - ratio[idx]))) / den
-    r[ratio == 1] = 1
+    r[~idx] = 1
     return r
 
 
@@ -235,17 +235,18 @@ def m_from_critical_temperature_ratio(ratio, flag="sub", gamma=1.4):
     # compute the maximum value of the Critical Temperature Ratio.
     # the Mach number corresponding to this CTR has been computed with
     # d(CTR)/dM = 0
-    upper_lim = critical_temperature_ratio(1 / np.sqrt(gamma))
+    upper_lim = critical_temperature_ratio(1 / np.sqrt(gamma), gamma)
     if np.any(ratio < 0) or np.any(ratio > upper_lim):
         raise ValueError("It must be 0 < T/T* < {}.".format(upper_lim))
 
     M = np.zeros_like(ratio)
+    idx = ratio != 0
     if flag == "sub":
-        M[ratio == 0] = 0
-        M[ratio != 0] = np.sqrt(-2 * ratio[ratio != 0] * (2 * ratio[ratio != 0] * gamma - 1 - 2 * gamma - gamma**2 + np.sqrt(1 - 4 * ratio[ratio != 0] * gamma - 8 * ratio[ratio != 0] * gamma**2 - 4 * ratio[ratio != 0] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[ratio != 0] * gamma)
+        M[~idx] = 0
+        M[idx] = np.sqrt(-2 * ratio[idx] * (2 * ratio[idx] * gamma - 1 - 2 * gamma - gamma**2 + np.sqrt(1 - 4 * ratio[idx] * gamma - 8 * ratio[idx] * gamma**2 - 4 * ratio[idx] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[idx] * gamma)
     else:
-        M[ratio == 0] = np.inf
-        M[ratio != 0] = np.sqrt(-2 * ratio[ratio != 0] * (2 * ratio[ratio != 0] * gamma - 1 - 2 * gamma - gamma**2 - np.sqrt(1 - 4 * ratio[ratio != 0] * gamma - 8 * ratio[ratio != 0] * gamma**2 - 4 * ratio[ratio != 0] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[ratio != 0] * gamma)
+        M[~idx] = np.inf
+        M[idx] = np.sqrt(-2 * ratio[idx] * (2 * ratio[idx] * gamma - 1 - 2 * gamma - gamma**2 - np.sqrt(1 - 4 * ratio[idx] * gamma - 8 * ratio[idx] * gamma**2 - 4 * ratio[idx] * gamma**3 + 4 * gamma + 6 * gamma**2 + 4 * gamma**3 + gamma**4))) / (2 * ratio[idx] * gamma)
     return M
 
 
@@ -272,8 +273,9 @@ def m_from_critical_pressure_ratio(ratio, gamma=1.4):
     if np.any(ratio < 0) or np.any(ratio > upper_lim):
         raise ValueError("It must be 0 <= P/P* <= {}.".format(upper_lim))
     M = np.zeros_like(ratio)
-    M[ratio == 0] = np.inf
-    M[ratio != 0] = np.sqrt(ratio[ratio != 0] * gamma * (1 + gamma - ratio[ratio != 0])) / (ratio[ratio != 0] * gamma)
+    idx = ratio != 0
+    M[~idx] = np.inf
+    M[idx] = np.sqrt(ratio[idx] * gamma * (1 + gamma - ratio[idx])) / (ratio[idx] * gamma)
     return M
 
 

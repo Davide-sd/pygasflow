@@ -10,7 +10,8 @@
 
 # TODO:
 # 1. The web calculator linked above doesn't provide values for the critical
-# velocity ratio, hence that parameter is currently untested.
+# velocity ratio, hence that parameter is currently tested against itself.
+# Not ideal.
 
 import numpy as np
 from pygasflow.solvers import isentropic_solver as ise
@@ -21,16 +22,24 @@ from pygasflow.isentropic import (
     sonic_temperature_ratio,
     sonic_sound_speed_ratio
 )
-from pytest import raises
-
-
-def check_val(v1, v2, tol=1e-05):
-    assert abs(v1 - v2) < tol
+import pytest
 
 
 def test_input_mach():
-    tol = 1e-05
     gamma = 1.4
+    expected_res = [
+        [2, 3],                     # M
+        [0.12780452, 0.02722368],   # Pressure Ratio
+        [0.23004814, 0.07622631],   # Density Ratio
+        [0.55555555, 0.35714285],   # Temperature Ratio
+        [0.24192491, 0.05153250],   # Critical Pressure Ratio
+        [0.36288736, 0.12024251],   # Critical Density Ratio
+        [0.66666666, 0.42857142],   # Critical Temperature Ratio
+        [2.35151015, 2.82810385],   # Critical Velocity Ratio
+        [1.68749999, 4.23456790],   # Critical Area Ratio
+        [29.9999999, 19.4712206],   # Mach Angle
+        [26.3797608, 49.7573467],   # Prandtl-Meyer Angle
+    ]
 
     # single scalar mach
     M = 2
@@ -38,18 +47,7 @@ def test_input_mach():
     assert len(r) == 11
     for e in r:
         assert not isinstance(e, np.ndarray)
-
-    check_val(r[0], 2, tol)
-    check_val(r[1], 0.12780452, tol)
-    check_val(r[2], 0.23004814, tol)
-    check_val(r[3], 0.55555555, tol)
-    check_val(r[4], 0.24192491, tol)
-    check_val(r[5], 0.36288736, tol)
-    check_val(r[6], 0.66666666, tol)
-    check_val(r[7], r[7], tol)
-    check_val(r[8],  1.68749999, tol)
-    check_val(r[9], 29.9999999, tol)
-    check_val(r[10], 26.3797608, tol)
+    assert np.allclose(r, [e[0] for e in expected_res])
 
     M = [2, 3]
     r = ise("m", M, gamma)
@@ -57,44 +55,20 @@ def test_input_mach():
     for e in r:
         assert isinstance(e, np.ndarray)
         assert len(e) == 2
-
-    check_val(r[0][1], 3, tol)
-    check_val(r[1][1], 0.02722368, tol)
-    check_val(r[2][1], 0.07622631, tol)
-    check_val(r[3][1], 0.35714285, tol)
-    check_val(r[4][1], 0.05153250, tol)
-    check_val(r[5][1], 0.12024251, tol)
-    check_val(r[6][1], 0.42857142, tol)
-    check_val(r[7][1], r[7][1], tol)
-    check_val(r[8][1],   4.23456790, tol)
-    check_val(r[9][1], 19.4712206, tol)
-    check_val(r[10][1], 49.7573467, tol)
+    assert np.allclose(r, expected_res)
 
 
-def test_input_parameters():
-    tol = 1e-05
+@pytest.mark.parametrize("param_name, value", [
+    ("m", 3),
+    ("pressure", 0.02722368),
+    ("temperature", 0.35714285),
+    ("density", 0.07622631),
+    ("crit_area_super", 4.23456790),
+    ("prandtl_meyer", 49.7573467),
+    ("mach_angle", 19.4712206),
+])
+def test_input_parameters_supersonic(param_name, value):
     gamma = 1.4
-
-    def do_test(param_name, value, er):
-        r = ise(param_name, value, gamma)
-        assert len(r) == 11
-        for e in r:
-            assert not isinstance(e, np.ndarray)
-        check_val(r[0], er[0], tol)
-        check_val(r[1], er[1], tol)
-        check_val(r[2], er[2], tol)
-        check_val(r[3], er[3], tol)
-        check_val(r[4], er[4], tol)
-        check_val(r[5], er[5], tol)
-        check_val(r[6], er[6], tol)
-        check_val(r[7], r[7], tol)
-        check_val(r[8], er[8], tol)
-        if not np.isnan(r[9]):
-            check_val(r[9], er[9], tol)
-        if not np.isnan(r[10]):
-            check_val(r[10], er[10], tol)
-
-    # supersonic case
     expected_res = [
         3,          # Mach number
         0.02722368, # Pressure Ratio P/P0
@@ -103,20 +77,28 @@ def test_input_parameters():
         0.05153250, # Critical Pressure Ratio P/P*
         0.12024251, # Critical Density Ratio rho/rho*
         0.42857142, # Critical Temperature Ratio T/T*
-        None,       # Critical Velocity Ratio U/U*
+        2.82810385,       # Critical Velocity Ratio U/U*
         4.23456790, # Critical Area Ratio A/A*
         19.4712206, # Mach Angle
         49.7573467, # Prandtl-Meyer Angle
     ]
-    do_test("m", 3, expected_res)
-    do_test("pressure", 0.02722368, expected_res)
-    do_test("temperature", 0.35714285, expected_res)
-    do_test("density", 0.07622631, expected_res)
-    do_test("crit_area_super", 4.23456790, expected_res)
-    do_test("prandtl_meyer", 49.7573467, expected_res)
-    do_test("mach_angle", 19.4712206, expected_res)
 
-    # subsonic case
+    r = ise(param_name, value, gamma)
+    assert len(r) == 11
+    for e in r:
+        assert not isinstance(e, np.ndarray)
+    assert np.allclose(r, expected_res, equal_nan=True)
+
+
+@pytest.mark.parametrize("param_name, value", [
+    ("m", 0.5),
+    ("pressure", 0.84301917),
+    ("temperature", 0.95238095),
+    ("density", 0.88517013),
+    ("crit_area_sub", 1.33984375),
+])
+def test_input_parameters_subsonic(param_name, value):
+    gamma = 1.4
     expected_res = [
         0.5,          # Mach number
         0.84301917, # Pressure Ratio P/P0
@@ -125,23 +107,20 @@ def test_input_parameters():
         1.59577557, # Critical Pressure Ratio P/P*
         1.39630363, # Critical Density Ratio rho/rho*
         1.14285714, # Critical Temperature Ratio T/T*
-        None,       # Critical Velocity Ratio U/U*
+        0.76971237,       # Critical Velocity Ratio U/U*
         1.33984375, # Critical Area Ratio A/A*
         np.nan, # Mach Angle
         np.nan, # Prandtl-Meyer Angle
     ]
-    do_test("m", 0.5, expected_res)
-    do_test("pressure", 0.84301917, expected_res)
-    do_test("temperature", 0.95238095, expected_res)
-    do_test("density", 0.88517013, expected_res)
-    do_test("crit_area_sub", 1.33984375, expected_res)
-    # no prandtl_meyer-angle and mach-angle for subsonic case
-    # do_test("prandtl_meyer", np.nan, expected_res)
-    # do_test("mach_angle", np.nan, expected_res)
+
+    r = ise(param_name, value, gamma)
+    assert len(r) == 11
+    for e in r:
+        assert not isinstance(e, np.ndarray)
+    assert np.allclose(r, expected_res, equal_nan=True)
 
 
 def test_to_dict():
-    tol = 1e-05
     gamma = 1.4
 
     # single scalar mach
@@ -155,17 +134,17 @@ def test_to_dict():
     assert len(r2) == 11
     assert isinstance(r2, dict)
 
-    check_val(r2["m"], r1[0], tol)
-    check_val(r2["pr"], r1[1], tol)
-    check_val(r2["dr"], r1[2], tol)
-    check_val(r2["tr"], r1[3], tol)
-    check_val(r2["prs"], r1[4], tol)
-    check_val(r2["drs"], r1[5], tol)
-    check_val(r2["trs"], r1[6], tol)
-    check_val(r2["urs"], r1[7], tol)
-    check_val(r2["ars"],  r1[8], tol)
-    check_val(r2["ma"], r1[9], tol)
-    check_val(r2["pm"], r1[10], tol)
+    assert np.isclose(r2["m"], r1[0])
+    assert np.isclose(r2["pr"], r1[1])
+    assert np.isclose(r2["dr"], r1[2])
+    assert np.isclose(r2["tr"], r1[3])
+    assert np.isclose(r2["prs"], r1[4])
+    assert np.isclose(r2["drs"], r1[5])
+    assert np.isclose(r2["trs"], r1[6])
+    assert np.isclose(r2["urs"], r1[7])
+    assert np.isclose(r2["ars"],  r1[8])
+    assert np.isclose(r2["ma"], r1[9])
+    assert np.isclose(r2["pm"], r1[10])
 
 
 def test_sonic_conditions():
@@ -184,8 +163,8 @@ def test_sonic_conditions():
 
 def test_error_for_multiple_gamma():
     error_msg = "The specific heats ratio must be > 1."
-    with raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=error_msg):
         ise("m", [2, 4, 6], gamma=np.array([1.2, 1.3]))
 
-    with raises(ValueError, match=error_msg):
+    with pytest.raises(ValueError, match=error_msg):
         ise("m", [2, 4, 6], gamma=[1.2, 1.3])

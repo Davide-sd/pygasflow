@@ -55,18 +55,21 @@ future
   :func:`~pygasflow.shockwave.beta_theta_max_for_unit_mach_downstream` and
   :func:`~pygasflow.shockwave.beta_theta_c_for_unit_mach_downstream`.
 
-* Fixed bug with ``shockwave_solver`` and propagation of the specific heats
-  ratio when the flow deflection angle and the shock wave angle were provided
-  as input arguments.
+* Fixed bug with :func:`~pygasflow.solvers.shockwave.shockwave_solver` and
+  propagation of the specific heats ratio when the flow deflection angle and
+  the shock wave angle were provided as input arguments.
 
-* Fixed bug with ``mach_from_theta_beta``, which computed a wrong Mach number
-  for the special case beta=90, theta=0.
+* Fixed bug with :func:`~pygasflow.rayleigh.m_from_critical_temperature_ratio`
+  and propagation of the specific heats ratio.
+
+* Fixed bug with :func:`~pygasflow.shockwave.mach_from_theta_beta`,
+  which computed a wrong Mach number for the special case beta=90, theta=0.
 
 * Fixed bug with some functions that computed wrong results when
   integer numbers were provided as arguments.
 
-* Fixed bug with ``shock_polar`` and propagation of a parameter to other
-  functions.
+* Fixed bug with :func:`~pygasflow.shockwave.shock_polar` and propagation of
+  a parameter to other functions.
 
 * Fixed functions that raised *RuntimeWarning: divide by zero encountered
   in divide*.
