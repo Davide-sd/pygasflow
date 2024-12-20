@@ -258,14 +258,14 @@ def test_update_shock_related_sections(SectionClass):
         # input value must be a numpy array
         s.input_value_2 = "2, 4, 6"
 
-    # test for input_parameter_1="m1" and input_parameter_2="theta"
+    # test for input_parameter_1="mu" and input_parameter_2="theta"
     k_theta = "theta" if SectionClass is ObliqueShockSection else "theta_c"
-    m1 = np.array([2, 4, 6])
+    mu = np.array([2, 4, 6])
     theta = np.array([15, 18, 20])
     # NOTE: one shot update to speed up test
     s.param.update(dict(
-        input_parameter_1 = "m1",
-        input_value_1 = m1,
+        input_parameter_1 = "mu",
+        input_value_1 = mu,
         input_parameter_2 = k_theta,
         input_value_2 = theta,
         gamma = np.array([1.1, 1.2, 1.3, 1.4]),
@@ -275,8 +275,8 @@ def test_update_shock_related_sections(SectionClass):
     assert s.error_log == ""
     assert np.allclose(
         list(sorted(set(
-            fix_numerical_errors(s.results["Upstream Mach"].values, m1)))),
-        m1
+            fix_numerical_errors(s.results["Upstream Mach"].values, mu)))),
+        mu
     )
     k = "θ [deg]" if SectionClass is ObliqueShockSection else "θ_c [deg]"
     assert np.allclose(
@@ -285,7 +285,7 @@ def test_update_shock_related_sections(SectionClass):
     )
 
     s.param.update(dict(
-        input_parameter_1 = "m1",
+        input_parameter_1 = "mu",
         input_value_1 = np.array([2, 3, 4]),
         input_parameter_2 = "theta",
         input_value_2 = np.array([15, 20]),
@@ -501,7 +501,7 @@ def test_flow_related_pages_parameter_propagation(PageClass):
 
     p = PageClass()
     s = p.sections[0]
-    param_name = "m1" if PageClass is NormalShockPage else "m"
+    param_name = "mu" if PageClass is NormalShockPage else "m"
     p.input_parameter = param_name
     p.input_value = "2, 3, 5, 8"
     p.gamma = "1.1, 1.3, 1.5"
@@ -521,7 +521,7 @@ def test_oblique_shock_page_parameter_propagation():
 
     p = ObliqueShockPage()
     s = p.sections[0]
-    param_name1 = "m1"
+    param_name1 = "mu"
     param_name2 = "theta"
     p.input_parameter_1 = param_name1
     p.input_parameter_2 = param_name2
@@ -558,7 +558,7 @@ def test_conical_shock_page_parameter_propagation():
     p.input_value_1 = "2, 3, 5, 8"
     p.input_value_2 = "10, 20, 30"
     p.gamma = "1.1, 1.3, 1.5"
-    assert s.input_parameter_1 == "m1"
+    assert s.input_parameter_1 == "mu"
     assert s.input_parameter_2 == param_name2
     assert np.allclose(s.input_value_1, [2, 3, 5, 8])
     assert np.allclose(s.input_value_2, [10, 20, 30])
@@ -568,7 +568,7 @@ def test_conical_shock_page_parameter_propagation():
     p.input_parameter_2 = param_name2
     p.input_value_1 = "5, 6"
     p.input_value_2 = "10, 20, 30, 40"
-    assert s.input_parameter_1 == "m1"
+    assert s.input_parameter_1 == "mu"
     assert s.input_parameter_2 == param_name2
     assert np.allclose(s.input_value_1, [5, 6])
     assert np.allclose(s.input_value_2, [10, 20, 30, 40])

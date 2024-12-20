@@ -28,10 +28,10 @@ class ObliqueShockSection(ShockSection):
                 filename="oblique_shock",
                 columns_map={
                     "gamma": "gamma",
-                    "m1": "Upstream Mach",
-                    "mn1": "Upstream normal Mach",
-                    "m2": "Downstream Mach",
-                    "mn2": "Downstream normal Mach",
+                    "mu": "Upstream Mach",
+                    "mnu": "Upstream normal Mach",
+                    "md": "Downstream Mach",
+                    "mnd": "Downstream normal Mach",
                     "beta": "β [deg]",
                     "theta": "θ [deg]",
                     "Solution": "Solution",
@@ -58,9 +58,9 @@ class ObliqueShockPage(ShockPage):
     input_parameter_1 = param.Selector(
         label="Select parameter:",
         objects={
-            "Upstream Mach number": "m1",
-            "Upstream normal Mach number": "mn1",
-            "Downstream normal Mach number": "mn2",
+            "Upstream Mach number": "mu",
+            "Upstream normal Mach number": "mnu",
+            "Downstream normal Mach number": "mnd",
             "Pressure Ratio P2/P1": "pressure",
             "Density Ratio rho2/rho1": "density",
             "Temperature Ratio T2/T1": "temperature",
@@ -109,9 +109,9 @@ class ObliqueShockPage(ShockPage):
     def _validate_input_value(self):
         # set appropriate default values so that no errors are raised
         # when user changes `input_parameter`
-        if self.input_parameter_1 in ["m1", "mn1"]:
+        if self.input_parameter_1 in ["mu", "mnu"]:
             self.input_value_1 = "2"
-        elif self.input_parameter_1 == "mn2":
+        elif self.input_parameter_1 == "mnd":
             self.input_value_1 = "0.5773502691896257"
         elif self.input_parameter_1 == "beta":
             self.input_value_1 = "90"

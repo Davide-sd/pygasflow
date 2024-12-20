@@ -186,7 +186,7 @@ class ShockPolarDiagram(CommonParameters, BasePlot, pn.viewable.Viewer):
             betas = np.zeros_like(Vx_as)
             for i, (v, t) in enumerate(zip(Vx_as, abs(thetas))):
                 res = shockwave_solver(
-                    "m1", self.mach_number,
+                    "mu", self.mach_number,
                     "theta", t,
                     gamma=self.gamma,
                     flag="weak" if v >= Vx_as_at_theta_max else "strong"

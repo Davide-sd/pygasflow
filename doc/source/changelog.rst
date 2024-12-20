@@ -4,12 +4,34 @@ Changelog
 future
 ======
 
-* DEPRECATIONS: here is a list of functions that have been deprecated.
+* DEPRECATIONS: here is a list of newly introduced deprecations.
   See :ref:`deprecations-page` to understand the motivations.
 
-  * ``beta_theta_max_for_unit_mach_downstream``
-  * ``beta_from_mach_max_theta``
-  * ``beta_theta_c_for_unit_mach_downstream``
+  * The following is a list of parameter names used by
+    :func:`~pygasflow.solvers.shockwave.shockwave_solver` and
+    :func:`~pygasflow.solvers.shockwave.conical_shockwave_solver`
+    which are now deprecated:
+
+    * ``"m1"`` indicated the upstream Mach number. ``"mu"`` should be used
+      instead.
+    * ``"mn1"`` indicated the upstream normal Mach number. ``"mnu"`` should be
+      used  instead.
+    * ``"m2"`` indicated the downstream Mach number. ``"md"`` should be used
+      instead.
+    * ``"mn2"`` indicated the downstream normal Mach number. ``"mnd"`` should be
+      used instead.
+    * ``"m"`` indicated the upstream Mach number of a conical shock wave.
+      ``"mu"`` should be used instead.
+
+    These changes also applies to the dictionary of results, if the solver was
+    executed with the keyword argument ``to_dict=True``.
+
+  * ``beta_theta_max_for_unit_mach_downstream`` has been deprecated in favor
+    of :func:`~pygasflow.shockwave.sonic_point_oblique_shock`.
+  * ``beta_from_mach_max_theta`` has been deprecated in favor
+    of :func:`~pygasflow.shockwave.detachment_point_oblique_shock`.
+  * ``beta_theta_c_for_unit_mach_downstream`` has been deprecated in favor
+    of :func:`~pygasflow.shockwave.sonic_point_conical_shock`.
 
 * BREAKING:
 
@@ -47,13 +69,13 @@ future
   diagram, etc.
 
 * Added :class:`~pygasflow.shockwave.PressureDeflectionLocus` and
-  :class:`~pygasflow.interactive.PressureDeflectionDiagram`
+  :class:`~pygasflow.interactive.diagram.pressure_deflection.PressureDeflectionDiagram`
   to easily create pressure-deflection diagrams and compute related
   quantities.
 
 * Improved reliability of
-  :func:`~pygasflow.shockwave.beta_theta_max_for_unit_mach_downstream` and
-  :func:`~pygasflow.shockwave.beta_theta_c_for_unit_mach_downstream`.
+  :func:`~pygasflow.shockwave.sonic_point_oblique_shock` and
+  :func:`~pygasflow.shockwave.sonic_point_conical_shock`.
 
 * Fixed bug with :func:`~pygasflow.solvers.shockwave.shockwave_solver` and
   propagation of the specific heats ratio when the flow deflection angle and

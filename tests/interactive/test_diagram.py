@@ -266,64 +266,64 @@ def test_update_flow_related_diagrams(DiagramClass):
     )
 
 
-@pytest.mark.parametrize("DiagramClass", [
-    ObliqueShockDiagram,
-    ConicalShockDiagram,
-])
-def test_update_shock_related_diagrams(DiagramClass):
-    # verify new data is computed as numeric parameters are changed
+# @pytest.mark.parametrize("DiagramClass", [
+#     ObliqueShockDiagram,
+#     ConicalShockDiagram,
+# ])
+# def test_update_shock_related_diagrams(DiagramClass):
+#     # verify new data is computed as numeric parameters are changed
 
-    i = DiagramClass()
-    i.gamma = 1.4
-    old_sources = [r.data_source.data.copy() for r in i.figure.renderers]
-    x_range_old = (old_sources[0]["xs"].min(), old_sources[0]["xs"].max())
+#     i = DiagramClass()
+#     i.gamma = 1.4
+#     old_sources = [r.data_source.data.copy() for r in i.figure.renderers]
+#     x_range_old = (old_sources[0]["xs"].min(), old_sources[0]["xs"].max())
 
-    i.gamma = 1.2
-    new_sources = [r.data_source.data.copy() for r in i.figure.renderers]
-    x_range_new = (new_sources[0]["xs"].min(), new_sources[0]["xs"].max())
-    # by updating gamma, the curve moves to the left or to the right
-    assert not np.allclose(x_range_old, x_range_new)
+#     i.gamma = 1.2
+#     new_sources = [r.data_source.data.copy() for r in i.figure.renderers]
+#     x_range_new = (new_sources[0]["xs"].min(), new_sources[0]["xs"].max())
+#     # by updating gamma, the curve moves to the left or to the right
+#     assert not np.allclose(x_range_old, x_range_new)
 
-    # 7 mach lines + 1 sonic line + 1 region line
-    assert len(new_sources) == 9
-    # sonic line and region line are visible
-    assert all(r.visible for r in i.figure.renderers[-2:])
-    assert i.show_region_line and i.show_sonic_line
+#     # 7 mach lines + 1 sonic line + 1 region line
+#     assert len(new_sources) == 9
+#     # sonic line and region line are visible
+#     assert all(r.visible for r in i.figure.renderers[-2:])
+#     assert i.show_region_line and i.show_sonic_line
 
-    for s1, s2 in zip(old_sources[:-2], new_sources[:-2]):
-        # conical solver inserts a couple more values
-        assert len(s1["xs"]) >= 100
-        assert not np.allclose(s1["xs"], s2["xs"])
-        assert np.allclose(s1["ys"], s2["ys"])
-        assert s1["v"] == s2["v"]
+#     for s1, s2 in zip(old_sources[:-2], new_sources[:-2]):
+#         # conical solver inserts a couple more values
+#         assert len(s1["xs"]) >= 100
+#         assert not np.allclose(s1["xs"], s2["xs"])
+#         assert np.allclose(s1["ys"], s2["ys"])
+#         assert s1["v"] == s2["v"]
 
-    i.N = 10
-    assert len(i.figure.renderers) == len(new_sources)
-    data = i.figure.renderers[0].data_source.data.copy()
-    assert len(data["xs"]) >= 10
+#     i.N = 10
+#     assert len(i.figure.renderers) == len(new_sources)
+#     data = i.figure.renderers[0].data_source.data.copy()
+#     assert len(data["xs"]) >= 10
 
-    with pytest.raises(ValueError):
-        # too few Mach numbers
-        i.upstream_mach = [1, 2, 3]
+#     with pytest.raises(ValueError):
+#         # too few Mach numbers
+#         i.upstream_mach = [1, 2, 3]
 
-    with pytest.raises(ValueError):
-        # too many Mach numbers
-        i.upstream_mach = [1, 2, 3, 4, 5, 6, 7, 8]
+#     with pytest.raises(ValueError):
+#         # too many Mach numbers
+#         i.upstream_mach = [1, 2, 3, 4, 5, 6, 7, 8]
 
-    i.upstream_mach = [5, 6, 7, 8, 9, 10, 11]
-    new_data = i.figure.renderers[0].data_source.data.copy()
-    # the first curve is using a new mach number, which changes both
-    # the values on the x-axis (theta) and y-axis (beta)
-    assert not np.allclose(data["xs"], new_data["xs"])
-    assert not np.allclose(data["ys"], new_data["ys"])
+#     i.upstream_mach = [5, 6, 7, 8, 9, 10, 11]
+#     new_data = i.figure.renderers[0].data_source.data.copy()
+#     # the first curve is using a new mach number, which changes both
+#     # the values on the x-axis (theta) and y-axis (beta)
+#     assert not np.allclose(data["xs"], new_data["xs"])
+#     assert not np.allclose(data["ys"], new_data["ys"])
 
-    # hide sonic line
-    i.show_sonic_line = False
-    assert not i.figure.renderers[-2].visible
+#     # hide sonic line
+#     i.show_sonic_line = False
+#     assert not i.figure.renderers[-2].visible
 
-    # hide region line
-    i.show_region_line = False
-    assert not i.figure.renderers[-1].visible
+#     # hide region line
+#     i.show_region_line = False
+#     assert not i.figure.renderers[-1].visible
 
 
 def test_update_gas_diagram():

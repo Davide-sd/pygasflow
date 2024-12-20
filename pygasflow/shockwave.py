@@ -633,7 +633,7 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
         * ``'temperature'``: T2/T1
         * ``'density'``: rho2/rho1
         * ``'total_pressure'``: P02/P01
-        * ``'mn2'``: Normal Mach downstream of the shock wave
+        * ``'mnd'``: Normal Mach downstream of the shock wave
 
     ratio : array_like
         Actual value of the ratio. If float, list, tuple is given as input,
@@ -647,6 +647,13 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
         The upstream Mach number.
     """
     ratioName = ratioName.lower()
+    if ratioName == "mn2":
+        warnings.warn(
+            f"Key 'mn2' is deprecated and will be removed in the future."
+            f" Use 'mnd' instead.",
+            stacklevel=1
+        )
+        ratioName="mnd"
     if isinstance(ratio, (list, tuple)):
         ratio = np.asarray(ratio)
 
@@ -655,7 +662,7 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
         "temperature": m1_from_temperature_ratio,
         "density": m1_from_density_ratio,
         "total_pressure": m1_from_total_pressure_ratio,
-        "mn2": m1_from_m2.__no_check__,
+        "mnd": m1_from_m2.__no_check__,
     }
 
     if ratioName not in ratios.keys():
@@ -1235,9 +1242,9 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         from pygasflow.solvers import shockwave_solver
 
         res = shockwave_solver(
-            "m1", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
+            "mu", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
         return type(self)(
-            M=res["m2"], gamma=self.gamma, label=label,
+            M=res["md"], gamma=self.gamma, label=label,
             theta_origin=self.theta_origin + theta,
             pr_to_fs_at_origin=res["pr"] * self.pr_to_fs_at_origin,
             tr_to_fs_at_origin=res["tr"] * self.tr_to_fs_at_origin,

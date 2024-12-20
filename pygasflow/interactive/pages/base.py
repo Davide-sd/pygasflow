@@ -313,7 +313,7 @@ class ShockSection(BaseSection):
 
     """
 
-    input_parameter_1 = param.String("m1")
+    input_parameter_1 = param.String("mu")
 
     input_value_1 = param.Array(np.array([2]))
 
@@ -367,7 +367,7 @@ class ShockSection(BaseSection):
                 try:
                     results = self.run_solver(v1, v2, g, f)
                     if postprocess_results:
-                        m1 = results["m1"]
+                        m1 = results["mu"]
                         beta_crit, _ = self.sonic_point_func(m1, gamma=g)
                         sol = "weak" if results["beta"] <= beta_crit else "strong"
                         results["Solution"] = [sol]
@@ -386,9 +386,9 @@ class ShockSection(BaseSection):
                     error_msg = "%s" % err
                     info.append("ValueError: %s" % err)
 
-                results["gamma"] = g * np.ones_like(results["m1"])
+                results["gamma"] = g * np.ones_like(results["mu"])
                 if not postprocess_results:
-                    results["Solution"] = [f] * len(np.atleast_1d(results["m1"]))
+                    results["Solution"] = [f] * len(np.atleast_1d(results["mu"]))
                 list_of_results.append(results)
 
         results = _combine(list_of_results)

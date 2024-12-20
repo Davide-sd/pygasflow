@@ -3,8 +3,9 @@ import pygasflow.fanno as fanno
 import pygasflow.rayleigh as r
 import pygasflow.shockwave as sw
 import pygasflow.solvers as sol
+from pygasflow.utils.common import ShockResults
 import numpy as np
-from pytest import raises
+import pytest
 
 # NOTE:
 # In this module I mainly test two things:
@@ -40,8 +41,8 @@ def test_mach_zero():
 
     # I'm only going to test solvers, since they use many other functions implemented
     # in the different modules.
-    test_0(sol.shockwave.shockwave_solver("m1", 2, gamma=1.4), False)
-    test_0(sol.shockwave.shockwave_solver("m1", [2, 4], gamma=1.4), True)
+    test_0(sol.shockwave.shockwave_solver("mu", 2, gamma=1.4), False)
+    test_0(sol.shockwave.shockwave_solver("mu", [2, 4], gamma=1.4), True)
     test_0(sol.shockwave.conical_shockwave_solver(5, "theta_c", 20, gamma=1.4), False)
     test_0(sol.shockwave.conical_shockwave_solver([2, 4], "theta_c", 20, gamma=1.4), True)
     test_0(sol.shockwave.conical_shockwave_solver([2, 4], "mc", 1.5, gamma=1.4), True)
@@ -57,10 +58,10 @@ def func(error, fn, *args, nocheck=False, **kwargs):
     """ Execute a statement and verify that the expected error is raised.
     """
     if not nocheck:
-        with raises(error):
+        with pytest.raises(error):
             fn(*args, **kwargs)
     else:
-        with raises(error):
+        with pytest.raises(error):
             fn.__no_check__(*args, **kwargs)
 
 
@@ -240,3 +241,44 @@ def test_raise_error_shockwave():
     func(ValueError, sw.m1_from_m2, [0.1, 1.5]) # at least one M2 < lower_lim
     func(ValueError, sw.m1_from_m2, 1.5) # M2 > 1
     func(ValueError, sw.m1_from_m2, [0.5, 1.5]) # at least one M2 > 1
+
+
+@pytest.mark.parametrize("k, should_warn", [
+    ("m", True),
+    ("m1", True),
+    ("m2", True),
+    ("mn1", True),
+    ("mn2", True),
+    ("pc_p1", True),
+    ("rhoc_rho1", True),
+    ("Tc_T1", True),
+    ("pr", False),
+    ("dr", False),
+    ("tr", False),
+    ("ttr", False),
+    ("tpr", False),
+])
+def test_ShockResults_warning(k, should_warn):
+    d = ShockResults(
+        mu=1,
+        mnu=2,
+        md=3,
+        mnd=4,
+        pr=5,
+        dr=6,
+        tr=7,
+        tpr=8,
+        ttr=9,
+        pc_pu=10,
+        Tc_Tu=11,
+        rhoc_rhou=12,
+    )
+    f = lambda k: d[k]
+    if should_warn:
+        with pytest.warns(
+            UserWarning,
+            match=f"Key '{k}' is deprecated"
+        ):
+            f(k)
+    else:
+        f(k)

@@ -28,7 +28,7 @@ class ConicalShockSection(ShockSection):
                 filename="conical_shock",
                 columns_map={
                     "gamma": "gamma",
-                    "m1": "Upstream Mach",
+                    "mu": "Upstream Mach",
                     "mc": "M_c",
                     "theta_c": "θ_c [deg]",
                     "beta": "β [deg]",
@@ -38,9 +38,9 @@ class ConicalShockSection(ShockSection):
                     "dr": "rho2/rho1",
                     "tr": "T2/T1",
                     "tpr": "P02/P01",
-                    "pc_p1": "P_c/P1",
-                    "rhoc_rho1": "rho_c/rho_1",
-                    "Tc_T1": "T_c/T1"
+                    "pc_pu": "P_c/P1",
+                    "rhoc_rhou": "rho_c/rho_1",
+                    "Tc_Tu": "T_c/T1"
                 },
                 float_formatters_exclusion=["Solution"]
             ),
@@ -55,9 +55,6 @@ class ConicalShockSection(ShockSection):
             self.input_parameter_2, v2,
             gamma=gamma, flag=flag, to_dict=True
         )
-        # NOTE: I change the returned key in order to reuse previous
-        # code implemented for ObliqueShockSection.
-        res["m1"] = res.pop("m")
         return res
 
 

@@ -54,7 +54,7 @@ class NormalShockDiagram(FlowCommon):
             "M2", "p2/p1", "rho2/rho1", "T2/T1", "P02/P01*"
         ])
         params["_solver"] = normal_shockwave_solver
-        params["_parameter_name"] = "m1"
+        params["_parameter_name"] = "mu"
         super().__init__(**params)
 
     def _create_renderers(self):

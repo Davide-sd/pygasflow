@@ -8,6 +8,10 @@
 # from the solvers.shockwave module, which are going to call (almost) every
 # function implemented in the shockwave.py module. Hence I can easily compare
 # the result with known values.
+#
+# 3. When needed, further tests are added to core functions in order to make
+# sure they produce correct results (on edge cases too).
+#
 
 import numpy as np
 import os
@@ -40,9 +44,13 @@ from numbers import Number
 
 
 class Test_normal_shockwave_solver:
+    """normal_shockwave_solver is going to call shockwave_solver, so I
+    check the results of both solvers.
+    """
     @pytest.mark.parametrize("param, value", [
-        ("m1", 2),
-        ("mn2", 0.57735026),
+        ("mu", 2),
+        ("mnd", 0.57735026),
+        ("md", 0.57735026),
         ("pressure", 4.5),
         ("temperature", 1.6875),
         ("density", 2.66666666),
@@ -64,7 +72,7 @@ class Test_normal_shockwave_solver:
         ]
 
         # shockwave solver with beta=90deg
-        res1 = ss(param, value, gamma=gamma)
+        res1 = ss(param if param != "md" else "mnd", value, gamma=gamma)
         assert np.allclose(res1, expected_res1)
 
         expected_res2 = [
@@ -80,8 +88,8 @@ class Test_normal_shockwave_solver:
         assert np.allclose(res2, expected_res2)
 
     @pytest.mark.parametrize("param, value", [
-        ("m1", 2),
-        ("mn2", 0.52522573),
+        ("mu", 2),
+        ("mnd", 0.52522573),
         ("pressure", 4.14285714),
         ("temperature", 1.18367346),
         ("density", 3.5),
@@ -119,8 +127,8 @@ class Test_normal_shockwave_solver:
         assert np.allclose(res2, expected_res2)
 
     @pytest.mark.parametrize("param, value", [
-        ("m1", [2, 5]),
-        ("mn2", [0.57735026, 0.41522739]),
+        ("mu", [2, 5]),
+        ("mnd", [0.57735026, 0.41522739]),
         ("pressure", [4.5, 29]),
         ("temperature", [1.6875, 5.79999999]),
         ("density", [2.66666666, 5]),
@@ -156,12 +164,29 @@ class Test_normal_shockwave_solver:
         res2 = nss(param, value, gamma=gamma)
         assert np.allclose(res2, expected_res2)
 
+    def test_solver_to_dict(self):
+        gamma = 1.4
+        M = 2
+        r1 = nss("mu", M, gamma=gamma, to_dict=False)
+        assert len(r1) == 6
 
-class Test_oblique_shockwave:
+        r2 = nss("mu", M, gamma=gamma, to_dict=True)
+        assert len(r2) == 6
+        assert isinstance(r2, dict)
+
+        assert np.isclose(r2["mu"], r1[0])
+        assert np.isclose(r2["md"], r1[1])
+        assert np.isclose(r2["pr"], r1[2])
+        assert np.isclose(r2["dr"], r1[3])
+        assert np.isclose(r2["tr"], r1[4])
+        assert np.isclose(r2["tpr"], r1[5])
+
+
+class Test_oblique_shockwave_solver:
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", 5, "theta", 20),
-        ("m1", 5, "beta", 29.8009155),
-        ("m1", 5, "mn1", 2.48493913),
+        ("mu", 5, "theta", 20),
+        ("mu", 5, "beta", 29.8009155),
+        ("mu", 5, "mnu", 2.48493913),
         ("beta", 29.8009155, "theta", 20),
         ("theta", 20, "beta", 29.8009155),
     ])
@@ -185,9 +210,9 @@ class Test_oblique_shockwave:
         assert np.allclose(res, expected_res)
 
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", 5, "theta", 20),
-        ("m1", 5, "beta", 84.5562548),
-        ("m1", 5, "mn1", 4.97744911),
+        ("mu", 5, "theta", 20),
+        ("mu", 5, "beta", 84.5562548),
+        ("mu", 5, "mnu", 4.97744911),
         ("beta", 84.5562548, "theta", 20),
         ("theta", 20, "beta", 84.5562548),
 
@@ -212,9 +237,9 @@ class Test_oblique_shockwave:
         assert np.allclose(res, expected_res)
 
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", 5, "theta", 20),
-        ("m1", 5, "beta", 27.749065268990808),
-        ("m1", 5, "mn1", 2.328000412282412),
+        ("mu", 5, "theta", 20),
+        ("mu", 5, "beta", 27.749065268990808),
+        ("mu", 5, "mnu", 2.328000412282412),
         ("beta", 27.749065268990808, "theta", 20),
         ("theta", 20, "beta", 27.749065268990808),
     ])
@@ -237,9 +262,9 @@ class Test_oblique_shockwave:
         assert np.allclose(res, expected_res)
 
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", 5, "theta", 20),
-        ("m1", 5, "beta", 86.88829093968721),
-        ("m1", 5, "mn1", 4.992627989196466),
+        ("mu", 5, "theta", 20),
+        ("mu", 5, "beta", 86.88829093968721),
+        ("mu", 5, "mnu", 4.992627989196466),
         ("beta", 86.88829093968721, "theta", 20),
         ("theta", 20, "beta", 86.88829093968721),
     ])
@@ -263,9 +288,9 @@ class Test_oblique_shockwave:
         assert np.allclose(res, expected_res)
 
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", [2, 5], "theta", [20, 20]),
-        ("m1", [2, 5], "beta", [53.4229405, 29.8009155]),
-        ("m1", [2, 5], "mn1", [1.60611226, 2.48493913]),
+        ("mu", [2, 5], "theta", [20, 20]),
+        ("mu", [2, 5], "beta", [53.4229405, 29.8009155]),
+        ("mu", [2, 5], "mnu", [1.60611226, 2.48493913]),
     ])
     def test_3_weak_multiple_machs(self, param1, value1, param2, value2):
         gamma = 1.4
@@ -287,9 +312,9 @@ class Test_oblique_shockwave:
         assert np.allclose(res, expected_res)
 
     @pytest.mark.parametrize("param1, value1, param2, value2", [
-        ("m1", [2, 5], "theta", [20, 20]),
-        ("m1", [2, 5], "beta", [74.2701370, 84.5562548]),
-        ("m1", [2, 5], "mn1", [1.92510115, 4.97744911]),
+        ("mu", [2, 5], "theta", [20, 20]),
+        ("mu", [2, 5], "beta", [74.2701370, 84.5562548]),
+        ("mu", [2, 5], "mnu", [1.92510115, 4.97744911]),
     ])
     def test_3_strong_multiple_machs(self, param1, value1, param2, value2):
         gamma = 1.4
@@ -313,17 +338,17 @@ class Test_oblique_shockwave:
     def test_solver_to_dict(self):
         gamma = 1.4
         M = 2
-        r1 = ss("m1", M, gamma=gamma, to_dict=False)
+        r1 = ss("mu", M, gamma=gamma, to_dict=False)
         assert len(r1) == 10
 
-        r2 = ss("m1", M, gamma=gamma, to_dict=True)
+        r2 = ss("mu", M, gamma=gamma, to_dict=True)
         assert len(r2) == 10
         assert isinstance(r2, dict)
 
-        assert np.isclose(r2["m1"], r1[0])
-        assert np.isclose(r2["mn1"], r1[1])
-        assert np.isclose(r2["m2"], r1[2])
-        assert np.isclose(r2["mn2"], r1[3])
+        assert np.isclose(r2["mu"], r1[0])
+        assert np.isclose(r2["mnu"], r1[1])
+        assert np.isclose(r2["md"], r1[2])
+        assert np.isclose(r2["mnd"], r1[3])
         assert np.isclose(r2["beta"], r1[4])
         assert np.isclose(r2["theta"], r1[5])
         assert np.isclose(r2["pr"], r1[6])
@@ -332,18 +357,18 @@ class Test_oblique_shockwave:
         assert np.isclose(r2["tpr"], r1[9])
 
     @pytest.mark.parametrize("err, param1, value1, param2, value2", [
-        (ValueError, "m1", 2, "asd", 4), # p2_name not in ["beta", "theta", "mn1"]
-        (ValueError, "m1", 2, "beta", None), # p2_value = None
-        (ValueError, "m1", 2, "beta", -10), # beta < 0
-        (ValueError, "m1", [2, 4], "beta", [20, -10]), # at least one beta < 0
-        (ValueError, "m1", 2, "beta", 100), # beta > 90
-        (ValueError, "m1", [2, 4], "beta", [20, 100]), # at least one beta > 90
-        (ValueError, "m1", 2, "theta", -10), # beta < 0
-        (ValueError, "m1", [2, 4], "theta", [20, -10]), # at least one beta < 0
-        (ValueError, "m1", 2, "theta", 100), # beta > 90
-        (ValueError, "m1", [2, 4], "theta", [20, 100]), # at least one beta > 90
+        (ValueError, "mu", 2, "asd", 4), # p2_name not in ["beta", "theta", "mn1"]
+        (ValueError, "mu", 2, "beta", None), # p2_value = None
+        (ValueError, "mu", 2, "beta", -10), # beta < 0
+        (ValueError, "mu", [2, 4], "beta", [20, -10]), # at least one beta < 0
+        (ValueError, "mu", 2, "beta", 100), # beta > 90
+        (ValueError, "mu", [2, 4], "beta", [20, 100]), # at least one beta > 90
+        (ValueError, "mu", 2, "theta", -10), # beta < 0
+        (ValueError, "mu", [2, 4], "theta", [20, -10]), # at least one beta < 0
+        (ValueError, "mu", 2, "theta", 100), # beta > 90
+        (ValueError, "mu", [2, 4], "theta", [20, 100]), # at least one beta > 90
         (ValueError, "asd", 2, "beta", 4), # p1_name not in available_p1names
-        (ValueError, "mn1", 2, "mn1", 4), # p1_name = p2_name
+        (ValueError, "mnu", 2, "mnu", 4), # p1_name = p2_name
         (ValueError, "theta", 2, None, None), # p1_name = theta and beta=None
         (ValueError, "theta", -10, "beta", 4), # p1_name = theta and theta < 0
         (ValueError, "theta", 100, "beta", 4), # p1_name = theta and theta > 90
@@ -419,7 +444,7 @@ class Test_conical_shockwave:
         assert len(r2) == 12
         assert isinstance(r2, dict)
 
-        assert np.isclose(r2["m"], r1[0])
+        assert np.isclose(r2["mu"], r1[0])
         assert np.isclose(r2["mc"], r1[1])
         assert np.isclose(r2["theta_c"], r1[2])
         assert np.isclose(r2["beta"], r1[3])
@@ -428,9 +453,9 @@ class Test_conical_shockwave:
         assert np.isclose(r2["dr"], r1[6])
         assert np.isclose(r2["tr"], r1[7])
         assert np.isclose(r2["tpr"], r1[8])
-        assert np.isclose(r2["pc_p1"], r1[9])
-        assert np.isclose(r2["rhoc_rho1"], r1[10])
-        assert np.isclose(r2["Tc_T1"], r1[11])
+        assert np.isclose(r2["pc_pu"], r1[9])
+        assert np.isclose(r2["rhoc_rhou"], r1[10])
+        assert np.isclose(r2["Tc_Tu"], r1[11])
 
 
 @pytest.mark.parametrize("beta, expected_mach_downstream", [
@@ -440,12 +465,12 @@ class Test_conical_shockwave:
 def test_oblique_mach_downstream_input_beta(beta, expected_mach_downstream):
     M1 = [1.5, 3]
     solver_results = ss(
-        "m1", M1, "beta", beta, to_dict=True)
+        "mu", M1, "beta", beta, to_dict=True)
     actual_mach_downstream = oblique_mach_downstream(
         M1,
         beta=beta,
     )
-    assert np.allclose(solver_results["m2"], expected_mach_downstream)
+    assert np.allclose(solver_results["md"], expected_mach_downstream)
     assert np.allclose(actual_mach_downstream, expected_mach_downstream)
 
 
@@ -459,13 +484,13 @@ def test_oblique_mach_downstream_input_beta(beta, expected_mach_downstream):
 def test_oblique_mach_downstream_input_theta(theta, flag, expected_mach_downstream):
     M1 = [3, 5]
     solver_results = ss(
-        "m1", M1, "theta", theta, to_dict=True, flag=flag)
+        "mu", M1, "theta", theta, to_dict=True, flag=flag)
     actual_mach_downstream = oblique_mach_downstream(
         M1,
         theta=theta,
         flag=flag
     )
-    assert np.allclose(solver_results["m2"], expected_mach_downstream)
+    assert np.allclose(solver_results["md"], expected_mach_downstream)
     assert np.allclose(actual_mach_downstream, expected_mach_downstream)
 
 
@@ -502,10 +527,10 @@ def test_detachment_point_oblique_shock(
 def test_error_for_multiple_gamma():
     err_msg = "The specific heats ratio must be > 1."
     with pytest.raises(ValueError, match=err_msg):
-        ss("m1", [2, 3], "beta", 80, gamma=[1.1, 2])
+        ss("mu", [2, 3], "beta", 80, gamma=[1.1, 2])
 
     with pytest.raises(ValueError, match=err_msg):
-        nss("m1", [2, 3], gamma=[1.1, 2])
+        nss("mu", [2, 3], gamma=[1.1, 2])
 
     with pytest.raises(ValueError, match=err_msg):
         css([2.5, 5], "mc", 1.5, gamma=[1.1, 2])
@@ -515,10 +540,10 @@ def test_error_for_multiple_gamma():
 def test_error_gamma_less_equal_than_one(g):
     err_msg = "The specific heats ratio must be > 1."
     with pytest.raises(ValueError, match=err_msg):
-        ss("m1", [2, 3], "beta", 80, gamma=g)
+        ss("mu", [2, 3], "beta", 80, gamma=g)
 
     with pytest.raises(ValueError, match=err_msg):
-        nss("m1", [2, 3], gamma=g)
+        nss("mu", [2, 3], gamma=g)
 
     with pytest.raises(ValueError, match=err_msg):
         css([2.5, 5], "mc", 1.5, gamma=g)
@@ -1257,9 +1282,9 @@ class Test_sonic_point_conical_shock:
         beta = np.atleast_1d(beta)
 
         for m1, b, t in zip(M1, beta, theta_c):
-            res = ss("m1", m1, "beta", b, gamma=gamma, to_dict=True)
-            assert np.isclose(res["m1"], m1)
-            assert np.isclose(res["m2"], 1)
+            res = ss("mu", m1, "beta", b, gamma=gamma, to_dict=True)
+            assert np.isclose(res["mu"], m1)
+            assert np.isclose(res["md"], 1)
 
     @pytest.mark.parametrize("gamma", [1+1e-05, 1+1e-03, 1.1, 1.4, 2])
     def test_unit_upstream_mach(self, gamma):
@@ -1437,8 +1462,8 @@ class Test_sonic_point_oblique_shock:
         beta = np.atleast_1d(beta)
         for m1, b, t in zip(M1, beta, theta):
             res = ss("beta", b, "theta", t, gamma=gamma, to_dict=True)
-            assert np.isclose(res["m1"], m1)
-            assert np.isclose(res["m2"], 1)
+            assert np.isclose(res["mu"], m1)
+            assert np.isclose(res["md"], 1)
 
     @pytest.mark.parametrize("gamma", [1+1e-05, 1+1e-03, 1.1, 1.4, 2])
     def test_unit_upstream_mach(self, gamma):

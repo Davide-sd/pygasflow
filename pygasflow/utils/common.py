@@ -1,5 +1,6 @@
 import numpy as np
 from packaging import version
+import warnings
 curr_numpy_ver = version.parse(np.__version__)
 np_2_0_0 = version.parse("2.0.0")
 
@@ -43,6 +44,9 @@ def ret_correct_vals(x):
         for e in x:
             new_x.append(ret_correct_vals(e))
         return new_x
+    elif isinstance(x, ShockResults):
+        for k in x:
+            x[k] = ret_correct_vals(x[k])
     elif isinstance(x, dict):
         # Many functions may return a dictionary of elements. Each value may
         # be a 1-D one-element array. If that's the case, extract that number.
@@ -52,3 +56,33 @@ def ret_correct_vals(x):
     elif isinstance(x, np.ndarray) and (x.ndim == 0):
         return x[()]
     return x
+
+
+class ShockResults(dict):
+    """This class implements the deprecation of old keys for the results
+    of pygasflow.solvers.shockwave_solver and
+    pygasflow.solvers.conical_shockwave_solver.
+
+    Please, don't use this class outside of this module: it will be removed in
+    the future.
+    """
+    deprecation_map = {
+        "m": "mu",
+        "m1": "mu",
+        "mn1": "mnu",
+        "m2": "md",
+        "mn2": "mnd",
+        "pc_p1": "pc_pu",
+        "rhoc_rho1": "rhoc_rhou",
+        "Tc_T1": "Tc_Tu",
+    }
+
+    def __getitem__(self, k):
+        if k in self.deprecation_map:
+            warnings.warn(
+                f"Key '{k}' is deprecated and will be removed in the future."
+                f" Use '{self.deprecation_map[k]}' instead.",
+                stacklevel=1
+            )
+            return super().__getitem__(self.deprecation_map[k])
+        return super().__getitem__(k)

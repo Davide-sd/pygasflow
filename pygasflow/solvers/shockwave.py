@@ -22,7 +22,7 @@ from pygasflow.shockwave import (
     theta_from_mach_beta,
 )
 
-from pygasflow.utils.common import convert_to_ndarray
+from pygasflow.utils.common import convert_to_ndarray, ShockResults
 from pygasflow.utils.decorators import check_shockwave
 
 # TODO:
@@ -46,15 +46,15 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
         * ``'temperature'``: Temperature Ratio T2/T1
         * ``'density'``: Density Ratio rho2/rho1
         * ``'total_pressure'``: Total Pressure Ratio P02/P01
-        * ``'m1'``: Mach upstream of the shock wave
-        * ``'mn1'``: Normal Mach upstream of the shock wave
-        * ``'mn2'``: Normal Mach downstream of the shock wave
+        * ``'mu'``: upstream Mach number of the shock wave
+        * ``'mnu'``: upstream normal Mach number of the shock wave
+        * ``'mnd'``: downstream normal Mach number of the shock wave
         * ``'beta'``: The shock wave angle [in degrees]. It can only be used
           if ``p2_name='theta'``.
         * ``'theta'``: The deflection angle [in degrees]. It can only be
           used if ``p2_name='beta'``.
 
-        If the parameter is a ratio, it is in the form downstream/upstream:
+        If the parameter is a ratio, it is in the form downstream/upstream.
 
     p1_value : float
         Actual value of the parameter.
@@ -63,7 +63,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
         * ``'beta'``: Shock wave angle.
         * ``'theta'``: Flow deflection angle.
-        * ``'mn1'``: Input Normal Mach number.
+        * ``'mnu'``: upstream normal Mach number.
 
         Default to ``'beta'``.
     p2_value : float, optional
@@ -81,13 +81,13 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
     Returns
     -------
-    m1 : float
+    mu : float
         Mach number upstream of the shock wave.
-    mn1 : float
+    mnu : float
         Normal Mach number upstream of the shock wave.
-    m2 : float
+    md : float
         Mach number downstream of the shock wave.
-    mn2 : float
+    mnd : float
         Normal Mach number downstream of the shock wave.
     beta : float
         Shock wave angle in degrees.
@@ -105,31 +105,32 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     Examples
     --------
 
-    Compute all ratios across a normal shockwave starting with the upstream
-    Mach number:
+    Compute all ratios across an oblique shockwave starting with the upstream
+    Mach number and the deflection angle:
 
     >>> from pygasflow import shockwave_solver
-    >>> shockwave_solver("m1", 2)
-    [np.float64(2.0), np.float64(2.0), np.float64(0.5773502691896257), np.float64(0.5773502691896257), np.float64(90.0), np.float64(5.847257748779064e-15), np.float64(4.5), np.float64(2.666666666666667), np.float64(1.6874999999999998), np.float64(0.7208738614847455)]
+    >>> shockwave_solver("mu", 2, "theta", 15)
+    [np.float64(2.0), np.float64(1.42266946274781), np.float64(1.4457163651405158), np.float64(0.7303538499327245), np.float64(45.343616761854385), np.float64(15.0), np.float64(2.1946531336076665), np.float64(1.7289223315067423), np.float64(1.2693763586794804), np.float64(0.9523563236996431)]
 
     Compute all ratios and parameters across an oblique shockwave starting
-    from the shockwave angle and the deflection angle:
+    from the shock wave angle and the deflection angle, using methane at 20°C
+    as the fluid:
 
-    >>> shockwave_solver("theta", 8, "beta", 80)
-    [np.float64(1.511670289641015), np.float64(1.4887046212366817), np.float64(0.7414131402857721), np.float64(0.7051257983356364), np.float64(80.0), np.float64(7.999999999999998), np.float64(2.418948357506694), np.float64(1.84271116608139), np.float64(1.312711618636739), np.float64(0.9333272472012358)]
+    >>> shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
+    [np.float64(1.4819290082790446), np.float64(1.4594151767668957), np.float64(0.7477053570397926), np.float64(0.711110052081489), np.float64(80.0), np.float64(8.000000000000002), np.float64(2.2857399213744523), np.float64(1.8427111660813902), np.float64(1.240422244922509), np.float64(0.9398367786738993)]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
 
-    >>> results = shockwave_solver("m1", [1.5, 3], "beta", [60, 60])
+    >>> results = shockwave_solver("mu", [1.5, 3], "beta", 60)
     >>> print(results[2])
     [1.04454822 1.12256381]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
-    >>> results = shockwave_solver("m1", [1.5, 3], "beta", [60, 60], to_dict=True)
-    >>> print(results["m2"])
+    >>> results = shockwave_solver("mu", [1.5, 3], "beta", [60, 60], to_dict=True)
+    >>> print(results["md"])
     [1.04454822 1.12256381]
 
     """
@@ -139,9 +140,22 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     beta, theta = None, None
     MN1, M1 = None, None
 
-    p2_name = p2_name.lower()
-    if p2_name not in ['beta', 'theta', 'mn1']:
-        raise ValueError("p2_name must be either 'beta' or 'theta' or 'mn1.")
+    def _check_name(name):
+        # deprecate m1,mn1,m2,mn2
+        if name in ["m1", "mn1", "m2", "mn2"]:
+            warnings.warn(
+                f"Key '{name}' is deprecated and will be removed in the future."
+                f" Use '{ShockResults.deprecation_map[name]}' instead.",
+                stacklevel=1
+            )
+            return ShockResults.deprecation_map[name]
+        return name
+
+    p1_name = _check_name(p1_name.lower())
+    p2_name = _check_name(p2_name.lower())
+
+    if p2_name not in ['beta', 'theta', 'mnu']:
+        raise ValueError("p2_name must be either 'beta' or 'theta' or 'mnu'.")
     if p2_value is None:
         raise ValueError("p2_value must be a real positive number.")
     if p2_name == 'beta':
@@ -158,16 +172,21 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
 
 
     p1_name = p1_name.lower()
-    available_p1names = ['beta', 'theta', 'pressure', 'temperature', 'density', 'total_pressure', 'm1', 'mn1', 'mn2']
+    available_p1names = [
+        'beta', 'theta', 'pressure', 'temperature', 'density',
+        'total_pressure', 'mu', 'mnu', 'mnd']
     if p1_name not in available_p1names:
-        raise ValueError("p1_name must be either one of {}".format(available_p1names))
-    if p1_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mn2']:
+        raise ValueError(
+            f"p1_name must be either one of {available_p1names}."
+            f" Instead, '{p1_name}' was received."
+        )
+    if p1_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mnd']:
         MN1 = get_upstream_normal_mach_from_ratio.__no_check__(p1_name, p1_value, gamma)
-    elif p1_name == "mn1":
+    elif p1_name == "mnu":
         if p1_name == p2_name:
             raise ValueError("p1_name must be different than p2_name")
         MN1 = p1_value
-    elif p1_name == "m1":
+    elif p1_name == "mu":
         M1 = p1_value
     elif p1_name == "theta":
         if beta is None:
@@ -225,7 +244,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
             M1 = MN1 / np.sin(np.deg2rad(beta))
             theta = theta_from_mach_beta.__no_check__(M1, beta, gamma)
             if isinstance(M1, (list, tuple, np.ndarray)):
-                beta *= np.ones_like(M1)
+                beta = beta * np.ones_like(M1)
         else:
             # TODO:
             # Is it even possible to uniquely determine M1 = f(MN1, beta)????
@@ -242,18 +261,18 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     #
 
     if to_dict:
-        return {
-            "m1": M1,
-            "mn1": MN1,
-            "m2": M2,
-            "mn2": MN2,
-            "beta": beta,
-            "theta": theta,
-            "pr": pr,
-            "dr": dr,
-            "tr": tr,
-            "tpr": tpr
-        }
+        return ShockResults(
+            mu=M1,
+            mnu=MN1,
+            md=M2,
+            mnd=MN2,
+            beta=beta,
+            theta=theta,
+            pr=pr,
+            dr=dr,
+            tr=tr,
+            tpr=tpr
+        )
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 
@@ -270,10 +289,10 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
         * ``'temperature'``: Temperature Ratio T2/T1
         * ``'density'``: Density Ratio rho2/rho1
         * ``'total_pressure'``: Total Pressure Ratio P02/P01
-        * ``'m1'``: Mach upstream of the shock wave
-        * ``'m2'``: Normal Mach downstream of the shock wave
+        * ``'mu'``: upstream Mach number of the shock wave
+        * ``'md'``: downstream Mach number of the shock wave
 
-        If the parameter is a ratio, it is in the form downstream/upstream:
+        If the parameter is a ratio, it is in the form downstream/upstream.
 
     param_value : float
         Actual value of the parameter.
@@ -286,9 +305,9 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
     Returns
     -------
-    m1 : float
+    mu : float
         Mach number upstream of the shock wave.
-    m2 : float
+    md : float
         Mach number downstream of the shock wave.
     pr : float
         Pressure ratio across the shock wave.
@@ -306,45 +325,44 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
     Mach number:
 
     >>> from pygasflow import normal_shockwave_solver
-    >>> normal_shockwave_solver("m1", 2)
+    >>> normal_shockwave_solver("mu", 2)
     [np.float64(2.0), np.float64(0.5773502691896257), np.float64(4.5), np.float64(2.666666666666667), np.float64(1.6874999999999998), np.float64(0.7208738614847455)]
 
     Compute all ratios and parameters across a normal shockwave starting
-    from the downstream Mach:
+    from the downstream Mach, using methane at 20°C:
 
-    >>> normal_shockwave_solver("m2", 0.4, to_dict=False)
-    [np.float64(6.557438524301991), np.float64(0.4000000000000001), np.float64(49.99999999999984), np.float64(5.374999999999999), np.float64(9.30232558139532), np.float64(0.020365713466862605)]
+    >>> normal_shockwave_solver("md", 0.4, gamma=1.32)
+    [np.float64(4.4756284474920385), np.float64(0.4000000000000001), np.float64(22.65624999999999), np.float64(5.525862068965516), np.float64(4.100039001560062), np.float64(0.06721056989701328)]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
-    >>> results = normal_shockwave_solver("m1", [1.5, 3], to_dict=True)
-    >>> print(results["m2"])
+    >>> results = normal_shockwave_solver("mu", [1.5, 3], to_dict=True)
+    >>> print(results["md"])
     [0.70108874 0.47519096]
 
     """
-    idx_to_exclude = [1, 3, 4, 5]
-    if param_name in ["m2", "M2"]:
-        param_name = "mn2"
+    if param_name in ["m2", "M2", "md", "Md"]:
+        param_name = "mnd"
     results = shockwave_solver(param_name, param_value, "beta", 90,
         gamma=gamma, to_dict=to_dict)
     if not to_dict:
+        idx_to_exclude = [1, 3, 4, 5]
         return [r for i, r in enumerate(results) if i not in idx_to_exclude]
-    return {
-        k: v for i, (k, v) in enumerate(results.items())
-        if i not in idx_to_exclude
-    }
+    for k in ["mnu", "mnd", "beta", "theta"]:
+        results.pop(k)
+    return results
 
 
 @check_shockwave
-def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak", to_dict=False):
+def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak", to_dict=False):
     """
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
     Parameters
     ----------
-    M1 : float
-        Upstream Mach number. Must be M1 > 1.
+    Mu : float
+        Upstream Mach number. Must be Mu > 1.
     param_name : string
         Name of the parameter given in input. Can be either one of:
 
@@ -371,7 +389,7 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
 
     Returns
     -------
-    m : float
+    mu : float
         Upstream Mach number.
     mc : float
         Mach number at the surface of the cone.
@@ -389,11 +407,11 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
         Temperature ratio across the shock wave.
     tpr : float
         Total Pressure ratio across the shock wave.
-    pc_p1 : float
+    pc_pu : float
         Pressure ratio between the cone's surface and the upstream condition.
-    rhoc_rho1 : float
+    rhoc_rhou : float
         Density ratio between the cone's surface and the upstream condition.
-    Tc_T1 : float
+    Tc_Tu : float
         Temperature ratio between the cone's surface and the upstream
         condition.
 
@@ -434,8 +452,8 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
     Mc, beta, theta_c = None, None, None
     if param_name == 'mc':
         Mc = param_value
-        if np.any(M1 <= Mc):
-            raise ValueError("It must be M1 > Mc.")
+        if np.any(Mu <= Mc):
+            raise ValueError("It must be Mu > Mc.")
         if (not isinstance(Mc, Number)) or (Mc < 0):
             raise ValueError(
                 "The Mach number at the cone's surface must be Mc >= 0.")
@@ -449,46 +467,46 @@ def conical_shockwave_solver(M1, param_name, param_value, gamma=1.4, flag="weak"
             raise ValueError("The half cone angle must be 0 < theta_c < 90.")
 
     if Mc:
-        _, theta_c, beta = shock_angle_from_machs(M1, Mc, gamma, flag)
+        _, theta_c, beta = shock_angle_from_machs(Mu, Mc, gamma, flag)
     elif beta:
-        Mc, theta_c = mach_cone_angle_from_shock_angle(M1, beta, gamma)
+        Mc, theta_c = mach_cone_angle_from_shock_angle(Mu, beta, gamma)
     elif theta_c:
-        Mc, _, beta = shock_angle_from_mach_cone_angle(M1, theta_c, gamma, flag)
+        Mc, _, beta = shock_angle_from_mach_cone_angle(Mu, theta_c, gamma, flag)
 
     # compute the ratios across the shockwave
-    MN1 = M1 * np.sin(np.deg2rad(beta))
+    MN1 = Mu * np.sin(np.deg2rad(beta))
     pr, dr, tr, tpr, MN2 = get_ratios_from_normal_mach_upstream(MN1, gamma)
 
     # delta is the flow deflection angle (Anderson's Figure 10.4)
-    delta = theta_from_mach_beta(M1, beta, gamma)
+    delta = theta_from_mach_beta(Mu, beta, gamma)
     M2 = MN2 /  np.sin(np.deg2rad(beta - delta))
 
     # ratios between cone surface and upstream conditions. Note that
     # p0c/p01 = p02/p01, already computed
-    pc_p1 = ise_PR(Mc) * tpr / ise_PR(M1)
+    pc_p1 = ise_PR(Mc) * tpr / ise_PR(Mu)
     rhoc_rho1 = ise_DR(Mc) / ise_DR(M2) * dr
     Tc_T1 = ise_TR(Mc) / ise_TR(M2) * tr
 
-    # set Mc, theta_c to have the same shape as M1 and the other ratios. This is
+    # set Mc, theta_c to have the same shape as Mu and the other ratios. This is
     # necessary because Mc or theta_c are parameters passed in by the user, in
     # that case they are scalars.
-    theta_c = theta_c * np.ones_like(M1)
+    theta_c = theta_c * np.ones_like(Mu)
     if not isinstance(Mc, np.ndarray):
-        Mc = Mc * np.ones_like(M1)
+        Mc = Mc * np.ones_like(Mu)
 
     if to_dict:
-        return {
-            "m": M1,
-            "mc": Mc,
-            "theta_c": theta_c,
-            "beta": beta,
-            "delta": delta,
-            "pr": pr,
-            "dr": dr,
-            "tr": tr,
-            "tpr": tpr,
-            "pc_p1": pc_p1,
-            "rhoc_rho1": rhoc_rho1,
-            "Tc_T1": Tc_T1
-        }
-    return M1, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
+        return ShockResults(
+            mu=Mu,
+            mc=Mc,
+            theta_c=theta_c,
+            beta=beta,
+            delta=delta,
+            pr=pr,
+            dr=dr,
+            tr=tr,
+            tpr=tpr,
+            pc_pu=pc_p1,
+            rhoc_rhou=rhoc_rho1,
+            Tc_Tu=Tc_T1
+        )
+    return Mu, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
