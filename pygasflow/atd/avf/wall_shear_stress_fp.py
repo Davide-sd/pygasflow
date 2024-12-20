@@ -7,6 +7,7 @@ wrapper functions that allows to estimates all parameters with a single call.
 """
 
 import numpy as np
+from pygasflow.utils.common import _should_solver_return_dict
 
 
 def wss_lam_ic(rho, u, Re):
@@ -248,6 +249,7 @@ def wss_ic(rho, u, Re, laminar=True, to_dict=False):
     --------
     wss_c
     """
+    to_dict = _should_solver_return_dict(to_dict)
     q = 0.5 * rho * u**2
     tau_w = wss_lam_ic(rho, u, Re) if laminar else wss_tur_ic(rho, u, Re)
     results = [
@@ -300,6 +302,7 @@ def wss_c(rhoinf, uinf, Reinf, Ts_Tinf, laminar=True, omega=0.65, to_dict=False)
     --------
     wss_ic
     """
+    to_dict = _should_solver_return_dict(to_dict)
     q = 0.5 * rhoinf * uinf**2
     f1 = wss_lam_c if laminar else wss_tur_c
     f2 = friction_drag_lam_c if laminar else friction_drag_tur_c

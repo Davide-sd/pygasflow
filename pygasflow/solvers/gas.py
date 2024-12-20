@@ -4,10 +4,11 @@ from pygasflow.isentropic import (
     sonic_sound_speed_ratio,
     sonic_temperature_ratio
 )
+from pygasflow.utils.common import _should_solver_return_dict
 from pygasflow.utils.decorators import check
 
 
-def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=False):
+def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
     """Compute quantities related to gas, like the ratio of specific heats,
     the heat capacities and the mass-specific gas constant.
 
@@ -55,6 +56,7 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=False):
     {'gamma': 1.4, 'R': 287.05, 'Cp': 1004.6750000000002, 'Cv': 717.6250000000002}
 
     """
+    to_dict = _should_solver_return_dict(to_dict)
     allowed_names = ["cp", "cv", "gamma", "r"]
     p1_name = p1_name.lower()
     p2_name = p2_name.lower()
@@ -156,7 +158,7 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=False):
     return gamma, r, Cp, Cv
 
 
-def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=False):
+def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=None):
     """Solve for quantities of the ideal gas law: p/rho = R*T
 
     Note: 3 numerical parameters are needed to compute the wanted quantity.
@@ -200,6 +202,7 @@ def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=False):
     >>> ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=True)
     {'p': 101345.64336000002, 'rho': 1.2259, 'R': 287.05, 'T': 288}
     """
+    to_dict = _should_solver_return_dict(to_dict)
     wanted = wanted.lower()
     allowed_wanted = ["p", "rho", "t", "r"]
     if wanted not in allowed_wanted:

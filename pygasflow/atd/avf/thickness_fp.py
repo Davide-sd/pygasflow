@@ -7,6 +7,7 @@ to estimates all thicknesses with a single call.
 """
 
 import numpy as np
+from pygasflow.utils.common import _should_solver_return_dict
 
 
 def delta_lam_ic(x, Re, c=5):
@@ -588,6 +589,7 @@ def deltas_lam_ic(x, Re, to_dict=False):
     delta_lam_ic, delta_1_lam_ic, delta_2_lam_ic, shape_factor_lam_ic,
     deltas_lam_c, deltas_tur_ic, deltas_tur_c
     """
+    to_dict = _should_solver_return_dict(to_dict)
     results = [
         delta_lam_ic(x, Re),
         delta_1_lam_ic(x, Re),
@@ -644,6 +646,7 @@ def deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
     delta_lam_c, delta_1_lam_c, delta_2_lam_c, shape_factor_lam_c,
     deltas_lam_ic, deltas_tur_ic, deltas_tur_c
     """
+    to_dict = _should_solver_return_dict(to_dict)
     results = [
         delta_lam_c(x, Re, Ts_Tinf, omega),
         delta_1_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega, gammainf),
@@ -691,6 +694,7 @@ def deltas_tur_ic(x, Re, to_dict=False):
     delta_tur_ic, delta_1_tur_ic, delta_2_tur_ic, shape_factor_tur_ic,
     deltas_tur_c, deltas_lam_ic, deltas_lam_c
     """
+    to_dict = _should_solver_return_dict(to_dict)
     results = [
         delta_tur_ic(x, Re),
         delta_tur_ic_viscous(x, Re),
@@ -753,6 +757,7 @@ def deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
     delta_tur_c, delta_1_tur_c,  delta_2_tur_c, shape_factor_tur_c,
     deltas_tur_ic, deltas_lam_ic, deltas_lam_c
     """
+    to_dict = _should_solver_return_dict(to_dict)
     results = [
         delta_tur_c(x, Re, Ts_Tinf, omega),
         delta_tur_c_viscous(x, Re, Ts_Tinf, omega),

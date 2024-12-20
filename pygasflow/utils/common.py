@@ -1,6 +1,7 @@
 import numpy as np
 from packaging import version
 import warnings
+import pygasflow
 curr_numpy_ver = version.parse(np.__version__)
 np_2_0_0 = version.parse("2.0.0")
 
@@ -86,3 +87,38 @@ class ShockResults(dict):
             )
             return super().__getitem__(self.deprecation_map[k])
         return super().__getitem__(k)
+
+
+def _should_solver_return_dict(to_dict):
+    """Initially, solvers only returned a list of results. To retrieve a
+    particular quantity, users had to specify an index, which is readily
+    available in the solver's documentation.
+
+    With later version of the module, solvers can return a dictionary of
+    results by setting ``to_dict=True`` in the function call. Dictionaries
+    make it easier to retrieve a particular result (like downstream Mach
+    number, or pressure ratio) because users only needs to remember a few keys
+    like "mn", "pr", etc.
+
+    By default, many solvers return a list of results instead of a dictionary.
+    This is to maintain back-compatibility.
+
+    However, setting ``to_dict=True`` on each solver call is a PITA. Hence,
+    a shortcut is needed: set it only once (after importing the module),
+    and then all solvers will automatically return a dictionary.
+
+    Parameters
+    ----------
+    to_dict : bool
+        Value provided in the function call.
+
+    Returns
+    -------
+    to_dict : bool
+        If ``to_dict=None`` in the function call (default behavior) it returns
+        the value of ``pygasflow.defaults.solver_to_dict``. Otherwise it
+        returns the user-provided value in the function call.
+    """
+    if to_dict is not None:
+        return to_dict
+    return pygasflow.defaults.solver_to_dict

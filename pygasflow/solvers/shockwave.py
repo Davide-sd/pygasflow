@@ -1,13 +1,11 @@
 import numpy as np
 import warnings
 from numbers import Number
-
 from pygasflow.isentropic import (
     pressure_ratio as ise_PR,
     density_ratio as ise_DR,
     temperature_ratio as ise_TR
 )
-
 from pygasflow.shockwave import (
     mach_from_theta_beta,
     get_upstream_normal_mach_from_ratio,
@@ -21,17 +19,16 @@ from pygasflow.shockwave import (
     beta_from_upstream_mach,
     theta_from_mach_beta,
 )
-
-from pygasflow.utils.common import convert_to_ndarray, ShockResults
+from pygasflow.utils.common import (
+    convert_to_ndarray,
+    ShockResults,
+    _should_solver_return_dict
+)
 from pygasflow.utils.decorators import check_shockwave
-
-# TODO:
-# detachment detection, when provided theta > theta_max for the specified Mach
-# number
 
 
 @check_shockwave([1, 3])
-def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak", to_dict=False):
+def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak", to_dict=None):
     """
     Try to compute all the ratios, angles and mach numbers across the shock wave.
 
@@ -134,6 +131,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     [1.04454822 1.12256381]
 
     """
+    to_dict = _should_solver_return_dict(to_dict)
 
     if not isinstance(gamma, Number):
         raise ValueError("The specific heats ratio must be > 1.")
@@ -276,7 +274,7 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 
-def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
+def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     """
     Compute all the ratios across a normal shock wave.
 
@@ -342,6 +340,7 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
     [0.70108874 0.47519096]
 
     """
+    to_dict = _should_solver_return_dict(to_dict)
     if param_name in ["m2", "M2", "md", "Md"]:
         param_name = "mnd"
     results = shockwave_solver(param_name, param_value, "beta", 90,
@@ -355,7 +354,7 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=False):
 
 
 @check_shockwave
-def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak", to_dict=False):
+def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak", to_dict=None):
     """
     Try to compute all the ratios, angles and mach numbers across the conical shock wave.
 
@@ -441,6 +440,7 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     [ 3.42459174 18.60172442]
 
     """
+    to_dict = _should_solver_return_dict(to_dict)
     if not isinstance(gamma, Number):
         raise ValueError("The specific heats ratio must be > 1.")
 

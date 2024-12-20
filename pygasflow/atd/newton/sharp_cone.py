@@ -1,5 +1,5 @@
 import numpy as np
-from pygasflow.utils.common import ret_correct_vals
+from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
 from pygasflow.utils.decorators import as_array
 from pygasflow.atd.newton.pressures import shadow_region
 from pygasflow.atd.newton.utils import body2wind, cotan, lift_drag_crosswind
@@ -110,6 +110,7 @@ def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2
     ``phi_1`` and ``phi_2`` are the angles starting from the -z axis, rotating
     counter-clockwise.
     """
+    to_dict = _should_solver_return_dict(to_dict)
     if not hasattr(beta, "__iter__"):
         beta = np.atleast_1d(beta)
     if (len(alpha) > 1) and (len(beta) > 1) and (len(alpha) != len(beta)):

@@ -47,6 +47,10 @@ future
     :class:`~pygasflow.nozzles.moc.CD_Min_Length_Nozzle` are no longer
     compatible with previous versions of the module.
 
+* Added global option ``pygasflow.defaults.solver_to_dict`` in order to
+  make all solvers return a dictionary of results if it's set to True.
+  Look at :ref:`solver-page` to see an example of its use.
+
 * Added new functions :func:`~pygasflow.solvers.gas.gas_solver`,
   :func:`~pygasflow.solvers.gas.ideal_gas_solver` and
   :func:`~pygasflow.solvers.gas.sonic_condition`.

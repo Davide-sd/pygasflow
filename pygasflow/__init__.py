@@ -1,3 +1,4 @@
+import param
 from pygasflow._version import __version__
 from pygasflow.solvers import (
     isentropic_solver,
@@ -27,6 +28,15 @@ from pygasflow.nozzles import (
 
 import pygasflow.atd
 from pygasflow.common import pressure_coefficient, sound_speed
+
+class defaults(param.Parameterized):
+    """Default options for the module.
+    """
+    solver_to_dict = param.Boolean(False, doc="""
+        Global setting to control what kind of output to expect from
+        a solver. If False, it returns a tuple of results.
+        If True, it returns a dictionary of results.""")
+
 
 __all__ = [
     "ise",

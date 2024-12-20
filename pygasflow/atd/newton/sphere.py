@@ -1,5 +1,5 @@
 # import numpy as np
-from pygasflow.utils.common import ret_correct_vals
+from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
 from pygasflow.atd.newton.utils import cotan, arccotan, lift_drag_crosswind
 from numpy import sin, cos, tan, arctan, arcsin, arccos, pi, isnan, isclose, ones, zeros, sqrt, abs, ones_like, zeros_like, degrees, radians, rad2deg, deg2rad, inf, atleast_1d
 from scipy.integrate import dblquad
@@ -292,6 +292,7 @@ def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=F
     these values, parts of the integration will be done by numerical
     procedures, hence slow computations.
     """
+    to_dict = _should_solver_return_dict(to_dict)
     alpha = atleast_1d(alpha)
     if (sigma_cut < 0) or (sigma_cut > pi):
         raise ValueError("It must be: 0 <= sigma_cut <= pi")

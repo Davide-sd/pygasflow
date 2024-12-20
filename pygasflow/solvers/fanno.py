@@ -1,12 +1,12 @@
 import numpy as np
 import pygasflow.fanno as fanno
-from pygasflow.utils.common import ret_correct_vals
+from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
 from pygasflow.utils.decorators import check
 from numbers import Number
 
 
 @check([1])
-def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
+def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
     """
     Compute all Fanno ratios and Mach number given an input parameter.
 
@@ -91,7 +91,7 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=False):
     [1.07317073 0.89795918]
 
     """
-
+    to_dict = _should_solver_return_dict(to_dict)
     if not isinstance(param_name, str):
         raise ValueError("param_name must be a string")
     param_name = param_name.lower()
