@@ -30,7 +30,6 @@ class ConicalShockDiagram(ShockCommon):
         :large-size: 700,450
 
         from pygasflow.interactive.diagrams import ConicalShockDiagram
-        from bokeh.plotting import show
         d = ConicalShockDiagram(
             upstream_mach=[1.1, 1.35, 1.75, 2.25, 3.5, 6, 1e06],
             gamma=1.2,
@@ -39,7 +38,7 @@ class ConicalShockDiagram(ShockCommon):
             show_minor_grid=True,
             title="Conical Shock Properties for γ=1.2"
         )
-        show(d.figure)
+        d.show_figure()
 
     """
 

@@ -70,9 +70,8 @@ class ShockPolarDiagram(CommonParameters, BasePlot, pn.viewable.Viewer):
         :large-size: 600,350
 
         from pygasflow.interactive.diagrams import ShockPolarDiagram
-        from bokeh.plotting import show
         d = ShockPolarDiagram(mach_number=4, gamma=1.4, theta=30)
-        show(d.figure)
+        d.show_figure()
 
     """
     show_mach_at_infinity = param.Boolean(False,

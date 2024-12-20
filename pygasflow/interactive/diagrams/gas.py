@@ -30,17 +30,15 @@ class GasDiagram(BasePlot, pn.viewable.Viewer):
         :large-size: 800,350
 
         from pygasflow.interactive.diagrams import GasDiagram
-        from bokeh.plotting import show
         d = GasDiagram(select=0, gamma_range=(1.2, 1.8), R=400)
-        show(d.figure)
+        d.show_figure()
 
     .. panel-screenshot::
         :large-size: 800,350
 
         from pygasflow.interactive.diagrams import GasDiagram
-        from bokeh.plotting import show
         d = GasDiagram(select=1, R_range=(0, 2000), gamma=1.8)
-        show(d.figure)
+        d.show_figure()
 
     """
 
@@ -214,9 +212,8 @@ class SonicDiagram(BasePlot, pn.viewable.Viewer):
         :large-size: 800,300
 
         from pygasflow.interactive.diagrams import SonicDiagram
-        from bokeh.plotting import show
         d = SonicDiagram(gamma_range=(1.2, 1.8))
-        show(d.figure)
+        d.show_figure()
 
     """
 

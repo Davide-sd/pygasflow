@@ -38,7 +38,6 @@ class DeLavalDiagram(BasePlot, pn.viewable.Viewer):
     .. panel-screenshot::
         :large-size: 700,250
 
-        from bokeh.plotting import show
         from pygasflow.interactive.diagrams import DeLavalDiagram
         from pygasflow.nozzles import CD_TOP_Nozzle
         from pygasflow.solvers import De_Laval_Solver
@@ -52,7 +51,7 @@ class DeLavalDiagram(BasePlot, pn.viewable.Viewer):
             show_nozzle=False,
             title="Flow in a Thrust Optimized Parabolic nozzle."
         )
-        show(d.figure)
+        d.show_figure()
 
     """
 

@@ -28,7 +28,6 @@ class ObliqueShockDiagram(ShockCommon):
         :large-size: 700,450
 
         from pygasflow.interactive.diagrams import ObliqueShockDiagram
-        from bokeh.plotting import show
         d = ObliqueShockDiagram(
             upstream_mach=[1.1, 1.35, 1.75, 2.25, 3.5, 6, 1e06],
             gamma=1.2,
@@ -38,7 +37,7 @@ class ObliqueShockDiagram(ShockCommon):
             title="Oblique Shock Properties for γ=1.2",
             N=1000
         )
-        show(d.figure)
+        d.show_figure()
 
     """
 

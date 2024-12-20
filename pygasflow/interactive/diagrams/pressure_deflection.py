@@ -66,12 +66,11 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
     Examples
     --------
 
-    .. bokeh-plot::
-        :source-position: above
+    .. panel-screenshot::
+        :large-size: 700,450
 
         from pygasflow.shockwave import PressureDeflectionLocus
         from pygasflow.interactive import PressureDeflectionDiagram
-        from bokeh.plotting import show
 
         M1 = 3
         theta_2 = 20
@@ -100,7 +99,7 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
             background_fill_alpha=0.8)
         d.move_legend_outside()
         d.y_range = (0, 18)
-        show(d.figure)
+        d.show_figure()
 
     """
     # TODO:
@@ -326,10 +325,6 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
         )
         self.figure.add_layout(arrows)
         return rend, arrows
-
-    def show(self):
-        """Show the bokeh figure."""
-        bokeh_show(self.figure)
 
     def __panel__(self):
         return pn.pane.Bokeh(self.figure)

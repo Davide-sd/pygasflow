@@ -26,9 +26,8 @@ class FannoDiagram(FlowCommon):
         :large-size: 600,350
 
         from pygasflow.interactive.diagrams import FannoDiagram
-        from bokeh.plotting import show
         d = FannoDiagram(mach_range=(0, 3), gamma=1.2, size=(600, 350))
-        show(d.figure)
+        d.show_figure()
 
     """
 

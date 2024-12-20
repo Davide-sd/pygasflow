@@ -35,12 +35,11 @@ class NozzleDiagram(BasePlot, pn.viewable.Viewer):
     .. panel-screenshot::
         :large-size: 600,250
 
-        from bokeh.plotting import show
         from pygasflow.interactive.diagrams import NozzleDiagram
         from pygasflow.nozzles import CD_Min_Length_Nozzle
         nozzle = CD_Min_Length_Nozzle(Ri=0.3, Rt=0.2, Re=0.6)
         d = NozzleDiagram(nozzle=nozzle, show_characteristic_lines=True)
-        show(d.figure)
+        d.show_figure()
 
     """
     # NOTE: it would be nice to have a class able to accept multiple

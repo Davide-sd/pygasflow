@@ -2,7 +2,7 @@
 Contains base classes for diagrams-components.
 """
 
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show as bokeh_show
 from bokeh.models import (
     Legend,
     Range1d
@@ -153,6 +153,31 @@ class BasePlot(param.Parameterized):
             self.figure.grid.minor_grid_line_color = self.figure.grid.grid_line_color[0]
         else:
             self.figure.grid.minor_grid_line_color = None
+
+    def show_figure(self):
+        """Show only the Bokeh figure of this instance.
+        """
+        bokeh_show(self.figure)
+
+    def show(self, interactive=True):
+        """Return a servable panel object.
+
+        Parameters
+        ----------
+        interactive : bool
+            If True, return an interactive application consisting of the
+            widgets and the figure. If False, only return the figure.
+
+        Returns
+        -------
+        panel :
+            A ``panel`` object that can be rendered by Jupyter Notebook,
+            or can be shown on a new browser window by executing its
+            ``show()`` method.
+        """
+        if interactive:
+            return self.servable()
+        return pn.pane.Bokeh(self.figure).servable()
 
 
 class CommonParameters(param.Parameterized):

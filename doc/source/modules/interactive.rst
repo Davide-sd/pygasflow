@@ -12,7 +12,6 @@ Diagrams
 ========
 
 .. automodule:: pygasflow.interactive.diagrams
-.. autofunction:: diagram
 .. autoclass:: IsentropicDiagram
    :members:
 .. autoclass:: FannoDiagram

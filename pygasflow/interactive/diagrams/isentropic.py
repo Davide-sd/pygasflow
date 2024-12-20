@@ -27,14 +27,13 @@ class IsentropicDiagram(FlowCommon):
         :large-size: 600,350
 
         from pygasflow.interactive.diagrams import IsentropicDiagram
-        from bokeh.plotting import show
         d = IsentropicDiagram(
             select=1,
             mach_range=(0, 3),
             gamma=1.2,
             size=(600, 350)
         )
-        show(d.figure)
+        d.show_figure()
 
     Set custom values to parameters and only show the figure about the
     angles:
@@ -43,7 +42,6 @@ class IsentropicDiagram(FlowCommon):
         :large-size: 600,350
 
         from pygasflow.interactive.diagrams import IsentropicDiagram
-        from bokeh.plotting import show
         d = IsentropicDiagram(
             select=2,
             mach_range=(0, 3),
@@ -51,7 +49,7 @@ class IsentropicDiagram(FlowCommon):
             size=(600, 350),
             angle_lines_kwargs={"line_dash": "solid"}
         )
-        show(d.figure)
+        d.show_figure()
 
     """
 

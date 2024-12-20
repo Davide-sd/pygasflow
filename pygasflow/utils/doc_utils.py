@@ -222,7 +222,7 @@ def modify_panel_code(code):
     if "compressible_app" in code:
         return _modify_example_compressible_app(code)
     elif "Diagram" in code:
-        if "bokeh.plotting" in code:
+        if "d.show_figure()" in code:
             return _modify_diagram_show_only_figure(code)
         return _modify_diagram_show_interactive_app(code)
     return code
