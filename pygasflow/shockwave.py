@@ -1239,9 +1239,9 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         obj : PressureDeflectionLocus
         """
         # this import is here in order to avoid circular imports
-        from pygasflow.solvers import shockwave_solver
+        from pygasflow.solvers import oblique_shockwave_solver
 
-        res = shockwave_solver(
+        res = oblique_shockwave_solver(
             "mu", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
         return type(self)(
             M=res["md"], gamma=self.gamma, label=label,

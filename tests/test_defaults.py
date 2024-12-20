@@ -1,6 +1,6 @@
 import pygasflow
 from pygasflow.solvers import (
-    shockwave_solver,
+    oblique_shockwave_solver,
     normal_shockwave_solver,
     conical_shockwave_solver,
     isentropic_solver,
@@ -38,7 +38,7 @@ def do_test(res, solver_to_dict, func_to_dict):
 def test_shockwave_solver_to_dict(solver_to_dict, func_to_dict):
     pygasflow.defaults.solver_to_dict = solver_to_dict
     do_test(
-        shockwave_solver("mu", 5, "theta", 15, to_dict=func_to_dict),
+        oblique_shockwave_solver("mu", 5, "theta", 15, to_dict=func_to_dict),
         solver_to_dict,
         func_to_dict
     )

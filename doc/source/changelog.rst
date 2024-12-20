@@ -8,7 +8,7 @@ future
   See :ref:`deprecations-page` to understand the motivations.
 
   * The following is a list of parameter names used by
-    :func:`~pygasflow.solvers.shockwave.shockwave_solver` and
+    :func:`~pygasflow.solvers.shockwave.oblique_shockwave_solver` and
     :func:`~pygasflow.solvers.shockwave.conical_shockwave_solver`
     which are now deprecated:
 
@@ -48,12 +48,18 @@ future
     compatible with previous versions of the module.
 
 * Added global option ``pygasflow.defaults.solver_to_dict`` in order to
-  make all solvers return a dictionary of results if it's set to True.
+  force all solvers to return a dictionary of results if it's set to True.
   Look at :ref:`solver-page` to see an example of its use.
 
-* Added new functions :func:`~pygasflow.solvers.gas.gas_solver`,
-  :func:`~pygasflow.solvers.gas.ideal_gas_solver` and
-  :func:`~pygasflow.solvers.gas.sonic_condition`.
+* Added new functions:
+
+  * :func:`~pygasflow.solvers.gas.gas_solver`
+  * :func:`~pygasflow.solvers.gas.ideal_gas_solver`
+  * :func:`~pygasflow.solvers.gas.sonic_condition`
+  * :func:`~pygasflow.solvers.shockwave.normal_shockwave_solver`
+  * :func:`~pygasflow.solvers.shockwave.oblique_shockwave_solver` as an alias
+    to the old name ``shockwave_solver``. This new name makes it impossible
+    to confuse it with other shockwave solvers.
 
 * Added a new sub-module, ``pygasflow.interactive``, which provides
   a web-based GUI (graphical user interface) to many of the functionalities

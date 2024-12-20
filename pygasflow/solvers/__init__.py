@@ -2,6 +2,7 @@ from .isentropic import isentropic_solver
 from .fanno import fanno_solver
 from .rayleigh import rayleigh_solver
 from .shockwave import (
+    oblique_shockwave_solver,
     shockwave_solver,
     conical_shockwave_solver,
     normal_shockwave_solver
@@ -21,6 +22,7 @@ __all__ = [
     "fanno_solver",
     "rayleigh_solver",
     "shockwave_solver",
+    "oblique_shockwave_solver",
     "conical_shockwave_solver",
     "normal_shockwave_solver",
     "De_Laval_Solver",

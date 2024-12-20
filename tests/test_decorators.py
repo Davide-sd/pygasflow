@@ -41,8 +41,8 @@ def test_mach_zero():
 
     # I'm only going to test solvers, since they use many other functions implemented
     # in the different modules.
-    test_0(sol.shockwave.shockwave_solver("mu", 2, gamma=1.4), False)
-    test_0(sol.shockwave.shockwave_solver("mu", [2, 4], gamma=1.4), True)
+    test_0(sol.shockwave.oblique_shockwave_solver("mu", 2, gamma=1.4), False)
+    test_0(sol.shockwave.oblique_shockwave_solver("mu", [2, 4], gamma=1.4), True)
     test_0(sol.shockwave.conical_shockwave_solver(5, "theta_c", 20, gamma=1.4), False)
     test_0(sol.shockwave.conical_shockwave_solver([2, 4], "theta_c", 20, gamma=1.4), True)
     test_0(sol.shockwave.conical_shockwave_solver([2, 4], "mc", 1.5, gamma=1.4), True)

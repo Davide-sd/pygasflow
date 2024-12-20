@@ -57,7 +57,7 @@ Shockwave Solvers
 
 .. autofunction:: normal_shockwave_solver
 
-.. autofunction:: shockwave_solver
+.. autofunction:: oblique_shockwave_solver
 
 .. autofunction:: conical_shockwave_solver
 

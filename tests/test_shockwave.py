@@ -18,7 +18,7 @@ import os
 import pytest
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.solvers.shockwave import (
-    shockwave_solver as ss,
+    oblique_shockwave_solver as ss,
     conical_shockwave_solver as css,
     normal_shockwave_solver as nss
 )

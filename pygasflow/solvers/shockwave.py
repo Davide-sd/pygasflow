@@ -28,11 +28,14 @@ from pygasflow.utils.decorators import check_shockwave
 
 
 @check_shockwave([1, 3])
-def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, flag="weak", to_dict=None):
+def oblique_shockwave_solver(
+    p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4,
+    flag="weak", to_dict=None
+):
     """
     Try to compute all the ratios, angles and mach numbers across the shock wave.
 
-    Remember: a normal shock wave has a wave angle beta=90 deg.
+    An alias of this function is `shockwave_solver`.
 
     Parameters
     ----------
@@ -105,28 +108,28 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     Compute all ratios across an oblique shockwave starting with the upstream
     Mach number and the deflection angle:
 
-    >>> from pygasflow import shockwave_solver
-    >>> shockwave_solver("mu", 2, "theta", 15)
+    >>> from pygasflow import oblique_shockwave_solver
+    >>> oblique_shockwave_solver("mu", 2, "theta", 15)
     [np.float64(2.0), np.float64(1.42266946274781), np.float64(1.4457163651405158), np.float64(0.7303538499327245), np.float64(45.343616761854385), np.float64(15.0), np.float64(2.1946531336076665), np.float64(1.7289223315067423), np.float64(1.2693763586794804), np.float64(0.9523563236996431)]
 
     Compute all ratios and parameters across an oblique shockwave starting
     from the shock wave angle and the deflection angle, using methane at 20°C
     as the fluid:
 
-    >>> shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
+    >>> oblique_shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
     [np.float64(1.4819290082790446), np.float64(1.4594151767668957), np.float64(0.7477053570397926), np.float64(0.711110052081489), np.float64(80.0), np.float64(8.000000000000002), np.float64(2.2857399213744523), np.float64(1.8427111660813902), np.float64(1.240422244922509), np.float64(0.9398367786738993)]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
 
-    >>> results = shockwave_solver("mu", [1.5, 3], "beta", 60)
+    >>> results = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60)
     >>> print(results[2])
     [1.04454822 1.12256381]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
-    >>> results = shockwave_solver("mu", [1.5, 3], "beta", [60, 60], to_dict=True)
+    >>> results = oblique_shockwave_solver("mu", [1.5, 3], "beta", [60, 60], to_dict=True)
     >>> print(results["md"])
     [1.04454822 1.12256381]
 
@@ -274,6 +277,9 @@ def shockwave_solver(p1_name, p1_value, p2_name="beta", p2_value=90, gamma=1.4, 
     return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
 
 
+shockwave_solver = oblique_shockwave_solver
+
+
 def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     """
     Compute all the ratios across a normal shock wave.
@@ -343,7 +349,7 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     to_dict = _should_solver_return_dict(to_dict)
     if param_name in ["m2", "M2", "md", "Md"]:
         param_name = "mnd"
-    results = shockwave_solver(param_name, param_value, "beta", 90,
+    results = oblique_shockwave_solver(param_name, param_value, "beta", 90,
         gamma=gamma, to_dict=to_dict)
     if not to_dict:
         idx_to_exclude = [1, 3, 4, 5]
