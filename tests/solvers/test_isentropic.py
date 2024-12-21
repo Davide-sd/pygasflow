@@ -18,12 +18,6 @@ from pygasflow.solvers.isentropic import (
     isentropic_solver as ise,
     print_isentropic_results,
 )
-from pygasflow.isentropic import (
-    sonic_density_ratio,
-    sonic_pressure_ratio,
-    sonic_temperature_ratio,
-    sonic_sound_speed_ratio
-)
 import pytest
 
 
@@ -79,7 +73,7 @@ def test_input_parameters_supersonic(param_name, value):
         0.05153250, # Critical Pressure Ratio P/P*
         0.12024251, # Critical Density Ratio rho/rho*
         0.42857142, # Critical Temperature Ratio T/T*
-        2.82810385,       # Critical Velocity Ratio U/U*
+        2.82810385, # Critical Velocity Ratio U/U*
         4.23456790, # Critical Area Ratio A/A*
         19.4712206, # Mach Angle
         49.7573467, # Prandtl-Meyer Angle
@@ -102,14 +96,14 @@ def test_input_parameters_supersonic(param_name, value):
 def test_input_parameters_subsonic(param_name, value):
     gamma = 1.4
     expected_res = [
-        0.5,          # Mach number
+        0.5,        # Mach number
         0.84301917, # Pressure Ratio P/P0
         0.88517013, # Density Ratio rho/rho0
         0.95238095, # Temperature Ratio T/T0
         1.59577557, # Critical Pressure Ratio P/P*
         1.39630363, # Critical Density Ratio rho/rho*
         1.14285714, # Critical Temperature Ratio T/T*
-        0.76971237,       # Critical Velocity Ratio U/U*
+        0.76971237, # Critical Velocity Ratio U/U*
         1.33984375, # Critical Area Ratio A/A*
         np.nan, # Mach Angle
         np.nan, # Prandtl-Meyer Angle
@@ -147,20 +141,6 @@ def test_to_dict():
     assert np.isclose(r2["ars"],  r1[8])
     assert np.isclose(r2["ma"], r1[9])
     assert np.isclose(r2["pm"], r1[10])
-
-
-def test_sonic_conditions():
-    g = 1.4
-    assert np.isclose(sonic_density_ratio(g), 1.5774409656148785)
-    assert np.isclose(sonic_pressure_ratio(g), 1.892929158737854)
-    assert np.isclose(sonic_temperature_ratio(g), 1.2)
-    assert np.isclose(sonic_sound_speed_ratio(g), 1.0954451150103321)
-
-    gammas = [1.4, 1.5]
-    assert np.allclose(sonic_density_ratio(gammas), [1.57744097, 1.5625])
-    assert np.allclose(sonic_pressure_ratio(gammas), [1.89292916, 1.953125])
-    assert np.allclose(sonic_temperature_ratio(gammas), [1.2, 1.25])
-    assert np.allclose(sonic_sound_speed_ratio(gammas), [1.09544512, 1.11803399])
 
 
 def test_error_for_multiple_gamma():
