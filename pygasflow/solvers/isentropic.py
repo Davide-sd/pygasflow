@@ -1,6 +1,10 @@
 import numpy as np
 import pygasflow.isentropic as ise
-from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
+from pygasflow.utils.common import (
+    ret_correct_vals,
+    _should_solver_return_dict,
+    _print_results_helper,
+)
 from pygasflow.utils.decorators import check
 from numbers import Number
 
@@ -59,20 +63,47 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     pm : array_like
         Prandtl-Meyer Angle
 
+    See Also
+    --------
+    print_isentropic_results
 
     Examples
     --------
 
     Compute all ratios starting from a single Mach number:
 
-    >>> from pygasflow import isentropic_solver
-    >>> isentropic_solver("m", 2)
+    >>> from pygasflow.solvers import isentropic_solver, print_isentropic_results
+    >>> res = isentropic_solver("m", 2)
+    >>> res
     [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.23004814583331168), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(2.3515101530718505), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
+    >>> print_isentropic_results(res)
+    M                 2.0
+    P / P0            0.12780452546295096
+    rho / rho0        0.23004814583331168
+    T / T0            0.5555555555555556
+    P / P*            0.24192491286747442
+    rho / rho*        0.36288736930121157
+    T / T*            0.6666666666666667
+    U / U*            2.3515101530718505
+    A / A*            1.6875000000000002
+    Mach Angle        30.000000000000004
+    Prandtl-Meyer     26.379760813416457
 
     Compute all parameters starting from the pressure ratio:
 
-    >>> isentropic_solver("pressure", 0.12780452546295096)
-    [np.float64(1.9999999999999996), np.float64(0.12780452546295107), np.float64(0.23004814583331185), np.float64(0.5555555555555558), np.float64(0.24192491286747458), np.float64(0.3628873693012118), np.float64(0.6666666666666669), np.float64(2.3515101530718505), np.float64(1.6874999999999993), np.float64(30.00000000000001), np.float64(26.379760813416446)]
+    >>> res = isentropic_solver("pressure", 0.12780452546295096)
+    >>> print_isentropic_results(res)
+    M                 1.9999999999999996
+    P / P0            0.12780452546295107
+    rho / rho0        0.23004814583331185
+    T / T0            0.5555555555555558
+    P / P*            0.24192491286747458
+    rho / rho*        0.3628873693012118
+    T / T*            0.6666666666666669
+    U / U*            2.3515101530718505
+    A / A*            1.6874999999999993
+    Mach Angle        30.00000000000001
+    Prandtl-Meyer     26.379760813416446
 
     Compute the Mach number starting from the Mach Angle:
 
@@ -145,3 +176,28 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
             "pm": pm
         }
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
+
+
+def print_isentropic_results(results, formatter="{}", blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    formatter : str
+        A formatter to properly show floating point numbers. For example,
+        ``"{:.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    isentropic_solver
+    """
+    data = results.values() if isinstance(results, dict) else results
+    # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
+    # will process these labels and convert them to Latex, thanks to
+    # the substitutions I implemented in doc/conf.py
+    labels = ["M", "P / P0", "rho / rho0", "T / T0",
+        "P / P*", "rho / rho*", "T / T*", "U / U*", "A / A*",
+        "Mach Angle", "Prandtl-Meyer"]
+    _print_results_helper(data, labels, "{:18}", formatter, blank_line)

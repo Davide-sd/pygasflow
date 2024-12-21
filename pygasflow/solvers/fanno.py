@@ -1,6 +1,10 @@
 import numpy as np
 import pygasflow.fanno as fanno
-from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
+from pygasflow.utils.common import (
+    ret_correct_vals,
+    _should_solver_return_dict,
+    _print_results_helper,
+)
 from pygasflow.utils.decorators import check
 from numbers import Number
 
@@ -60,14 +64,28 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
     eps : array_like
         Critical Entropy Ratio (s*-s)/R
 
+    See Also
+    --------
+    print_fanno_results
+
     Examples
     --------
 
     Compute all ratios starting from a Mach number:
 
-    >>> from pygasflow import fanno_solver
-    >>> fanno_solver("m", 2)
+    >>> from pygasflow.solvers import fanno_solver, print_fanno_results
+    >>> res = fanno_solver("m", 2)
+    >>> res
     [np.float64(2.0), np.float64(0.408248290463863), np.float64(0.6123724356957945), np.float64(0.6666666666666667), np.float64(1.6875000000000002), np.float64(1.632993161855452), np.float64(0.3049965025814798), np.float64(0.523248143764548)]
+    >>> print_fanno_results(res)
+    M           2.0
+    P / P*      0.408248290463863
+    rho / rho*  0.6123724356957945
+    T / T*      0.6666666666666667
+    P0 / P0*    1.6875000000000002
+    U / U*      1.632993161855452
+    4fL* / D    0.3049965025814798
+    (s*-s) / R  0.523248143764548
 
     Compute the subsonic Mach number starting from the critical friction
     parameter:
@@ -87,6 +105,8 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
     for a gas having specific heat ratio gamma=1.2, returning a dictionary:
 
     >>> results = fanno_solver("m", [0.5, 1.5], 1.2, to_dict=True)
+    >>> results
+    {'m': array([0.5, 1.5]), 'prs': array([2.07187908, 0.63173806]), 'drs': array([1.9306146 , 0.70352647]), 'trs': array([1.07317073, 0.89795918]), 'tprs': array([1.35628665, 1.20502889]), 'urs': array([0.51796977, 1.42141062]), 'fps': array([1.29396294, 0.18172829]), 'eps': array([0.30475056, 0.18650354])}
     >>> print(results["trs"])
     [1.07317073 0.89795918]
 
@@ -148,3 +168,27 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
         }
 
     return M, prs, drs, trs, tprs, urs, fps, eps
+
+
+def print_fanno_results(results, formatter="{}", blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    formatter : str
+        A formatter to properly show floating point numbers. For example,
+        ``"{:.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    fanno_solver
+    """
+    data = results.values() if isinstance(results, dict) else results
+    # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
+    # will process these labels and convert them to Latex, thanks to
+    # the substitutions I implemented in doc/conf.py
+    labels = ["M", "P / P*", "rho / rho*", "T / T*", "P0 / P0*",
+        "U / U*", "4fL* / D", "(s*-s) / R"]
+    _print_results_helper(data, labels, "{:12}", formatter, blank_line)

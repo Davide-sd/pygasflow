@@ -14,7 +14,7 @@
 # Not ideal.
 
 import numpy as np
-from pygasflow.solvers.fanno import fanno_solver
+from pygasflow.solvers.fanno import fanno_solver, print_fanno_results
 import pytest
 
 
@@ -137,3 +137,10 @@ def test_error_for_multiple_gamma():
 
     with pytest.raises(ValueError, match=error_msg):
         fanno_solver("m", [2, 4, 6], gamma=[1.2, 1.3])
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_fanno_results(to_dict):
+    res1 = fanno_solver("m", 4, to_dict=to_dict)
+    print_fanno_results(res1)
+    print_fanno_results(res1, "{:.3f}")

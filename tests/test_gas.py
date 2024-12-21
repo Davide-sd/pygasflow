@@ -2,7 +2,10 @@ import numpy as np
 from pygasflow.solvers.gas import (
     gas_solver,
     ideal_gas_solver,
-    sonic_condition
+    sonic_condition,
+    print_gas_results,
+    print_ideal_gas_results,
+    print_sonic_condition_results,
 )
 import pytest
 
@@ -206,3 +209,24 @@ def test_sonic_condition():
     assert np.allclose(res["drs"][1:], expected_drs)
     assert np.allclose(res["prs"][1:], expected_prs)
     assert np.allclose(res["trs"][1:], expected_trs)
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_gas_results(to_dict):
+    res1 = gas_solver("gamma", 1.4, "r", 287.05, to_dict=to_dict)
+    print_gas_results(res1)
+    print_gas_results(res1, "{:.3f}")
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_gas_results(to_dict):
+    res1 = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=to_dict)
+    print_ideal_gas_results(res1)
+    print_ideal_gas_results(res1, "{:.3f}")
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_sonic_condition_results(to_dict):
+    res1 = sonic_condition(1.4, to_dict=to_dict)
+    print_sonic_condition_results(res1)
+    print_sonic_condition_results(res1, "{:.3f}")

@@ -14,9 +14,11 @@
 # Not ideal.
 
 import numpy as np
-from pygasflow.solvers import isentropic_solver as ise
+from pygasflow.solvers.isentropic import (
+    isentropic_solver as ise,
+    print_isentropic_results,
+)
 from pygasflow.isentropic import (
-    critical_pressure_ratio,
     sonic_density_ratio,
     sonic_pressure_ratio,
     sonic_temperature_ratio,
@@ -168,3 +170,10 @@ def test_error_for_multiple_gamma():
 
     with pytest.raises(ValueError, match=error_msg):
         ise("m", [2, 4, 6], gamma=[1.2, 1.3])
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_isentropic_results(to_dict):
+    res1 = ise("m", 4, to_dict=to_dict)
+    print_isentropic_results(res1)
+    print_isentropic_results(res1, "{:.3f}")

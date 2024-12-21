@@ -9,7 +9,7 @@
 # rayleigh.py module. Hence I can easily compare the result with known values.
 
 import numpy as np
-from pygasflow.solvers.rayleigh import rayleigh_solver
+from pygasflow.solvers.rayleigh import rayleigh_solver, print_rayleigh_results
 import pytest
 
 
@@ -204,3 +204,10 @@ def test_error_for_multiple_gamma():
 
     with pytest.raises(ValueError, match=error_msg):
         rayleigh_solver("m", [2, 4, 6], gamma=[1.2, 1.3])
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_rayleigh_results(to_dict):
+    res1 = rayleigh_solver("m", 4, to_dict=to_dict)
+    print_rayleigh_results(res1)
+    print_rayleigh_results(res1, "{:.3f}")

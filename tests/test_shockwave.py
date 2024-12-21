@@ -20,7 +20,10 @@ from pygasflow.generic import characteristic_mach_number
 from pygasflow.solvers.shockwave import (
     oblique_shockwave_solver as ss,
     conical_shockwave_solver as css,
-    normal_shockwave_solver as nss
+    normal_shockwave_solver as nss,
+    print_conical_shockwave_results,
+    print_normal_shockwave_results,
+    print_oblique_shockwave_results,
 )
 from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
@@ -1640,3 +1643,24 @@ class Test_theta_from_mach_beta:
         ):
             theta = theta_from_mach_beta(M1, beta, gamma)
             assert np.allclose(theta, expected_theta, equal_nan=True)
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_normal_shockwave_results(to_dict):
+    res1 = nss("mu", 4, to_dict=to_dict)
+    print_normal_shockwave_results(res1)
+    print_normal_shockwave_results(res1, "{:.3f}")
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_oblique_shockwave_results(to_dict):
+    res1 = ss("mu", 4, "theta", 15, to_dict=to_dict)
+    print_oblique_shockwave_results(res1)
+    print_oblique_shockwave_results(res1, "{:.3f}")
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_print_conical_shockwave_results(to_dict):
+    res1 = css(4, "theta_c", 10, to_dict=to_dict)
+    print_conical_shockwave_results(res1)
+    print_conical_shockwave_results(res1, "{:.3f}")

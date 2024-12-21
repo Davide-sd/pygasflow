@@ -22,7 +22,8 @@ from pygasflow.shockwave import (
 from pygasflow.utils.common import (
     convert_to_ndarray,
     ShockResults,
-    _should_solver_return_dict
+    _should_solver_return_dict,
+    _print_results_helper,
 )
 from pygasflow.utils.decorators import check_shockwave
 
@@ -102,36 +103,96 @@ def oblique_shockwave_solver(
     tpr : float
         Total Pressure ratio across the shock wave.
 
+    See Also
+    --------
+    :class:`~pygasflow.interactive.diagrams.oblique_shock.ObliqueShockDiagram`,
+    print_oblique_shockwave_results
+
     Examples
     --------
 
-    Compute all ratios across an oblique shockwave starting with the upstream
-    Mach number and the deflection angle:
+    Compute all ratios across a weak oblique shockwave starting with the
+    upstream Mach number and the deflection angle, using air:
 
-    >>> from pygasflow import oblique_shockwave_solver
-    >>> oblique_shockwave_solver("mu", 2, "theta", 15)
+    >>> from pygasflow.solvers import (
+    ...     oblique_shockwave_solver,
+    ...     print_oblique_shockwave_results
+    ... )
+    >>> res = oblique_shockwave_solver("mu", 2, "theta", 15, flag="weak")
+    >>> type(res)
+    <class 'list'>
+    >>> res
     [np.float64(2.0), np.float64(1.42266946274781), np.float64(1.4457163651405158), np.float64(0.7303538499327245), np.float64(45.343616761854385), np.float64(15.0), np.float64(2.1946531336076665), np.float64(1.7289223315067423), np.float64(1.2693763586794804), np.float64(0.9523563236996431)]
+    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          2.0
+    Mnu         1.42266946274781
+    Md          1.4457163651405158
+    Mnd         0.7303538499327245
+    beta        45.343616761854385
+    theta       15.0
+    pd/pu       2.1946531336076665
+    rhod/rhou   1.7289223315067423
+    Td/Tu       1.2693763586794804
+    p0d/p0u     0.9523563236996431
+
+    Using the same parameters, but computing the solution across a
+    strong oblique shock wave:
+
+    >>> res = oblique_shockwave_solver("mu", 2, "theta", 15, flag="strong")
+    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          2.0
+    Mnu         1.9685867877725771
+    Md          0.643970917523609
+    Mnd         0.5828338581186796
+    beta        79.83168734049043
+    theta       15.0
+    pd/pu       4.354556264491546
+    rhod/rhou   2.6198454954536237
+    Td/Tu       1.6621423942932017
+    p0d/p0u     0.7355379974194783
 
     Compute all ratios and parameters across an oblique shockwave starting
     from the shock wave angle and the deflection angle, using methane at 20°C
     as the fluid:
 
-    >>> oblique_shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
-    [np.float64(1.4819290082790446), np.float64(1.4594151767668957), np.float64(0.7477053570397926), np.float64(0.711110052081489), np.float64(80.0), np.float64(8.000000000000002), np.float64(2.2857399213744523), np.float64(1.8427111660813902), np.float64(1.240422244922509), np.float64(0.9398367786738993)]
+    >>> res = oblique_shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
+    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          1.4819290082790446
+    Mnu         1.4594151767668957
+    Md          0.7477053570397926
+    Mnd         0.711110052081489
+    beta        80.0
+    theta       8.000000000000002
+    pd/pu       2.2857399213744523
+    rhod/rhou   1.8427111660813902
+    Td/Tu       1.240422244922509
+    p0d/p0u     0.9398367786738993
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
 
-    >>> results = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60)
-    >>> print(results[2])
+    >>> res = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60)
+    >>> print(res[2])
     [1.04454822 1.12256381]
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
-    >>> results = oblique_shockwave_solver("mu", [1.5, 3], "beta", [60, 60], to_dict=True)
-    >>> print(results["md"])
+    >>> res = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60, to_dict=True)
+    >>> type(res)
+    <class 'pygasflow.utils.common.ShockResults'>
+    >>> print(res["md"])
     [1.04454822 1.12256381]
+
+    This function is capable of detecting detachment:
+
+    >>> oblique_shockwave_solver("mu", 2, 'theta', 30)
+    Traceback (most recent call last):
+     ...
+    ValueError: Detachment detected: can't solve the flow when theta > theta_max.
+    M1 = [2.]
+    theta_max(M1) = 22.97353176093536
+    theta = [30.]
 
     """
     to_dict = _should_solver_return_dict(to_dict)
@@ -322,27 +383,51 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     tpr : float
         Total Pressure ratio across the shock wave.
 
+    See Also
+    --------
+    :class:`~pygasflow.interactive.diagrams.normal_shock.NormalShockDiagram`,
+    print_normal_shockwave_results
+
     Examples
     --------
 
     Compute all ratios across a normal shockwave starting with the upstream
-    Mach number:
+    Mach number, using air:
 
-    >>> from pygasflow import normal_shockwave_solver
-    >>> normal_shockwave_solver("mu", 2)
-    [np.float64(2.0), np.float64(0.5773502691896257), np.float64(4.5), np.float64(2.666666666666667), np.float64(1.6874999999999998), np.float64(0.7208738614847455)]
+    >>> from pygasflow.solvers import (
+    ...     normal_shockwave_solver,
+    ...     print_normal_shockwave_results
+    ... )
+    >>> res = normal_shockwave_solver("mu", 2)
+    >>> type(res)
+    <class 'list'>
+    >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          2.0
+    Md          0.5773502691896257
+    pd/pu       4.5
+    rhod/rhou   2.666666666666667
+    Td/Tu       1.6874999999999998
+    p0d/p0u     0.7208738614847455
 
     Compute all ratios and parameters across a normal shockwave starting
     from the downstream Mach, using methane at 20°C:
 
-    >>> normal_shockwave_solver("md", 0.4, gamma=1.32)
-    [np.float64(4.4756284474920385), np.float64(0.4000000000000001), np.float64(22.65624999999999), np.float64(5.525862068965516), np.float64(4.100039001560062), np.float64(0.06721056989701328)]
+    >>> res = normal_shockwave_solver("md", 0.4, gamma=1.32)
+    >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          4.4756284474920385
+    Md          0.4000000000000001
+    pd/pu       22.65624999999999
+    rhod/rhou   5.525862068965516
+    Td/Tu       4.100039001560062
+    p0d/p0u     0.06721056989701328
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
-    >>> results = normal_shockwave_solver("mu", [1.5, 3], to_dict=True)
-    >>> print(results["md"])
+    >>> res = normal_shockwave_solver("mu", [1.5, 3], to_dict=True)
+    >>> type(res)
+    <class 'pygasflow.utils.common.ShockResults'>
+    >>> print(res["md"])
     [0.70108874 0.47519096]
 
     """
@@ -420,30 +505,64 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
         Temperature ratio between the cone's surface and the upstream
         condition.
 
+    See Also
+    --------
+    :class:`~pygasflow.interactive.diagrams.conical_shock.ConicalShockDiagram`,
+    print_conical_shockwave_results
+
     Examples
     --------
 
     Compute all quantities across a conical shockwave starting from the
     upstream Mach number and the half cone angle:
 
-    >>> from pygasflow import conical_shockwave_solver
-    >>> conical_shockwave_solver(2.5, "theta_c", 15)
-    [np.float64(2.5), np.float64(2.1179295900667547), np.float64(15.0), np.float64(28.454593704480512), np.float64(6.2290191801091845), np.float64(1.488659699248697), np.float64(1.326266460804543), np.float64(1.122443900410211), np.float64(0.9936173734022588), np.float64(1.8051864085592608), np.float64(1.5220731269187957), np.float64(1.186005045771739)]
+    >>> from pygasflow.solvers import (
+    ...     conical_shockwave_solver,
+    ...     print_conical_shockwave_results
+    ... )
+    >>> res = conical_shockwave_solver(2.5, "theta_c", 15)
+    >>> type(res)
+    <class 'list'>
+    >>> print_conical_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu          2.5
+    Mc          2.1179295900667547
+    theta_c     15.0
+    beta        28.454593704480512
+    delta       6.2290191801091845
+    pd/pu       1.488659699248697
+    rhod/rhou   1.326266460804543
+    Td/Tu       1.122443900410211
+    p0d/p0u     0.9936173734022588
+    pc/pu       1.8051864085592608
+    rho_c/rhou  1.5220731269187957
+    Tc/Tu       1.186005045771739
 
     Compute the pressure ratio across a conical shockwave starting with
     multiple upstream Mach numbers and Mach numbers at the cone surface:
 
-    >>> results = conical_shockwave_solver([2.5, 5], "mc", 1.5)
-    >>> print(results[5])
+    >>> res = conical_shockwave_solver([2.5, 5], "mc", 1.5)
+    >>> print(res[5])
     [ 3.42459174 18.60172442]
 
     Compute the pressure ratio across a conical shockwave starting with
     multiple upstream Mach numbers and Mach numbers at the cone surface,
     but returning a dictionary:
 
-    >>> results = conical_shockwave_solver([2.5, 5], "mc", 1.5, to_dict=True)
-    >>> print(results["pr"])
+    >>> res = conical_shockwave_solver([2.5, 5], "mc", 1.5, to_dict=True)
+    >>> type(res)
+    <class 'pygasflow.utils.common.ShockResults'>
+    >>> print(res["pr"])
     [ 3.42459174 18.60172442]
+
+    This function is capable of detecting detachment:
+
+    >>> conical_shockwave_solver(2, 'theta_c', 45)
+    Traceback (most recent call last):
+     ...
+    ValueError: Detachment detected: can't solve the flow when theta_c > theta_c_max.
+    M1 = [2.]
+    theta_c_max(M1) = 40.68847689093214
+    theta_c = 45
 
     """
     to_dict = _should_solver_return_dict(to_dict)
@@ -516,3 +635,65 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
             Tc_Tu=Tc_T1
         )
     return Mu, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
+
+
+def print_normal_shockwave_results(results, formatter="{}", blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    formatter : str
+        A formatter to properly show floating point numbers. For example,
+        ``"{:.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    normal_shockwave_solver
+    """
+    data = results.values() if isinstance(results, dict) else results
+    labels = ["Mu", "Md", "pd/pu", "rhod/rhou", "Td/Tu", "p0d/p0u"]
+    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+
+
+def print_oblique_shockwave_results(results, formatter="{}", blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    formatter : str
+        A formatter to properly show floating point numbers. For example,
+        ``"{:.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    oblique_shockwave_solver
+    """
+    data = results.values() if isinstance(results, dict) else results
+    labels = ["Mu", "Mnu", "Md", "Mnd", "beta", "theta", "pd/pu",
+        "rhod/rhou", "Td/Tu", "p0d/p0u"]
+    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+
+
+def print_conical_shockwave_results(results, formatter="{}", blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    formatter : str
+        A formatter to properly show floating point numbers. For example,
+        ``"{:.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    conical_shockwave_solver
+    """
+    data = results.values() if isinstance(results, dict) else results
+    labels = ["Mu", "Mc", "theta_c", "beta", "delta", "pd/pu", "rhod/rhou",
+        "Td/Tu", "p0d/p0u", "pc/pu", "rho_c/rhou", "Tc/Tu"]
+    _print_results_helper(data, labels, "{:12}", formatter, blank_line)

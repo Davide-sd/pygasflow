@@ -122,3 +122,21 @@ def _should_solver_return_dict(to_dict):
     if to_dict is not None:
         return to_dict
     return pygasflow.defaults.solver_to_dict
+
+
+def _print_results_helper(
+    data, labels, label_formatter, number_formatter, blank_line
+):
+    """Helper function to print results computed by some solver.
+    """
+    if len(labels) != len(data):
+        raise ValueError(
+            f"len(labels)={len(labels)} while len(data)={len(data)}."
+            " They must be the same. You are likely using a wrong printing"
+            " function for the solver that produced `data`."
+        )
+    s = label_formatter + number_formatter
+    for l, d in zip(labels, data):
+        print(s.format(l, d))
+    if blank_line:
+        print()
