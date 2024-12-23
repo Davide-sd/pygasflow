@@ -45,10 +45,10 @@ def oblique_shockwave_solver(
     p1_name : string
         Name of the first parameter given in input. Can be either one of:
 
-        * ``'pressure'``: Pressure Ratio P2/P1
-        * ``'temperature'``: Temperature Ratio T2/T1
-        * ``'density'``: Density Ratio rho2/rho1
-        * ``'total_pressure'``: Total Pressure Ratio P02/P01
+        * ``'pressure'``: Pressure Ratio Pd / Pu
+        * ``'temperature'``: Temperature Ratio Td / Tu
+        * ``'density'``: Density Ratio rhod / rhou
+        * ``'total_pressure'``: Total Pressure Ratio P0d / P0u
         * ``'mu'``: upstream Mach number of the shock wave
         * ``'mnu'``: upstream normal Mach number of the shock wave
         * ``'mnd'``: downstream normal Mach number of the shock wave
@@ -398,10 +398,10 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     param_name : string
         Name of the parameter given in input. Can be either one of:
 
-        * ``'pressure'``: Pressure Ratio P2/P1
-        * ``'temperature'``: Temperature Ratio T2/T1
-        * ``'density'``: Density Ratio rho2/rho1
-        * ``'total_pressure'``: Total Pressure Ratio P02/P01
+        * ``'pressure'``: Pressure Ratio Pd / Pu
+        * ``'temperature'``: Temperature Ratio Td / Tu
+        * ``'density'``: Density Ratio rhod / rhou
+        * ``'total_pressure'``: Total Pressure Ratio P0d / P0u
         * ``'mu'``: upstream Mach number of the shock wave
         * ``'md'``: downstream Mach number of the shock wave
 
@@ -458,7 +458,7 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     p0d/p0u          0.72087386
 
     Compute all ratios and parameters across a normal shockwave starting
-    from the downstream Mach, using methane at 20°C:
+    from the downstream Mach number, using methane at 20°C:
 
     >>> res = normal_shockwave_solver("md", 0.4, gamma=1.32)
     >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
