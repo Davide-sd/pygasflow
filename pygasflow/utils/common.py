@@ -125,7 +125,8 @@ def _should_solver_return_dict(to_dict):
 
 
 def _print_results_helper(
-    data, labels, label_formatter, number_formatter, blank_line
+    data, labels, label_formatter=None, number_formatter=None,
+    blank_line=False
 ):
     """Helper function to print results computed by some solver.
     """
@@ -135,8 +136,20 @@ def _print_results_helper(
             " They must be the same. You are likely using a wrong printing"
             " function for the solver that produced `data`."
         )
-    s = label_formatter + number_formatter
-    for l, d in zip(labels, data):
-        print(s.format(l, d))
+    if number_formatter is None:
+        number_formatter = "{:>15.8f}"
+    if label_formatter is None:
+        label_formatter = "{:12}"
+
+    data = list(data)
+    if hasattr(data[0], "__iter__"):
+        for l, d in zip(labels, data):
+            s = label_formatter.format(l)
+            s += "".join([number_formatter.format(n) for n in d])
+            print(s)
+    else:
+        s = label_formatter + number_formatter
+        for l, d in zip(labels, data):
+            print(s.format(l, d))
     if blank_line:
         print()

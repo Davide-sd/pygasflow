@@ -371,6 +371,75 @@ class Test_oblique_shockwave_solver:
             else:
                 ss(param1, value1)
 
+    @pytest.mark.parametrize("ratio_name, ratio_value", [
+        ("pressure", 4.5),
+        ("density", 2.66666667),
+        ("temperature", 1.6875),
+        ("total_pressure", 0.72087386),
+    ])
+    def test_ratio_theta_1(self, ratio_name, ratio_value):
+        # one ratio + one theta -> 2 solutions
+        expected_res = [
+            [2.06488358, 3.53991435],
+            [2., 2.],
+            [0.69973294, 2.32136532],
+            [0.57735027, 0.57735027],
+            [75.59872102, 34.40127898],
+            [20., 20.],
+            [4.5, 4.5],
+            [2.66666667, 2.66666667],
+            [1.6875, 1.6875],
+            [0.72087386, 0.72087386]
+        ]
+        res = ss(ratio_name, ratio_value, "theta", 20, gamma=1.4)
+        assert np.allclose(res, expected_res)
+
+    @pytest.mark.parametrize("ratio_name, ratio_value", [
+        ("pressure", [4.5, 3.00958333]),
+        ("density", [2.66666667, 2.11524765]),
+        ("temperature", [1.6875, 1.42280424]),
+        ("total_pressure", [0.72087386, 0.87598838]),
+    ])
+    def test_ratio_theta_2(self, ratio_name, ratio_value):
+        # 2 ratio + one theta -> 4 solutions
+        expected_res = [
+            [2.06488358, 3.53991435, 1.84225683, 2.27811752],
+            [2.  , 2.  , 1.65, 1.65],
+            [0.69973294, 2.32136532, 0.94844812, 1.47030132],
+            [0.57735027, 0.57735027, 0.65395844, 0.65395844],
+            [75.59872102, 34.40127898, 63.59083094, 46.40916906],
+            [20., 20., 20., 20.],
+            [4.5       , 4.5       , 3.00958333, 3.00958333],
+            [2.66666667, 2.66666667, 2.11524765, 2.11524765],
+            [1.6875    , 1.6875    , 1.42280424, 1.42280424],
+            [0.72087386, 0.72087386, 0.87598838, 0.87598838]
+        ]
+        res = ss(ratio_name, ratio_value, "theta", 20, gamma=1.4)
+        assert np.allclose(res, expected_res)
+
+    @pytest.mark.parametrize("ratio_name, ratio_value", [
+        ("pressure", 3.00958333),
+        ("density", 2.11524765),
+        ("temperature", 1.42280424),
+        ("total_pressure", 0.87598838),
+    ])
+    def test_ratio_theta_3(self, ratio_name, ratio_value):
+        # 1 ratio + 2 theta -> 4 solutions
+        expected_res = [
+            [1.67298279, 4.94101622, 1.84225683, 2.27811752],
+            [1.65, 1.65, 1.65, 1.65],
+            [0.69378551, 3.95891481, 0.94844812, 1.47030132],
+            [0.65395844, 0.65395844, 0.65395844, 0.65395844],
+            [80.4919436 , 19.5080564 , 63.59083094, 46.40916906],
+            [10., 10., 20., 20.],
+            [3.00958333, 3.00958333, 3.00958333, 3.00958333],
+            [2.11524765, 2.11524765, 2.11524765, 2.11524765],
+            [1.42280424, 1.42280424, 1.42280424, 1.42280424],
+            [0.87598838, 0.87598838, 0.87598838, 0.87598838]
+        ]
+        res = ss(ratio_name, ratio_value, "theta", [10, 20], gamma=1.4)
+        assert np.allclose(res, expected_res)
+
 
 class Test_conical_shockwave:
     def setup_method(self, method):

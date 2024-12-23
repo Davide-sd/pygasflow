@@ -60,6 +60,8 @@ Oblique Shock Waves
 
 .. autofunction:: mach_from_theta_beta
 
+.. autofunction:: mach_beta_from_theta_ratio
+
 .. autofunction:: oblique_mach_downstream
 
 .. autofunction:: shock_polar_equation

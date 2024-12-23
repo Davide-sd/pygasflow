@@ -1049,6 +1049,107 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
     return mach
 
 
+def mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma=1.4):
+    """Compute the upstream Mach numbers and the shockwave angles starting
+    from a ratio across the oblique shock wave the the flow deflection angle.
+    Usually, there are two solutions.
+
+    Parameters
+    ----------
+    theta : float
+    ratio_name : str
+        Can be either one of: 'pressure', 'temperature', 'density',
+        'total_pressure'.
+    ratio_value : float
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    Mu : list
+        List of upstream Mach numbers.
+    beta : list
+        List of shockwave angles associated to the upstream Mach numbers.
+    """
+    ratio_name = ratio_name.lower()
+    allowed_ratios = ['pressure', 'temperature', 'density', 'total_pressure']
+    if ratio_name not in allowed_ratios:
+        raise ValueError(
+            f"`ratio_name` must be one of the following: {allowed_ratios}."
+            f" Instead, '{ratio_name}' was received.")
+
+    func_map = {
+        'pressure': pressure_ratio,
+        'temperature': temperature_ratio,
+        'density': density_ratio,
+        'total_pressure': total_pressure_ratio
+    }
+    ratio_func = func_map[ratio_name]
+
+    def func(M1, theta, gamma, Mn_target, region):
+        beta = beta_from_mach_theta(M1, theta, gamma)[region]
+        Mn1 = M1 * np.sin(np.deg2rad(beta))
+        return Mn1 - Mn_target
+
+    # TODO: is there a more efficient way to do this? Here is the current
+    # procedure:
+    # 1. Compute normal upstream Mach number
+    # 2. Given theta, find the minimum Mach number that can support the flow.
+    #    This require a bisection procedure.
+    # 3. Run bisection over func for strong region to find a Mach number that
+    #    gives the computed normal Mach number.
+    # 4. Run bisection over func for weak region to find a Mach number that
+    #    gives the computed normal Mach number.
+    # 5. Compute the shock wave angles with these Mach roots.
+
+    # find suitable range to run bisection for step 3 and 4.
+    b = 100
+    def find_min_mach_from_theta(M):
+        theta_max = max_theta_from_mach(M, gamma)
+        return theta_max - theta
+    a = bisect(
+        find_min_mach_from_theta, a=1, b=max_theta_from_mach(1e06, gamma))
+
+    Mn1 = get_upstream_normal_mach_from_ratio(ratio_name, ratio_value, gamma)
+
+    # NOTE: to understand the following logic, plot func with
+    # theta=20, Mn_target=1.65, over a range of Mach numbers, for both regions
+    # (weak and strong). Look for the roots.
+
+    if func(a, theta, gamma, Mn1, "strong") < 0:
+        # if there is a strong solution, then there is also at most one
+        # weak solution.
+        M_r1 = bisect(func, a=a, b=b, args=(theta, gamma, Mn1, "strong"))
+        M_r2 = bisect(func, a=a, b=b, args=(theta, gamma, Mn1, "weak"))
+        beta1 = beta_from_mach_theta(M_r1, theta, gamma)["strong"]
+        beta2 = beta_from_mach_theta(M_r2, theta, gamma)["weak"]
+    else:
+        # there should be two weak solutions
+        # TODO: if func(a, theta, gamma, Mn1, "strong") == 0 there are two
+        # identical solutions. Is this procedure up to the task?
+
+        try:
+            # Find the minimum of the weak curve
+            _min = minimize_scalar(
+                func, bounds=(a, b), method="bounded",
+                args=(theta, gamma, Mn1, "weak"))
+            _min = _min.x
+            M_r1 = bisect(func, a=a, b=_min, args=(theta, gamma, Mn1, "weak"))
+            M_r2 = bisect(func, a=_min, b=b, args=(theta, gamma, Mn1, "weak"))
+            beta1 = beta_from_mach_theta(M_r1, theta, gamma)["weak"]
+            beta2 = beta_from_mach_theta(M_r2, theta, gamma)["weak"]
+        except ValueError:
+            # assume there is no solution
+            raise ValueError(
+                "There is no solution for the current choice of parameters."
+                " Please check the ObliqueShockDiagram, plotting the"
+                f" {ratio_name} ratio, with the following parameters:\n"
+                f"{ratio_name} ratio = {ratio_value}\n"
+                f"theta = {theta}\n"
+            )
+    return [M_r1, M_r2], [beta1, beta2]
+
+
 def shock_polar_equation(Vx_as_ratio, M1s, gamma=1.4):
     """Analytical equation for the shock polar.
 

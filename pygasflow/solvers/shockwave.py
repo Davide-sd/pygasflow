@@ -18,6 +18,8 @@ from pygasflow.shockwave import (
     shock_angle_from_mach_cone_angle,
     beta_from_upstream_mach,
     theta_from_mach_beta,
+    mach_beta_from_theta_ratio,
+    mach_downstream,
 )
 from pygasflow.utils.common import (
     convert_to_ndarray,
@@ -124,32 +126,32 @@ def oblique_shockwave_solver(
     >>> res
     [np.float64(2.0), np.float64(1.42266946274781), np.float64(1.4457163651405158), np.float64(0.7303538499327245), np.float64(45.343616761854385), np.float64(15.0), np.float64(2.1946531336076665), np.float64(1.7289223315067423), np.float64(1.2693763586794804), np.float64(0.9523563236996431)]
     >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          2.0
-    Mnu         1.42266946274781
-    Md          1.4457163651405158
-    Mnd         0.7303538499327245
-    beta        45.343616761854385
-    theta       15.0
-    pd/pu       2.1946531336076665
-    rhod/rhou   1.7289223315067423
-    Td/Tu       1.2693763586794804
-    p0d/p0u     0.9523563236996431
+    Mu               2.00000000
+    Mnu              1.42266946
+    Md               1.44571637
+    Mnd              0.73035385
+    beta            45.34361676
+    theta           15.00000000
+    pd/pu            2.19465313
+    rhod/rhou        1.72892233
+    Td/Tu            1.26937636
+    p0d/p0u          0.95235632
 
     Using the same parameters, but computing the solution across a
     strong oblique shock wave:
 
     >>> res = oblique_shockwave_solver("mu", 2, "theta", 15, flag="strong")
     >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          2.0
-    Mnu         1.9685867877725771
-    Md          0.643970917523609
-    Mnd         0.5828338581186796
-    beta        79.83168734049043
-    theta       15.0
-    pd/pu       4.354556264491546
-    rhod/rhou   2.6198454954536237
-    Td/Tu       1.6621423942932017
-    p0d/p0u     0.7355379974194783
+    Mu               2.00000000
+    Mnu              1.96858679
+    Md               0.64397092
+    Mnd              0.58283386
+    beta            79.83168734
+    theta           15.00000000
+    pd/pu            4.35455626
+    rhod/rhou        2.61984550
+    Td/Tu            1.66214239
+    p0d/p0u          0.73553800
 
     Compute all ratios and parameters across an oblique shockwave starting
     from the shock wave angle and the deflection angle, using methane at 20°C
@@ -157,16 +159,35 @@ def oblique_shockwave_solver(
 
     >>> res = oblique_shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
     >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          1.4819290082790446
-    Mnu         1.4594151767668957
-    Md          0.7477053570397926
-    Mnd         0.711110052081489
-    beta        80.0
-    theta       8.000000000000002
-    pd/pu       2.2857399213744523
-    rhod/rhou   1.8427111660813902
-    Td/Tu       1.240422244922509
-    p0d/p0u     0.9398367786738993
+    Mu               1.48192901
+    Mnu              1.45941518
+    Md               0.74770536
+    Mnd              0.71111005
+    beta            80.00000000
+    theta            8.00000000
+    pd/pu            2.28573992
+    rhod/rhou        1.84271117
+    Td/Tu            1.24042224
+    p0d/p0u          0.93983678
+
+    Compute all ratios and parameters across an oblique shockwave starting
+    from the some ratio and the deflection angle. This mode of operation
+    computes two different solutions: depending on the parameters, one solution
+    could be in the strong region, the other in the weak region.
+    Other times, both solutions could be in the weak region:
+
+    >>> res = oblique_shockwave_solver("pressure", 4.5, "theta", 20, gamma=1.4)
+    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
+    Mu               2.06488358     3.53991435
+    Mnu              2.00000000     2.00000000
+    Md               0.69973294     2.32136532
+    Mnd              0.57735027     0.57735027
+    beta            75.59872102    34.40127898
+    theta           20.00000000    20.00000000
+    pd/pu            4.50000000     4.50000000
+    rhod/rhou        2.66666667     2.66666667
+    Td/Tu            1.68750000     1.68750000
+    p0d/p0u          0.72087386     0.72087386
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
@@ -308,14 +329,41 @@ def oblique_shockwave_solver(
             if isinstance(M1, (list, tuple, np.ndarray)):
                 beta = beta * np.ones_like(M1)
         else:
-            # TODO:
-            # Is it even possible to uniquely determine M1 = f(MN1, beta)????
+            pr, dr, tr, tpr, MN2, theta = [
+                np.atleast_1d(t) for t in [pr, dr, tr, tpr, MN2, theta]]
+            if (len(pr) > 1) and (len(theta) == 1):
+                theta = theta[0] * np.ones_like(pr)
+            elif (len(pr) == 1) and (len(theta) > 1):
+                pr, dr, tr, tpr, MN2 = [
+                    t[0] * np.ones_like(theta) for t in [pr, dr, tr, tpr, MN2]
+                ]
 
-            # M1 = Upstream_Mach_From_Normal_Mach_Theta(MN1, theta, flag, gamma)
-            # beta = Beta_From_Mach_Theta(M1, theta, gamma)[flag]
-            M1 = np.nan * np.ones_like(MN2)
-            beta = np.nan * np.ones_like(MN2)
-            warnings.warn("Undetermined case. Setting M1 = beta = M2 = NaN")
+            M1_list, Mn1_list, Mn2_list = [], [], []
+            beta_list, theta_list = [], []
+            pr_list, dr_list, tr_list, tpr_list = [], [], [], []
+
+            for i in range(len(pr)):
+                m1, beta = mach_beta_from_theta_ratio(
+                    theta[i], "pressure", pr[i], gamma)
+                pr_list += [pr[i]] * len(m1)
+                dr_list += [dr[i]] * len(m1)
+                tr_list += [tr[i]] * len(m1)
+                tpr_list += [tpr[i]] * len(m1)
+                theta_list += [theta[i]] * len(m1)
+                Mn1 = [
+                    mu * np.sin(np.deg2rad(b)) for mu, b in zip(m1, beta)]
+                Mn1_list += Mn1
+                Mn2_list += [
+                    mach_downstream.__no_check__(mn, gamma) for mn in Mn1
+                ]
+                M1_list += m1
+                beta_list += beta
+
+            pr, dr, tr, tpr, theta, beta, M1, MN1, MN2 = [
+                np.asarray(t) for t in [
+                    pr_list, dr_list, tr_list, tpr_list,
+                    theta_list, beta_list, M1_list, Mn1_list, Mn2_list]]
+
         M2 = MN2 / np.sin(np.deg2rad(beta - theta))
 
     # TODO
@@ -402,24 +450,24 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     >>> type(res)
     <class 'list'>
     >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          2.0
-    Md          0.5773502691896257
-    pd/pu       4.5
-    rhod/rhou   2.666666666666667
-    Td/Tu       1.6874999999999998
-    p0d/p0u     0.7208738614847455
+    Mu               2.00000000
+    Md               0.57735027
+    pd/pu            4.50000000
+    rhod/rhou        2.66666667
+    Td/Tu            1.68750000
+    p0d/p0u          0.72087386
 
     Compute all ratios and parameters across a normal shockwave starting
     from the downstream Mach, using methane at 20°C:
 
     >>> res = normal_shockwave_solver("md", 0.4, gamma=1.32)
     >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          4.4756284474920385
-    Md          0.4000000000000001
-    pd/pu       22.65624999999999
-    rhod/rhou   5.525862068965516
-    Td/Tu       4.100039001560062
-    p0d/p0u     0.06721056989701328
+    Mu               4.47562845
+    Md               0.40000000
+    pd/pu           22.65625000
+    rhod/rhou        5.52586207
+    Td/Tu            4.10003900
+    p0d/p0u          0.06721057
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
@@ -524,18 +572,18 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     >>> type(res)
     <class 'list'>
     >>> print_conical_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu          2.5
-    Mc          2.1179295900667547
-    theta_c     15.0
-    beta        28.454593704480512
-    delta       6.2290191801091845
-    pd/pu       1.488659699248697
-    rhod/rhou   1.326266460804543
-    Td/Tu       1.122443900410211
-    p0d/p0u     0.9936173734022588
-    pc/pu       1.8051864085592608
-    rho_c/rhou  1.5220731269187957
-    Tc/Tu       1.186005045771739
+    Mu               2.50000000
+    Mc               2.11792959
+    theta_c         15.00000000
+    beta            28.45459370
+    delta            6.22901918
+    pd/pu            1.48865970
+    rhod/rhou        1.32626646
+    Td/Tu            1.12244390
+    p0d/p0u          0.99361737
+    pc/pu            1.80518641
+    rho_c/rhou       1.52207313
+    Tc/Tu            1.18600505
 
     Compute the pressure ratio across a conical shockwave starting with
     multiple upstream Mach numbers and Mach numbers at the cone surface:
@@ -637,12 +685,14 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     return Mu, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
 
 
-def print_normal_shockwave_results(results, formatter="{}", blank_line=False):
+def print_normal_shockwave_results(
+    results, number_formatter=None, blank_line=False
+):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
         ``"{:.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
@@ -654,15 +704,17 @@ def print_normal_shockwave_results(results, formatter="{}", blank_line=False):
     """
     data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Md", "pd/pu", "rhod/rhou", "Td/Tu", "p0d/p0u"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)
 
 
-def print_oblique_shockwave_results(results, formatter="{}", blank_line=False):
+def print_oblique_shockwave_results(
+    results, number_formatter=None, blank_line=False
+):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
         ``"{:.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
@@ -675,15 +727,17 @@ def print_oblique_shockwave_results(results, formatter="{}", blank_line=False):
     data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Mnu", "Md", "Mnd", "beta", "theta", "pd/pu",
         "rhod/rhou", "Td/Tu", "p0d/p0u"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)
 
 
-def print_conical_shockwave_results(results, formatter="{}", blank_line=False):
+def print_conical_shockwave_results(
+    results, number_formatter=None, blank_line=False
+):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
         ``"{:.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
@@ -696,4 +750,4 @@ def print_conical_shockwave_results(results, formatter="{}", blank_line=False):
     data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Mc", "theta_c", "beta", "delta", "pd/pu", "rhod/rhou",
         "Td/Tu", "p0d/p0u", "pc/pu", "rho_c/rhou", "Tc/Tu"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)

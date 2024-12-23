@@ -15,7 +15,8 @@ from pygasflow.shockwave import (
     sonic_point_conical_shock,
     mach_from_theta_beta,
     sonic_point_oblique_shock,
-    theta_from_mach_beta
+    theta_from_mach_beta,
+    mach_beta_from_theta_ratio,
 )
 from pygasflow.solvers.shockwave import oblique_shockwave_solver as ss
 from tempfile import TemporaryDirectory
@@ -1180,4 +1181,102 @@ class Test_theta_from_mach_beta:
             theta = theta_from_mach_beta(M1, beta, gamma)
             assert np.allclose(theta, expected_theta, equal_nan=True)
 
+
+class Test_mach_beta_from_theta_ratio:
+    @pytest.mark.parametrize("ratio_name", ["pr", "dr", "tr", "tpr"])
+    def test_ratio_name_error(self, ratio_name):
+        with pytest.raises(
+            ValueError,
+            match="`ratio_name` must be one of the following"
+        ):
+            mach_beta_from_theta_ratio(20, ratio_name, 2, 1.4)
+
+    @pytest.mark.parametrize("theta, ratio_name, ratio_value, gamma", [
+        (20, "pressure", 1.65, 1.4),
+    ])
+    def test_no_solutions(self, theta, ratio_name, ratio_value, gamma):
+        with pytest.raises(
+            ValueError,
+            match="There is no solution for the current choice of parameters."
+        ):
+            mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma)
+
+    @pytest.mark.parametrize(
+        "theta, ratio_name, ratio_val, gamma, expected_Mu, expected_beta, regions", [
+        # case 1: one sol in the strong branch, another in the weak branch
+        (20, "pressure", 5.211572502219574, 1.4,
+            [2.1988953952848878, 4.000000000000945],
+            [77.53610314972948, 32.46389685026701],
+            ["strong", "weak"]),
+        (20, "density", 2.8782256018884964, 1.4,
+            [2.1988953952848878, 4.000000000000945],
+            [77.53610314972948, 32.46389685026701],
+            ["strong", "weak"]),
+        (20, "temperature", 1.8106893701453053, 1.4,
+            [2.1988953952848878, 4.000000000000945],
+            [77.53610314972948, 32.46389685026701],
+            ["strong", "weak"]),
+        (20, "total_pressure", 0.6524015014542756, 1.4,
+            [2.1988953952848878, 4.000000000000945],
+            [77.53610314972948, 32.46389685026701],
+            ["strong", "weak"]),
+        # case 1: one sol in the strong branch, another in the weak branch
+        (10, "pressure", 1.8758095561704022, 1.2,
+            [1.4009961724797741, 3],
+            [73.41247140444955, 26.587528595486877],
+            ["strong", "weak"]),
+        (10, "density", 1.6801976624069386, 1.2,
+            [1.4009961724797741, 3],
+            [73.41247140444955, 26.587528595486877],
+            ["strong", "weak"]),
+        (10, "temperature", 1.1164219532856885, 1.2,
+            [1.4009961724797741, 3],
+            [73.41247140444955, 26.587528595486877],
+            ["strong", "weak"]),
+        (10, "total_pressure", 0.9687652160781292, 1.2,
+            [1.4009961724797741, 3],
+            [73.41247140444955, 26.587528595486877],
+            ["strong", "weak"]),
+        # case 2: two weak solutions
+        (20, "pressure", 3.009583333333333, 1.4,
+            [1.8422568289764576, 2.278117524145113],
+            [63.59083093945838, 46.409169060460385],
+            ["weak", "weak"]),
+        (20, "density", 2.1152476529621236, 1.4,
+            [1.8422568289764576, 2.278117524145113],
+            [63.59083093945838, 46.409169060460385],
+            ["weak", "weak"]),
+        (20, "temperature", 1.4228042419140903, 1.4,
+            [1.8422568289764576, 2.278117524145113],
+            [63.59083093945838, 46.409169060460385],
+            ["weak", "weak"]),
+        (20, "total_pressure", 0.8759883765270569, 1.4,
+            [1.8422568289764576, 2.278117524145113],
+            [63.59083093945838, 46.409169060460385],
+            ["weak", "weak"]),
+    ])
+    def test_single_values(
+        self, theta, ratio_name, ratio_val, gamma,
+        expected_Mu, expected_beta, regions
+    ):
+        ratio_map = {
+            "pressure": "pr",
+            "density": "dr",
+            "temperature": "tr",
+            "total_pressure": "tpr",
+        }
+        Mu, beta = mach_beta_from_theta_ratio(
+            theta, ratio_name, ratio_val, gamma)
+        assert np.allclose(Mu, expected_Mu)
+        assert np.allclose(beta, expected_beta)
+        # cross-validate with the results computed by the solver with
+        # standard input, parameters: upstream Mach number and theta
+        res1 = ss("mu", Mu[0], "theta", theta, gamma=gamma,
+            flag=regions[0], to_dict=True)
+        res2 = ss("mu", Mu[1], "theta", theta, gamma=gamma,
+            flag=regions[1], to_dict=True)
+        assert np.isclose(res1["beta"], beta[0])
+        assert np.isclose(res2["beta"], beta[1])
+        assert np.isclose(res1[ratio_map[ratio_name]], ratio_val)
+        assert np.isclose(res2[ratio_map[ratio_name]], ratio_val)
 
