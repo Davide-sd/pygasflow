@@ -65,7 +65,8 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
 
     See Also
     --------
-    print_isentropic_results
+    print_isentropic_results,
+    :class:`~pygasflow.interactive.diagrams.isentropic.IsentropicDiagram`
 
     Examples
     --------
@@ -77,43 +78,67 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     >>> res
     [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.23004814583331168), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(2.3515101530718505), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
     >>> print_isentropic_results(res)
-    M                 2.0
-    P / P0            0.12780452546295096
-    rho / rho0        0.23004814583331168
-    T / T0            0.5555555555555556
-    P / P*            0.24192491286747442
-    rho / rho*        0.36288736930121157
-    T / T*            0.6666666666666667
-    U / U*            2.3515101530718505
-    A / A*            1.6875000000000002
-    Mach Angle        30.000000000000004
-    Prandtl-Meyer     26.379760813416457
+    M                      2.00000000
+    P / P0                 0.12780453
+    rho / rho0             0.23004815
+    T / T0                 0.55555556
+    P / P*                 0.24192491
+    rho / rho*             0.36288737
+    T / T*                 0.66666667
+    U / U*                 2.35151015
+    A / A*                 1.68750000
+    Mach Angle            30.00000000
+    Prandtl-Meyer         26.37976081
 
     Compute all parameters starting from the pressure ratio:
 
     >>> res = isentropic_solver("pressure", 0.12780452546295096)
     >>> print_isentropic_results(res)
-    M                 1.9999999999999996
-    P / P0            0.12780452546295107
-    rho / rho0        0.23004814583331185
-    T / T0            0.5555555555555558
-    P / P*            0.24192491286747458
-    rho / rho*        0.3628873693012118
-    T / T*            0.6666666666666669
-    U / U*            2.3515101530718505
-    A / A*            1.6874999999999993
-    Mach Angle        30.00000000000001
-    Prandtl-Meyer     26.379760813416446
+    M                      2.00000000
+    P / P0                 0.12780453
+    rho / rho0             0.23004815
+    T / T0                 0.55555556
+    P / P*                 0.24192491
+    rho / rho*             0.36288737
+    T / T*                 0.66666667
+    U / U*                 2.35151015
+    A / A*                 1.68750000
+    Mach Angle            30.00000000
+    Prandtl-Meyer         26.37976081
 
     Compute the Mach number starting from the Mach Angle:
 
     >>> results = isentropic_solver("mach_angle", 25)
+    >>> print_isentropic_results(results)
+    M                      2.36620158
+    P / P0                 0.07210756
+    rho / rho0             0.15285231
+    T / T0                 0.47174663
+    P / P*                 0.13649451
+    rho / rho*             0.24111550
+    T / T*                 0.56609595
+    U / U*                 2.56365309
+    A / A*                 2.32958260
+    Mach Angle            25.00000000
+    Prandtl-Meyer         35.92354277
     >>> print(results[0])
     2.3662015831524985
 
     Compute the pressure ratios starting from two Mach numbers:
 
     >>> results = isentropic_solver("m", [2, 3])
+    >>> print_isentropic_results(results)
+    M                      2.00000000     3.00000000
+    P / P0                 0.12780453     0.02722368
+    rho / rho0             0.23004815     0.07622631
+    T / T0                 0.55555556     0.35714286
+    P / P*                 0.24192491     0.05153250
+    rho / rho*             0.36288737     0.12024251
+    T / T*                 0.66666667     0.42857143
+    U / U*                 2.35151015     2.82810386
+    A / A*                 1.68750000     4.23456790
+    Mach Angle            30.00000000    19.47122063
+    Prandtl-Meyer         26.37976081    49.75734674
     >>> print(results[1])
     [0.12780453 0.02722368]
 
@@ -178,14 +203,14 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
 
 
-def print_isentropic_results(results, formatter="{}", blank_line=False):
+def print_isentropic_results(results, number_formatter=None, blank_line=False):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -200,4 +225,4 @@ def print_isentropic_results(results, formatter="{}", blank_line=False):
     labels = ["M", "P / P0", "rho / rho0", "T / T0",
         "P / P*", "rho / rho*", "T / T*", "U / U*", "A / A*",
         "Mach Angle", "Prandtl-Meyer"]
-    _print_results_helper(data, labels, "{:18}", formatter, blank_line)
+    _print_results_helper(data, labels, "{:18}", number_formatter, blank_line)

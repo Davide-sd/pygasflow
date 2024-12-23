@@ -69,7 +69,8 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
 
     See Also
     --------
-    print_rayleigh_results
+    print_rayleigh_results,
+    :class:`~pygasflow.interactive.diagrams.rayleigh.RayleighDiagram`
 
     Examples
     --------
@@ -81,18 +82,27 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     >>> res
     [np.float64(2.0), np.float64(0.36363636363636365), np.float64(0.6875), np.float64(0.5289256198347108), np.float64(1.5030959785260414), np.float64(0.793388429752066), np.float64(1.4545454545454546), np.float64(1.2175752061512626)]
     >>> print_rayleigh_results(res)
-    M           2.0
-    P / P*      0.36363636363636365
-    rho / rho*  0.6875
-    T / T*      0.5289256198347108
-    P0 / P0*    1.5030959785260414
-    T0 / T0*    0.793388429752066
-    U / U*      1.4545454545454546
-    (s*-s) / R  1.2175752061512626
+    M                2.00000000
+    P / P*           0.36363636
+    rho / rho*       0.68750000
+    T / T*           0.52892562
+    P0 / P0*         1.50309598
+    T0 / T0*         0.79338843
+    U / U*           1.45454545
+    (s*-s) / R       1.21757521
 
     Compute the subsonic Mach number starting from the critical entropy ratio:
 
     >>> res = rayleigh_solver("entropy_sub", 0.5)
+    >>> print_rayleigh_results(res)
+    M                0.66341885
+    P / P*           1.48498826
+    rho / rho*       1.53003501
+    T / T*           0.97055835
+    P0 / P0*         1.05396114
+    T0 / T0*         0.87999306
+    U / U*           0.65357982
+    (s*-s) / R       0.50000000
     >>> print(res[0])
     0.6634188478510624
 
@@ -100,6 +110,15 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     for a gas having specific heat ratio gamma=1.2:
 
     >>> res = rayleigh_solver("m", [0.5, 1.5], 1.2)
+    >>> print_rayleigh_results(res)
+    M                0.50000000     1.50000000
+    P / P*           1.69230769     0.59459459
+    rho / rho*       2.36363636     0.74747475
+    T / T*           0.71597633     0.79547115
+    P0 / P0*         1.10781288     1.13417842
+    T0 / T0*         0.66715976     0.88586560
+    U / U*           0.42307692     1.33783784
+    (s*-s) / R       2.53074211     0.85304875
     >>> print(res[3])
     [0.71597633 0.79547115]
 
@@ -176,14 +195,14 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     return M, prs, drs, trs, tprs, ttrs, urs, eps
 
 
-def print_rayleigh_results(results, formatter="{}", blank_line=False):
+def print_rayleigh_results(results, number_formatter=None, blank_line=False):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -197,4 +216,4 @@ def print_rayleigh_results(results, formatter="{}", blank_line=False):
     # the substitutions I implemented in doc/conf.py
     labels = ["M", "P / P*", "rho / rho*", "T / T*", "P0 / P0*",
         "T0 / T0*", "U / U*", "(s*-s) / R"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)

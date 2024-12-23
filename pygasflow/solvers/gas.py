@@ -51,7 +51,8 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
 
     See Also
     --------
-    print_gas_results
+    print_gas_results,
+    :class:`~pygasflow.interactive.diagrams.gas.GasDiagram`
 
     Examples
     --------
@@ -202,7 +203,8 @@ def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=None):
 
     See Also
     --------
-    print_ideal_gas_results
+    print_ideal_gas_results,
+    :class:`~pygasflow.interactive.diagrams.gas.IdealGasDiagram`
 
     Examples
     --------
@@ -280,7 +282,8 @@ def sonic_condition(gamma=1.4, to_dict=False):
 
     See Also
     --------
-    print_sonic_condition_results
+    print_sonic_condition_results,
+    :class:`~pygasflow.interactive.diagrams.gas.SonicDiagram`
 
     Examples
     --------
@@ -299,14 +302,14 @@ def sonic_condition(gamma=1.4, to_dict=False):
     return drs, prs, ars, trs
 
 
-def print_gas_results(results, formatter="{}", blank_line=False):
+def print_gas_results(results, number_formatter=None, blank_line=False):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -316,17 +319,17 @@ def print_gas_results(results, formatter="{}", blank_line=False):
     """
     data = results.values() if isinstance(results, dict) else results
     labels = ["gamma", "R", "Cp", "Cv"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)
 
 
-def print_ideal_gas_results(results, formatter="{}", blank_line=False):
+def print_ideal_gas_results(results, number_formatter=None, blank_line=False):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -336,17 +339,17 @@ def print_ideal_gas_results(results, formatter="{}", blank_line=False):
     """
     data = results.values() if isinstance(results, dict) else results
     labels = ["P", "rho", "R", "T"]
-    _print_results_helper(data, labels, "{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)
 
 
-def print_sonic_condition_results(results, formatter="{}", blank_line=False):
+def print_sonic_condition_results(results, number_formatter=None, blank_line=False):
     """
     Parameters
     ----------
     results : list or dict
-    formatter : str
+    number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -356,4 +359,4 @@ def print_sonic_condition_results(results, formatter="{}", blank_line=False):
     """
     data = results.values() if isinstance(results, dict) else results
     labels = ["rho0/rho*", "P0/P*", "a0/T*", "T0/T*"]
-    _print_results_helper(data, labels,"{:12}", formatter, blank_line)
+    _print_results_helper(data, labels, None, number_formatter, blank_line)

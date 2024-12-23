@@ -694,7 +694,7 @@ def print_normal_shockwave_results(
     results : list or dict
     number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -716,7 +716,7 @@ def print_oblique_shockwave_results(
     results : list or dict
     number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
@@ -739,7 +739,7 @@ def print_conical_shockwave_results(
     results : list or dict
     number_formatter : str or None
         A formatter to properly show floating point numbers. For example,
-        ``"{:.3f}"`` to show numbers with 3 decimal places.
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
     blank_line : bool
         If True, a blank line will be printed after the results.
 
