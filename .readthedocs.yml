@@ -9,6 +9,29 @@ build:
    os: ubuntu-22.04
    tools:
       python: "3.12"
+   apt_packages:
+      # dependencies for chrome and firefox
+      - bzip2
+      - libxtst6
+      - libgtk-3-0
+      - libx11-xcb-dev
+      - libdbus-glib-1-2
+      - libxt6
+      - libpci-dev
+      - libasound2
+   jobs:
+      pre_install:
+         - mkdir $HOME/selenium
+         - mkdir $HOME/selenium/drivers
+         # chrome
+         - wget -N https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/Linux_x64%2F1047731%2Fchrome-linux.zip\?generation\=1663284576100523\&alt\=media -P $HOME
+         - unzip ~/Linux_x64%2F1047731%2Fchrome-linux.zip\?generation=1663284576100523\&alt=media -d $HOME/selenium
+         - rm ~/Linux_x64%2F1047731%2Fchrome-linux.zip\?generation=1663284576100523\&alt=media
+         - wget -N https://chromedriver.storage.googleapis.com/107.0.5304.62/chromedriver_linux64.zip -P $HOME
+         - unzip ~/chromedriver_linux64.zip -d $HOME/selenium/drivers
+         - rm ~/chromedriver_linux64.zip
+      post_install:
+         - pip install panel
 
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
@@ -24,3 +47,7 @@ python:
    - requirements: doc/requirements.txt
    - method: pip
      path: .
+   - method: pip
+     path: .
+     extra_requirements:
+        - all

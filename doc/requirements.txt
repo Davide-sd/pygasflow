@@ -8,3 +8,4 @@ sphinx-rtd-theme
 cantera
 jinja2
 sphinx_design
+sphinx_panel_screenshot

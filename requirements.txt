@@ -3,3 +3,5 @@ scipy
 matplotlib
 pandas
 cantera
+pandas
+panel
