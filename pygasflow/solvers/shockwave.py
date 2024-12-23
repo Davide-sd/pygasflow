@@ -174,7 +174,8 @@ def oblique_shockwave_solver(
     from the some ratio and the deflection angle. This mode of operation
     computes two different solutions: depending on the parameters, one solution
     could be in the strong region, the other in the weak region.
-    Other times, both solutions could be in the weak region:
+    Other times, both solutions could be in the weak region.
+    Hence, the ``flag`` keyword argument is not used by this mode of operation:
 
     >>> res = oblique_shockwave_solver("pressure", 4.5, "theta", 20, gamma=1.4)
     >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
