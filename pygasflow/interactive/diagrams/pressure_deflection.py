@@ -172,7 +172,7 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
             primary_line.js_on_change("visible", callback)
         return lbl, circle_rend
 
-    def add_locus(self, locus, show_state=True, **kwargs):
+    def add_locus(self, locus, show_state=True, N=100, include_mirror=True, **kwargs):
         """Add the locus to the diagram, with a single line.
 
         Parameters
@@ -180,6 +180,10 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
         locus : :class:`~pygasflow.shockwave.PressureDeflectionLocus`
         show_state : bool
             If True, also add a text on the diagram at the start of the locus.
+        N : int
+            Number of discretization points.
+        include_mirror : bool
+            If False, only plot the locus for theta >= 0.
         **kwargs :
             Keyword arguments passed to :class:`bokeh.models.Line`
 
@@ -194,7 +198,7 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
         kwargs.setdefault("line_dash", "dotted")
         kwargs.setdefault("line_width", 2)
         kwargs.setdefault("line_color", next(self.color_iterator))
-        theta, pr = locus.pressure_deflection()
+        theta, pr = locus.pressure_deflection(N=N, include_mirror=include_mirror)
         source = ColumnDataSource({"x": theta, "y": pr})
         line_rend = self.figure.line("x", "y", source=source, **kwargs)
         lbl, circle_rend = None, None
@@ -209,7 +213,7 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
 
     def add_locus_split(
         self, locus, weak_kwargs={}, strong_kwargs={}, same_color=True,
-        show_state=True, mode="region"
+        show_state=True, mode="region", N=100, include_mirror=True
     ):
         """Add the locus to the diagram, with two lines, one for the weak
         region and the other for the strong region.
@@ -219,10 +223,10 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
         locus : :class:`~pygasflow.shockwave.PressureDeflectionLocus`
         show_state : bool
             If True, also add a text on the diagram at the start of the locus.
-        **weak_kwargs :
+        weak_kwargs : dict
             Keyword arguments passed to :class:`bokeh.models.Line` in order to
             customize the line for the weak region.
-        **strong_kwargs :
+        strong_kwargs : dict
             Keyword arguments passed to :class:`bokeh.models.Line` in order to
             customize the line for the strong region.
         same_color : bool
@@ -236,6 +240,10 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
               where ``theta=theta_max``.
             * ``"sonic"``: the locus is splitted at the sonic point (where
               the downstream Mach number is 1).
+        N : int
+            Number of discretization points.
+        include_mirror : bool
+            If False, only plot the locus for theta >= 0.
 
         Returns
         -------
@@ -259,7 +267,7 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
             "line_color", color if same_color else next(self.color_iterator))
 
         theta_w, pr_w, theta_s, pr_s = locus.pressure_deflection_split(
-            mode=mode)
+            mode=mode, N=N, include_mirror=include_mirror)
         source_w = ColumnDataSource({"x": theta_w, "y": pr_w})
         source_s = ColumnDataSource({"x": theta_s, "y": pr_s})
         line_rend_weak = self.figure.line(
