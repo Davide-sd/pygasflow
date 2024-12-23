@@ -171,7 +171,7 @@ def oblique_shockwave_solver(
     p0d/p0u          0.93983678
 
     Compute all ratios and parameters across an oblique shockwave starting
-    from the some ratio and the deflection angle. This mode of operation
+    from some ratio and the deflection angle. This mode of operation
     computes two different solutions: depending on the parameters, one solution
     could be in the strong region, the other in the weak region.
     Other times, both solutions could be in the weak region.
