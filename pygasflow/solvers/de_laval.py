@@ -138,7 +138,7 @@ class De_Laval_Solver(param.Parameterized):
     Get the location of the shockwave along the divergent (loc, radius):
 
     >>> solver.nozzle.shockwave_location
-    (np.float64(2.0387300135132285), np.float64(0.7427484426649532))
+    (np.float64(2.038730013513229), np.float64(0.7427484426649532))
 
     Visualize the results at the current Pb/P0 value:
 
