@@ -137,7 +137,7 @@ def _print_results_helper(
             " function for the solver that produced `data`."
         )
     if number_formatter is None:
-        number_formatter = "{:>15.8f}"
+        number_formatter = pygasflow.defaults.print_number_formatter
     if label_formatter is None:
         label_formatter = "{:12}"
 

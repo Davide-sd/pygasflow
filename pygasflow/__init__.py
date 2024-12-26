@@ -38,6 +38,9 @@ class defaults(param.Parameterized):
         a solver. If False, it returns a tuple of results.
         If True, it returns a dictionary of results.""")
 
+    print_number_formatter = param.String("{:>15.8f}",
+        doc="Formatter to be used with number in printing functions.")
+
 
 __all__ = [
     "ise",
