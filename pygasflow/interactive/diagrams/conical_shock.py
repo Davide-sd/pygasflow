@@ -24,7 +24,8 @@ class ConicalShockDiagram(ShockCommon):
         from pygasflow.interactive.diagrams import ConicalShockDiagram
         ConicalShockDiagram()
 
-    Set custom values to parameters and only show the figure:
+    Set custom values to parameters, hide sonic and region lines, and only
+    show the figure:
 
     .. panel-screenshot::
         :large-size: 700,450
@@ -33,10 +34,23 @@ class ConicalShockDiagram(ShockCommon):
         d = ConicalShockDiagram(
             upstream_mach=[1.1, 1.35, 1.75, 2.25, 3.5, 6, 1e06],
             gamma=1.2,
-            show_region_line=False,
-            show_sonic_line=False,
-            show_minor_grid=True,
+            add_region_line=False,
+            add_sonic_line=False,
             title="Conical Shock Properties for γ=1.2"
+        )
+        d.show_figure()
+
+    Only shows user-specified upstream Mach numbers:
+
+    .. panel-screenshot::
+        :large-size: 700,450
+
+        from pygasflow.interactive.diagrams import ConicalShockDiagram
+        d = ConicalShockDiagram(
+            add_upstream_mach=False,
+            add_region_line=False,
+            add_sonic_line=False,
+            additional_upstream_mach=[2, 4],
         )
         d.show_figure()
 
@@ -50,9 +64,40 @@ class ConicalShockDiagram(ShockCommon):
         params.setdefault("x_range", (0, 60))
         params.setdefault("y_range", (0, 90))
         params.setdefault("size", (700, 400))
-        params.setdefault("sonic_ann_location", 0.35)
-        params.setdefault("region_ann_location", 0.55)
+        params.setdefault("show_minor_grid", True)
+        params.setdefault("tooltips",
+            [("Variable", "@v"), ("θc", "@x"), ("β", "@y"), ("Region", "@r")])
+        params.setdefault("upstream_mach",
+            [1.05, 1.15, 1.4, 2, 3, 5, 1000000000.0])
         super().__init__(**params)
+
+    def _compute_mach_line_data(self, M1, label):
+        theta_c = np.zeros(self.N)
+        # NOTE: to avoid errors in the integration process of Taylor-Maccoll
+        # equation, beta should be different than Mach angle and 90deg,
+        # hence an offset is applied.
+        offset = 1e-08
+        beta = np.linspace(
+            np.rad2deg(np.arcsin(1 / M1)) + offset, 90 - offset, self.N)
+        for i, b in enumerate(beta):
+            Mc, tc = mach_cone_angle_from_shock_angle(M1, b, self.gamma)
+            theta_c[i] = tc
+        theta_c = np.insert(theta_c, 0, 0)
+        theta_c = np.append(theta_c, 0)
+        beta = np.insert(beta, 0, np.rad2deg(np.arcsin(1 / M1)))
+        beta = np.append(beta, 90)
+        beta_d, _ = detachment_point_conical_shock(M1, self.gamma)
+        region = np.empty(len(beta), dtype=object)
+        idx = beta <= beta_d
+        region[idx] = "weak"
+        region[~idx] = "strong"
+        source = {
+            "x": theta_c,
+            "y": beta,
+            "v": [label] * len(beta),
+            "r": region
+        }
+        return source
 
     def _compute_results(self):
         results = []
@@ -60,25 +105,8 @@ class ConicalShockDiagram(ShockCommon):
         ############################### PART 1 ###############################
 
         for j, M1 in enumerate(self.upstream_mach):
-            theta_c = np.zeros(self.N)
-            # NOTE: to avoid errors in the integration process of Taylor-Maccoll
-            # equation, beta should be different than Mach angle and 90deg,
-            # hence an offset is applied.
-            offset = 1e-08
-            theta_s = np.linspace(
-                np.rad2deg(np.arcsin(1 / M1)) + offset, 90 - offset, self.N)
-            for i, ts in enumerate(theta_s):
-                Mc, tc = mach_cone_angle_from_shock_angle(M1, ts, self.gamma)
-                theta_c[i] = tc
-            theta_c = np.insert(theta_c, 0, 0)
-            theta_c = np.append(theta_c, 0)
-            theta_s = np.insert(theta_s, 0, np.rad2deg(np.arcsin(1 / M1)))
-            theta_s = np.append(theta_s, 90)
-            results.append({
-                "xs": theta_c,
-                "ys": theta_s,
-                "v": [self.labels[j]] * len(theta_s)
-            })
+            source = self._compute_mach_line_data(M1, self.labels[j])
+            results.append(source)
 
         ############################### PART 2 ###############################
 
@@ -103,12 +131,9 @@ class ConicalShockDiagram(ShockCommon):
 
         theta_c = np.asarray(theta_c)
         results.append({
-            "xs": theta_c,
-            "ys": np.asarray(beta)
+            "x": theta_c,
+            "y": np.asarray(beta)
         })
-        desired_x = theta_c.max() * self.sonic_ann_location
-        idx = np.where(theta_c <= desired_x)[0][-1]
-        results.append(idx)
 
         ############################### PART 3 ###############################
 
@@ -123,11 +148,15 @@ class ConicalShockDiagram(ShockCommon):
         tc = np.insert(tc, 0, 0)
         b = np.insert(b, 0, 90)
         results.append({
-            "xs": tc,
-            "ys": b,
+            "x": tc,
+            "y": b,
             "v": [""] * len(b)
         })
-        desired_x = tc.max() * self.region_ann_location
-        idx = np.where(tc <= desired_x)[0][-1]
-        results.append(idx)
+
+        ############################### PART 4 ###############################
+
+        for m in self.additional_upstream_mach:
+            source = self._compute_mach_line_data(m, f"M1 = {m}")
+            results.append(source)
+
         return results

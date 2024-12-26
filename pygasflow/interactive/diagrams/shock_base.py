@@ -9,7 +9,9 @@ from bokeh.models import (
     Arrow,
     LabelSet,
     ColumnDataSource,
-    Line
+    Line,
+    Patch,
+    GlyphRenderer,
 )
 import itertools
 from pygasflow.interactive.diagrams.flow_base import (
@@ -17,6 +19,7 @@ from pygasflow.interactive.diagrams.flow_base import (
     BasePlot,
     BasePlot
 )
+from numbers import Number
 import numpy as np
 import panel as pn
 import param
@@ -37,53 +40,36 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
         item_type=(float, int),
         doc="Comma separated list of 7 upstream Mach numbers to be shown.")
 
-    show_sonic_line = param.Boolean(True, label="Show sonic line",
-        doc="Show the line where the downstream Mach number is M2=1.")
+    additional_upstream_mach = param.List(item_type=Number, doc="""
+        User can provides additional upstream Mach numbers to be plotted on
+        the chart. This parameter must be set at instantiation and should
+        be changed afterwards.""")
 
-    show_region_line = param.Boolean(True, label="Show region line", doc="""
-        Show the line separating the strong solution from the weak solution""")
+    add_upstream_mach = param.Boolean(True, doc="""
+        If True, add the default upstream Mach numbers to the chart.
+        Otherwise, only add the additional user-provided Mach numbers.
+        This parameter must be set at instantiation and should
+        be changed afterwards.""")
+
+    add_sonic_line = param.Boolean(True, doc="""
+        Add the line where the downstream Mach number is M2=1. This parameter
+        must be set at instantiation and should be changed afterwards.""")
+
+    add_region_line = param.Boolean(True, doc="""
+        Add the line separating the strong solution from the weak solution.
+        This parameter must be set at instantiation and should
+        be changed afterwards.""")
 
     tooltips = param.List(
-        [("Variable", "@v"), ("θ", "@xs"), ("β", "@ys")],
+        [("Variable", "@v"), ("θ", "@x"), ("β", "@y"), ("Region", "@r")],
         doc="Tooltips used on each line of the plot.",
     )
 
-    sonic_ann_location = param.Number(0.1, bounds=(0, 1), doc="""
-        Location (in percentage) of the sonic annotation with respect to the
-        current maximum deflection angle shown on the plot.""")
-
-    region_ann_location = param.Number(0.55, bounds=(0, 1), doc="""
-        Location (in percentage) of the region annotation with respect to the
-        current maximum deflection angle shown on the plot.""")
-
-    _ann_arrow_length = param.Number(8, bounds=(1, None),
-        doc="Length of the arrow for the sonic annotation.")
-
-    _ann_arrow_start_offset = param.Tuple((0, 1), length=2,
-        doc="Offset from the selected position of the start of the arrow.")
-
-    _ann_arrows = param.List([],
-        doc="Contains the arrows for the annotations.")
-
-    _ann_labels = param.List([],
-        doc="Contains the label set for the annotations.")
-
-    _ann_label_offset = param.Number(11, bounds=(1, None),
-        doc="Length of the arrow for the sonic annotation.")
-
-    @param.depends(
-        "show_sonic_line", "show_region_line", watch=True, on_init=True
-    )
-    def update_line_visibility(self):
-        if self.figure is not None:
-            self.figure.renderers[-2].visible = self.show_sonic_line
-            self._ann_arrows[0].visible = self.show_sonic_line
-            self._ann_arrows[1].visible = self.show_sonic_line
-            self._ann_labels[0].visible = self.show_sonic_line
-            self.figure.renderers[-1].visible = self.show_region_line
-            self._ann_arrows[2].visible = self.show_region_line
-            self._ann_arrows[3].visible = self.show_region_line
-            self._ann_labels[1].visible = self.show_region_line
+    # pointers to renderers
+    _sonic_line = param.ClassSelector(class_=GlyphRenderer)
+    _region_line = param.ClassSelector(class_=GlyphRenderer)
+    _upstream_mach_lines = param.List(item_type=GlyphRenderer)
+    _additional_mach_lines = param.List(item_type=GlyphRenderer)
 
     @param.depends("upstream_mach", watch=True, on_init=True)
     def update_labels(self):
@@ -106,8 +92,6 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
             self.param.upstream_mach,
             self.param.gamma,
             self.param.N,
-            self.param.show_sonic_line,
-            self.param.show_region_line
         ]
 
     @param.depends("upstream_mach", "gamma", "N", watch=True)
@@ -122,194 +106,96 @@ class ShockCommon(CommonParameters, BasePlot, pn.viewable.Viewer):
         colors = itertools.cycle(self.colors)
         ann_color = "#000000" if self._theme == "default" else "#ffffff"
 
-        # plot the Mach curves
-        max_theta = 0
-        for label, source in zip(self.labels, self.results):
-            max_theta = max(max_theta, source["xs"].max())
+        if self.add_upstream_mach:
+            # plot the Mach curves
+            max_theta = 0
+            for label, source in zip(self.labels, self.results):
+                max_theta = max(max_theta, source["x"].max())
+                line = self.figure.line(
+                    "x", "y",
+                    source=source,
+                    line_color=next(colors),
+                    line_width=2,
+                    legend_label=label
+                )
+                self.figure.add_tools(HoverTool(
+                    tooltips=self.tooltips,
+                    renderers=[line]
+                ))
+                self._upstream_mach_lines.append(line)
+            # adjust x_range
+            self.figure.x_range = Range1d(
+                0, round(max_theta + 5 - (max_theta % 5)))
+
+        if self.add_sonic_line:
+            # plot the line M2 = 1
+            source = self.results[len(self.upstream_mach)]
+            self._sonic_line = self.figure.line(
+                x="x",
+                y="y",
+                source=source,
+                line_dash="dotted",
+                line_color=ann_color,
+                line_width=1,
+                legend_label="sonic line"
+            )
+
+        if self.add_region_line:
+            # plot the line passing through (M,theta_max)
+            source = self.results[len(self.upstream_mach) + 1]
+            self._region_line = self.figure.line(
+                x="x",
+                y="y",
+                source=source,
+                line_dash="dashed",
+                line_color=ann_color,
+                line_width=1,
+                legend_label="region line"
+            )
+
+        for source in self.results[len(self.upstream_mach) + 2:]:
             line = self.figure.line(
-                "xs", "ys",
+                "x", "y",
                 source=source,
                 line_color=next(colors),
                 line_width=2,
-                legend_label=label
+                legend_label=source["v"][0]
             )
             self.figure.add_tools(HoverTool(
                 tooltips=self.tooltips,
                 renderers=[line]
             ))
-        # adjust x_range
-        self.figure.x_range = Range1d(
-            0, round(max_theta + 5 - (max_theta % 5)))
-
-        # plot the line M2 = 1
-        source = self.results[-4]
-        self.figure.line(
-            x="xs",
-            y="ys",
-            source=source,
-            line_dash="dotted",
-            line_color=ann_color,
-            line_width=1,
-            visible=self.show_sonic_line
-        )
-
-        vh = VeeHead(size=6, fill_color=ann_color, line_color=ann_color)
-        idx = self.results[-3]
-
-        a1 = Arrow(
-            end=vh,
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] + self._ann_arrow_length,
-            visible=self.show_sonic_line,
-            line_color=ann_color
-        )
-        a2 = Arrow(
-            end=vh,
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] - self._ann_arrow_length,
-            visible=self.show_sonic_line,
-            line_color=ann_color
-        )
-        labels_source = ColumnDataSource(data={
-            "xs": [source["xs"][idx], source["xs"][idx]],
-            "ys": [
-                source["ys"][idx] + self._ann_label_offset,
-                source["ys"][idx] - self._ann_label_offset,
-            ],
-            "labels": ["M2 < 1", "M2 > 1"]
-        })
-        l1 = LabelSet(
-            x="xs", y="ys", text="labels",
-            x_offset="x_offset", y_offset="y_offset", source=labels_source,
-            text_baseline="middle", text_align="center",
-            text_color=ann_color,
-            text_font_size="12px",
-            visible=self.show_sonic_line
-        )
-        self.figure.add_layout(a1)
-        self.figure.add_layout(a2)
-        self.figure.add_layout(l1)
-
-        # plot the line passing through (M,theta_max)
-        source = self.results[-2]
-        self.figure.line(
-            x="xs",
-            y="ys",
-            source=source,
-            line_dash="dashed",
-            line_color=ann_color,
-            line_width=1,
-            visible=self.show_region_line
-        )
-
-        idx = self.results[-1]
-        a3 = Arrow(
-            end=vh,
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] + self._ann_arrow_length,
-            visible=self.show_region_line,
-            line_color=ann_color
-        )
-        a4 = Arrow(
-            end=vh,
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] - self._ann_arrow_length,
-            visible=self.show_region_line,
-            line_color=ann_color
-        )
-        labels_source = ColumnDataSource(data={
-            "xs": [source["xs"][idx], source["xs"][idx]],
-            "ys": [
-                source["ys"][idx] + self._ann_label_offset,
-                source["ys"][idx] - self._ann_label_offset
-            ],
-            "labels": ["strong", "weak"]
-        })
-        l2 = LabelSet(
-            x="xs", y="ys", text="labels",
-            x_offset="x_offset", y_offset="y_offset", source=labels_source,
-            text_baseline="middle", text_align="center",
-            text_color=ann_color,
-            text_font_size="12px",
-            visible=self.show_region_line
-        )
-        self.figure.add_layout(a3)
-        self.figure.add_layout(a4)
-        self.figure.add_layout(l2)
-
-        self._ann_arrows = [a1, a2, a3, a4]
-        self._ann_labels = [l1, l2]
+            self._additional_mach_lines.append(line)
 
         if self.show_legend_outside:
             self.move_legend_outside()
 
     def _update_renderers(self):
-        # update mach lines
-        max_theta = 0
-        for label, source, renderer in zip(
-            self.labels, self.results, self.figure.renderers
+        if self.add_upstream_mach:
+            # update mach lines
+            max_theta = 0
+            for label, source, renderer in zip(
+                self.labels, self.results, self._upstream_mach_lines
+            ):
+                max_theta = max(max_theta, source["x"].max())
+                renderer.data_source.data.update(source)
+            # adjust x_range
+            max_theta = round(max_theta + 5 - (max_theta % 5))
+            self.figure.update(x_range=Range1d(0, max_theta))
+
+        if self.add_sonic_line:
+            source = self.results[len(self.upstream_mach)]
+            self._sonic_line.data_source.data.update(source)
+
+        if self.add_region_line:
+            source = self.results[len(self.upstream_mach) + 1]
+            self._region_line.data_source.data.update(source)
+
+        for source, renderer in zip(
+            self.results[len(self.upstream_mach) + 2:],
+            self._additional_mach_lines
         ):
-            max_theta = max(max_theta, source["xs"].max())
             renderer.data_source.data.update(source)
-        # adjust x_range
-        max_theta = round(max_theta + 5 - (max_theta % 5))
-        self.figure.update(x_range=Range1d(0, max_theta))
-
-        # sonic line
-        source = self.results[-4]
-        self.figure.renderers[-2].data_source.data.update(source)
-        idx = self.results[-3]
-        self._ann_arrows[0].update(
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] + self._ann_arrow_length
-        )
-        self._ann_arrows[1].update(
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] - self._ann_arrow_length
-        )
-        self._ann_labels[0].source.data.update({
-            "xs": [source["xs"][idx], source["xs"][idx]],
-            "ys": [
-                source["ys"][idx] + self._ann_label_offset,
-                source["ys"][idx] - self._ann_label_offset,
-            ]
-        })
-
-        # region line
-        source = self.results[-2]
-        self.figure.renderers[-1].data_source.data.update(source)
-        idx = self.results[-1]
-        self._ann_arrows[2].update(
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] + self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] + self._ann_arrow_length
-        )
-        self._ann_arrows[3].update(
-            x_start=source["xs"][idx],
-            y_start=source["ys"][idx] - self._ann_arrow_start_offset[1],
-            x_end=source["xs"][idx],
-            y_end=source["ys"][idx] - self._ann_arrow_length
-        )
-        self._ann_labels[1].source.data.update({
-            "xs": [source["xs"][idx], source["xs"][idx]],
-            "ys": [
-                source["ys"][idx] + self._ann_label_offset,
-                source["ys"][idx] - self._ann_label_offset,
-            ]
-        })
 
     def __panel__(self):
         return pn.Column(
