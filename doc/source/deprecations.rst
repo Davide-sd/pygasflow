@@ -6,7 +6,7 @@ Deprecations
 This page explains the motivations behind deprecations introduced by a
 particular version of the module.
 
-vFuture
+v1.3.0
 =======
 
 * The following is a list of parameter names used by
