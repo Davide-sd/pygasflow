@@ -219,7 +219,7 @@ def test_print_gas_results(to_dict):
 
 
 @pytest.mark.parametrize("to_dict", [True, False])
-def test_print_gas_results(to_dict):
+def test_print_ideal_gas_results(to_dict):
     res1 = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=to_dict)
     print_ideal_gas_results(res1)
     print_ideal_gas_results(res1, "{:.3f}")
