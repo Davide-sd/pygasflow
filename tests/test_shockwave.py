@@ -664,7 +664,7 @@ def test_pressure_deflection_locus_example_4_10():
     l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
     l2 = l1.new_locus_from_shockwave(theta1, label="2")
 
-    res1 = l1.flow_quantities_after_shockwave(0, p1, T1, None)
+    res1 = l1.flow_quantities_at_locus_origin(p1, T1, None)
     assert np.isclose(res1["M"], 2.8)
     assert np.isclose(res1["T"], 519)
     assert np.isclose(res1["p"], 1)
@@ -673,7 +673,7 @@ def test_pressure_deflection_locus_example_4_10():
     assert np.isclose(res1["T0"], 1332.7919999999997)
     assert np.isnan(res1["rho0"])
 
-    res2 = l1.flow_quantities_after_shockwave(theta1, p1, T1, None)
+    res2 = l2.flow_quantities_at_locus_origin(p1, T1, None)
     assert np.isclose(res2["M"], 2.0585267920301744)
     assert np.isclose(res2["T"], 721.4004347373847)
     assert np.isclose(res2["p"], 2.830893893824571)
@@ -717,9 +717,9 @@ def test_pressure_deflection_locus_intersection_shocks_opposite_families():
     theta_4 = phi - l3.theta_origin
     theta_4p = phi - l2.theta_origin
 
-    res1 = l1.flow_quantities_after_shockwave(0, None, None, None)
-    res2 = l1.flow_quantities_after_shockwave(theta_2, None, None, None)
-    res3 = l1.flow_quantities_after_shockwave(theta_3, None, None, None)
+    res1 = l1.flow_quantities_at_locus_origin(None, None, None)
+    res2 = l2.flow_quantities_at_locus_origin(None, None, None)
+    res3 = l3.flow_quantities_at_locus_origin(None, None, None)
     res4p = l2.flow_quantities_after_shockwave(phi, None, None, None)
     res4 = l3.flow_quantities_after_shockwave(phi, None, None, None)
 

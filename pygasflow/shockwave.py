@@ -1483,6 +1483,82 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         """
         return self._shockwave_at_theta(theta, region)
 
+    def flow_quantities_at_locus_origin(
+        self, p_fs=None, T_fs=None, rho_fs=None
+    ):
+        """Compute the flow quantities at a locus origin, using isentropic
+        relations, which represent a state of the flow. Note that the locus
+        origin corresponds to a situation in which the flow state behind the
+        oblique shock wave is identical to the flow state ahead of it.
+
+        Parameters
+        ----------
+        p_fs : float or None
+            Freestream pressure.
+        T_fs : float or None
+            Freestream temperature.
+        rho_fs : float or None
+            Freestream density.
+
+        Returns
+        -------
+        res : dict
+            Contains the quantities just downstream of the specified shock
+            wave. The following keys will be used:
+
+            * ``"M"``: Mach number downstream of the shock wave.
+            * ``"T"``: Temperature downstream of the shock wave.
+            * ``"p"``: Pressure downstream of the shock wave.
+            * ``"rho"``: Density downstream of the shock wave.
+            * ``"T0"``: Total temperature downstream of the shock wave.
+            * ``"p0"``: Total pressure downstream of the shock wave.
+            * ``"rho0"``: Total density downstream of the shock wave.
+
+        Examples
+        --------
+
+        Consider a simple regular reflection from a solid boundary:
+
+        >>> from pygasflow.shockwave import PressureDeflectionLocus
+        >>> gamma = 1.4
+        >>> M1 = 2.8
+        >>> theta1 = 16  # deg
+        >>> T1 = 519     # °R
+        >>> p1 = 1       # atm
+        >>> l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
+        >>> l2 = l1.new_locus_from_shockwave(theta1, label="2")
+
+        To compute the missing flow quantities in the free stream region:
+
+        >>> region1 = l1.flow_quantities_at_locus_origin(p1, T1, None)
+        >>> region1["M"]
+        2.8
+        >>> region1["T"]
+        519
+        >>> region1["p"]
+        1
+        >>> region1["p0"]
+        np.float64(27.13829555269978)
+        >>> region1["T0"]
+        np.float64(1332.7919999999997)
+
+        To compute the missing flow quantities after the first shock wave:
+
+        >>> region2 = l2.flow_quantities_at_locus_origin(p1, T1, None)
+        >>> region2["M"]
+        np.float64(2.0585267649107384)
+        >>> region2["T"]
+        np.float64(721.4004347373847)
+        >>> region2["p"]
+        np.float64(2.830893893824571)
+        >>> region2["p0"]
+        np.float64(24.26467588950667)
+        >>> region2["T0"]
+        np.float64(1332.7919999999997)
+        """
+        return self.flow_quantities_after_shockwave(
+            self.theta_origin, p_fs, T_fs, rho_fs)
+
     def flow_quantities_after_shockwave(
         self, theta, p_fs=None, T_fs=None, rho_fs=None, region="weak"
     ):
@@ -1520,8 +1596,9 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         Examples
         --------
 
-        This is a simple regular reflection from a solid boundary:
+        Consider a simple regular reflection from a solid boundary:
 
+        >>> from pygasflow.shockwave import PressureDeflectionLocus
         >>> gamma = 1.4
         >>> M1 = 2.8
         >>> theta1 = 16  # deg
@@ -1529,28 +1606,6 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         >>> p1 = 1       # atm
         >>> l1 = PressureDeflectionLocus(M=M1, gamma=gamma, label="1")
         >>> l2 = l1.new_locus_from_shockwave(theta1, label="2")
-
-        To compute the missing flow quantities in the free stream region,
-        one could use the isentropic relations. However, this function already
-        implementes the procedure: just select `theta=0`, which corresponds to
-        a situation in which the flow state behind the oblique shock wave is
-        identical to the flow state ahead of it:
-
-        >>> region1 = l1.flow_quantities_after_shockwave(0, p1, T1, None)
-        >>> region1["M"]
-        2.8
-        >>> region1["T"]
-        519
-        >>> region1["p"]
-        1
-        >>> region1["p0"]
-        np.float64(27.13829555269978)
-        >>> region1["T0"]
-        np.float64(1332.7919999999997)
-
-        To compute the quantities downstream of the first shock wave:
-
-        >>> region2 = l1.flow_quantities_after_shockwave(theta1, p1, T1, None)
 
         To compute quantities downstream of the second shock wave:
 
