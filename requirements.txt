@@ -5,3 +5,4 @@ pandas
 cantera
 pandas
 panel
+colorcet

@@ -50,6 +50,7 @@ setup(
         "pandas",
         "bokeh",
         "panel",
+        "colorcet",
         # "cantera"
     ]
 )
