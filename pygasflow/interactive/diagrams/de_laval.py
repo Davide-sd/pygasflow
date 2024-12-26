@@ -1,7 +1,6 @@
 from bokeh.models import (
     Range1d, HoverTool, LinearAxis,
 )
-import numpy as np
 import param
 import panel as pn
 from pygasflow.nozzles import CD_TOP_Nozzle

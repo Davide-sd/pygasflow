@@ -5,22 +5,14 @@ from bokeh.core.property.vectorization import Value
 from bokeh.models import (
     HoverTool,
     Range1d,
-    VeeHead,
-    Arrow,
-    LabelSet,
-    ColumnDataSource,
-    Line,
-    Patch,
     GlyphRenderer,
 )
 import itertools
 from pygasflow.interactive.diagrams.flow_base import (
     CommonParameters,
     BasePlot,
-    BasePlot
 )
 from numbers import Number
-import numpy as np
 import panel as pn
 import param
 

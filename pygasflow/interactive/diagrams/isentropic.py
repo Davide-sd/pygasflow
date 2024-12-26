@@ -1,6 +1,5 @@
 from bokeh.models import HoverTool, Range1d, LinearAxis
 import itertools
-import numpy as np
 import param
 from pygasflow.interactive.diagrams.flow_base import FlowCommon
 from pygasflow.solvers import isentropic_solver

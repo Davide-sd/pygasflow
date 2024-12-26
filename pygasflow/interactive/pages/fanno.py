@@ -1,5 +1,4 @@
 import param
-import panel as pn
 from pygasflow.solvers import fanno_solver
 from pygasflow.interactive.diagrams import FannoDiagram
 from pygasflow.interactive.pages.base import (
@@ -57,7 +56,7 @@ class FannoPage(FlowPage):
             "Critical Friction parameter 4fL*/D (subsonic case)": "friction_sub",
             "Critical Friction parameter 4fL*/D (supersonic case)": "friction_super",
             "Entropy parameter (s*-s)/R (subsonic case)": "entropy_sub",
-            "Entropy parameter (s*-s)/R (subsonic case)": "entropy_super"
+            "Entropy parameter (s*-s)/R (supersonic case)": "entropy_super"
         },
         doc="The input parameter to be used in the fanno computation."
     )

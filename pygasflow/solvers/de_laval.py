@@ -3,8 +3,6 @@ import pandas as pd
 import param
 from numbers import Number
 from scipy.optimize import bisect
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 import pygasflow.shockwave as shockwave
 from pygasflow.isentropic import (
@@ -337,7 +335,6 @@ class De_Laval_Solver(param.Parameterized):
         # quantities and find if and where a shockwave is present
 
         Lc = self.nozzle.length_convergent
-        Ld = self.nozzle.length_divergent
 
         # copy the arrays: we do not want to modify the original nozzle in
         # case of shock wave at the exit plane
@@ -634,7 +631,7 @@ class De_Laval_Solver(param.Parameterized):
     def _update_flow_condition(self):
         r1, r2, r3 = self.limit_pressure_ratios
 
-        if self.Pb_P0_ratio == None:
+        if self.Pb_P0_ratio is None:
             fc = "Undefined"
         if np.isclose(self.Pb_P0_ratio, 1):
             fc = "No flow"

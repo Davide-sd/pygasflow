@@ -5,8 +5,6 @@ import panel as pn
 from io import StringIO
 from itertools import product
 from bokeh.models.widgets.tables import NumberFormatter
-from pygasflow.interactive.diagrams.flow_base import BasePlot
-from pygasflow.shockwave import max_theta_from_mach
 
 
 pn.extension()
@@ -383,7 +381,6 @@ class ShockSection(BaseSection):
                     )
                     results[current_key_1] = v1
                     results[current_key_2] = v2
-                    error_msg = "%s" % err
                     info.append("ValueError: %s" % err)
 
                 results["gamma"] = g * np.ones_like(results["mu"])

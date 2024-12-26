@@ -1,5 +1,4 @@
 import param
-import panel as pn
 from pygasflow.solvers import normal_shockwave_solver
 from pygasflow.interactive.diagrams import NormalShockDiagram
 from pygasflow.interactive.pages.base import (

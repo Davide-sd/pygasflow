@@ -1,4 +1,3 @@
-from bokeh.models import HoverTool
 import numpy as np
 from pygasflow.interactive.diagrams.shock_base import ShockCommon
 from pygasflow.shockwave import (

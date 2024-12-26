@@ -290,7 +290,8 @@ def min_length_supersonic_nozzle_moc(ht, n, Me=None, A_ratio=None, gamma=1.4):
             y[j + 1] = left_runn_chars[j]["y"][i - j]
 
         # add the point of the current left-running characteristic
-        if i == 0: j = -1
+        if i == 0:
+            j = -1
         x[j+2:] = left_runn_chars[i]["x"]
         y[j+2:] = left_runn_chars[i]["y"]
 

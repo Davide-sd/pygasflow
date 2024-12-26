@@ -17,12 +17,10 @@ from pygasflow.shockwave import (
     mach_cone_angle_from_shock_angle,
     shock_angle_from_mach_cone_angle,
     beta_from_upstream_mach,
-    theta_from_mach_beta,
     mach_beta_from_theta_ratio,
     mach_downstream,
 )
 from pygasflow.utils.common import (
-    convert_to_ndarray,
     ShockResults,
     _should_solver_return_dict,
     _print_results_helper,

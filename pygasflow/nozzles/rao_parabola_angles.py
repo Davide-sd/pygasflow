@@ -205,7 +205,7 @@ class Rao_Parabola_Angles(object):
             angle = kwargs["theta_e"]
             angle_name = "theta_e"
             theta_dict = self._theta_e
-        if angle == None:
+        if angle is None:
             raise ValueError("Either theta_n or theta_e must be given in input.")
 
         # function to compute area ratio given the angle and fractional length

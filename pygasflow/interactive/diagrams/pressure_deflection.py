@@ -1,7 +1,6 @@
 from bokeh.models import (
     ColumnDataSource, Arrow, VeeHead, Label, CustomJS, Circle
 )
-from bokeh.plotting import show as bokeh_show
 import itertools
 import numpy as np
 import panel as pn
@@ -33,7 +32,6 @@ def _compute_arrows_position(x, y, num_arrows=1, dir=1):
     s = s[idx]
 
     arrow_locs = np.linspace(0, 1, num_arrows + 2)[1:-1]
-    arrows = []
     x_start, y_start, x_end, y_end = [], [], [], []
     for loc in arrow_locs:
         n = np.searchsorted(s, s[-1] * loc)

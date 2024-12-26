@@ -1,8 +1,5 @@
 import param
-import pandas as pd
 import panel as pn
-from io import StringIO
-from bokeh.models.widgets.tables import NumberFormatter
 from pygasflow.solvers import De_Laval_Solver
 from pygasflow.nozzles import (
     CD_Conical_Nozzle,
@@ -12,13 +9,9 @@ from pygasflow.nozzles import (
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.interactive.pages.base import (
     BasePage,
-    BaseSection,
-    _get_tab_header_hover_bg
+    BaseSection
 )
-from pygasflow.interactive.diagrams.de_laval import (
-    NozzleDiagram,
-    DeLavalDiagram
-)
+from pygasflow.interactive.diagrams.de_laval import DeLavalDiagram
 
 
 class DeLavalSection(BaseSection):

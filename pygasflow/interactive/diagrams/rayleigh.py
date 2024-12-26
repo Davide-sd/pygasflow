@@ -1,6 +1,5 @@
 from bokeh.models import HoverTool
 import itertools
-import numpy as np
 from pygasflow.interactive.diagrams.flow_base import FlowCommon
 from pygasflow.solvers import rayleigh_solver
 

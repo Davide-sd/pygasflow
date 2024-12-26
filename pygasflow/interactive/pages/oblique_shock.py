@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import panel as pn
 import param
 from pygasflow.interactive.diagrams import ObliqueShockDiagram
@@ -11,7 +9,6 @@ from pygasflow.interactive.pages.base import (
 )
 from pygasflow.shockwave import sonic_point_oblique_shock
 from pygasflow.solvers import shockwave_solver
-from itertools import product
 
 
 class ObliqueShockSection(ShockSection):

@@ -1,5 +1,4 @@
 import numpy as np
-import param
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.nozzles.utils import (
     convergent,

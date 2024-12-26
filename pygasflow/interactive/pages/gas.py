@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import panel as pn
 import param
-from pygasflow.interactive.diagrams import GasDiagram, SonicDiagram
+from pygasflow.interactive.diagrams import GasDiagram
 from pygasflow.interactive.pages.base import (
     BasePage,
     BaseSection,
@@ -181,7 +181,7 @@ class IdealGasSection(BaseSection):
                     "prs": np.nan,
                     "ars": np.nan,
                     "trs": np.nan,
-                    "T": t,
+                    "T": np.nan,
                     "a": np.nan,
                     "gamma": g
                 })
@@ -338,19 +338,6 @@ class GasPage(BasePage, pn.viewable.Viewer):
                 "input_value_4": "1.2259",
                 "input_value_5": "287.05",
             })
-
-    @param.depends(
-        "input_value_1", "input_value_2", "input_temperature",
-        watch=True, on_init=True
-    )
-    def update_gas_section(self):
-        self.sections[0].param.update({
-            "input_parameter_1": self.input_parameter_1[0],
-            "input_parameter_2": self.input_parameter_1[1],
-            "input_value_1": _parse_input_string(self.input_value_1),
-            "input_value_2": _parse_input_string(self.input_value_2),
-            "input_temperature": _parse_input_string(self.input_temperature),
-        })
 
     @param.depends(
         "input_parameter_1", "input_value_1", "input_value_2",

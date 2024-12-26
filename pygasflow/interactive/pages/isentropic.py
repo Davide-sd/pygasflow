@@ -1,5 +1,4 @@
 import param
-import panel as pn
 from pygasflow.solvers import isentropic_solver
 from pygasflow.interactive.diagrams import IsentropicDiagram
 from pygasflow.interactive.pages.base import (

@@ -1,5 +1,4 @@
 import param
-import panel as pn
 from pygasflow.solvers import rayleigh_solver
 from pygasflow.interactive.diagrams import RayleighDiagram
 from pygasflow.interactive.pages.base import (
@@ -61,7 +60,7 @@ class RayleighPage(FlowPage):
             "Critical Total Temperature Ratio T0/T0* (subsonic case)": "total_temperature_sub",
             "Critical Total Temperature Ratio T0/T0* (supersonic case)": "total_temperature_super",
             "Entropy parameter (s*-s)/R (subsonic case)": "entropy_sub",
-            "Entropy parameter (s*-s)/R (subsonic case)": "entropy_super"
+            "Entropy parameter (s*-s)/R (supersonic case)": "entropy_super"
         },
         doc="The input parameter to be used in the rayleigh computation."
     )

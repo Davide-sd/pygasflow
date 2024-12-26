@@ -1,6 +1,6 @@
 import numpy as np
 import param
-from scipy.optimize import bisect, minimize_scalar, fsolve
+from scipy.optimize import bisect, minimize_scalar
 from scipy.integrate import solve_ivp
 
 from pygasflow.utils.common import ret_correct_vals
@@ -649,8 +649,8 @@ def get_upstream_normal_mach_from_ratio(ratioName, ratio, gamma=1.4):
     ratioName = ratioName.lower()
     if ratioName == "mn2":
         warnings.warn(
-            f"Key 'mn2' is deprecated and will be removed in the future."
-            f" Use 'mnd' instead.",
+            "Key 'mn2' is deprecated and will be removed in the future."
+            " Use 'mnd' instead.",
             stacklevel=1
         )
         ratioName="mnd"
@@ -976,7 +976,7 @@ def sonic_point_oblique_shock(M1, gamma=1.4):
             # TODO: figure it out a better way to skip check and to deal with
             # scalar input to functions that requires arrays
             theta_sonic[i] = theta_from_mach_beta(m, beta_sonic[i], gamma)
-        except ValueError as err:
+        except ValueError:
             beta_sonic[i] = np.nan
             theta_sonic[i] = np.nan
 
@@ -1077,14 +1077,6 @@ def mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma=1.4):
         raise ValueError(
             f"`ratio_name` must be one of the following: {allowed_ratios}."
             f" Instead, '{ratio_name}' was received.")
-
-    func_map = {
-        'pressure': pressure_ratio,
-        'temperature': temperature_ratio,
-        'density': density_ratio,
-        'total_pressure': total_pressure_ratio
-    }
-    ratio_func = func_map[ratio_name]
 
     def func(M1, theta, gamma, Mn_target, region):
         beta = beta_from_mach_theta(M1, theta, gamma)[region]

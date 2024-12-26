@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.optimize import bisect
 
 from pygasflow.utils.roots import apply_bisection
 from pygasflow.utils.decorators import check

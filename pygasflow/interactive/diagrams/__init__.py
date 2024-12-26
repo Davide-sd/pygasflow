@@ -1,4 +1,3 @@
-import panel as pn
 from pygasflow.interactive.diagrams.isentropic import IsentropicDiagram
 from pygasflow.interactive.diagrams.fanno import FannoDiagram
 from pygasflow.interactive.diagrams.rayleigh import RayleighDiagram

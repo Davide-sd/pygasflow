@@ -1,5 +1,4 @@
 from bokeh.models import HoverTool, Range1d
-from bokeh.plotting import figure
 import itertools
 import numpy as np
 import panel as pn
