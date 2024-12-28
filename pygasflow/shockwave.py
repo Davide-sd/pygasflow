@@ -142,12 +142,54 @@ def rayleigh_pitot_formula(M1, gamma=1.4):
     out : ndarray
         Ratio Pt2 / P1
 
+    See Also
+    --------
+    m1_from_rayleigh_pitot_pressure_ratio
+
     References
     ----------
 
     "Equations, Tables and Charts for compressible flow", NACA R-1135, 1953
     """
     return ((gamma + 1) * M1**2 / 2)**(gamma / (gamma - 1)) * ((gamma + 1) / (2 * gamma * M1**2 - (gamma - 1)))**(1 / (gamma - 1))
+
+
+def m1_from_rayleigh_pitot_pressure_ratio(ratio, gamma=1.4):
+    """Compute the upstream Mach number of a normal shock wave starting from
+    the pressure ratio Pt2 / P1, where Pt2 is the stagnation pressure behind a
+    normal shock wave and the static pressure ahead of the shock wave.
+
+    Parameters
+    ----------
+    pr : float or array_like
+        Pressure ratio.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    M1 : float or ndarray
+        Upstream Mach number.
+
+    See Also
+    --------
+    rayleigh_pitot_formula
+    """
+    is_scalar = isinstance(ratio, Number)
+    ratio = np.atleast_1d(ratio)
+    ratio_lower_lim = rayleigh_pitot_formula(1, gamma)
+    M1 = np.zeros_like(ratio, dtype=float)
+    M1[ratio < ratio_lower_lim] = np.nan
+
+    def func(Mu, gamma, pr):
+        return rayleigh_pitot_formula(Mu, gamma) - pr
+
+    for i, r in enumerate(ratio):
+        if r >= ratio_lower_lim:
+            M1[i] = bisect(func, a=1, b=100, args=(gamma, r))
+    if is_scalar:
+        return M1[0]
+    return M1
 
 
 @check_shockwave

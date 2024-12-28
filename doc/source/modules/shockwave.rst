@@ -18,6 +18,8 @@ Normal Shock Waves
 
 .. autofunction:: rayleigh_pitot_formula
 
+.. autofunction:: m1_from_rayleigh_pitot_pressure_ratio
+
 .. autofunction:: entropy_difference
 
 .. autofunction:: mach_downstream

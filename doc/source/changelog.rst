@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+vFuture
+=======
+
+* added :func:`~pygasflow.shockwave.m1_from_rayleigh_pitot_pressure_ratio`.
+
+
 v1.3.0
 ======
 

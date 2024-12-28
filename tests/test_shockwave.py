@@ -17,6 +17,7 @@ from pygasflow.shockwave import (
     sonic_point_oblique_shock,
     theta_from_mach_beta,
     mach_beta_from_theta_ratio,
+    m1_from_rayleigh_pitot_pressure_ratio,
 )
 from pygasflow.solvers.shockwave import oblique_shockwave_solver as ss
 from tempfile import TemporaryDirectory
@@ -1280,3 +1281,14 @@ class Test_mach_beta_from_theta_ratio:
         assert np.isclose(res1[ratio_map[ratio_name]], ratio_val)
         assert np.isclose(res2[ratio_map[ratio_name]], ratio_val)
 
+
+@pytest.mark.parametrize("pr, gamma, expected_mach", [
+    (1.89293, 1.4, 1),
+    (1.77157, 1.2, 1),
+    (3.05, 1.4, 1.4002184324045146),
+    (21.07, 1.4, 4.000186364255953),
+    ([1.89293, 3.05, 21.07], 1.4, [1, 1.4002184324045146, 4.000186364255953])
+])
+def test_m1_from_rayleigh_pitot_pressure_ratio(pr, gamma, expected_mach):
+    m1 = m1_from_rayleigh_pitot_pressure_ratio(pr, gamma)
+    assert np.allclose(m1, expected_mach)
