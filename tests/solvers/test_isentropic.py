@@ -31,7 +31,7 @@ def test_input_mach():
         [0.24192491, 0.05153250],   # Critical Pressure Ratio
         [0.36288736, 0.12024251],   # Critical Density Ratio
         [0.66666666, 0.42857142],   # Critical Temperature Ratio
-        [2.35151015, 2.82810385],   # Critical Velocity Ratio
+        [1.63299316, 1.96396101],   # Critical Velocity Ratio
         [1.68749999, 4.23456790],   # Critical Area Ratio
         [29.9999999, 19.4712206],   # Mach Angle
         [26.3797608, 49.7573467],   # Prandtl-Meyer Angle
@@ -73,7 +73,7 @@ def test_input_parameters_supersonic(param_name, value):
         0.05153250, # Critical Pressure Ratio P/P*
         0.12024251, # Critical Density Ratio rho/rho*
         0.42857142, # Critical Temperature Ratio T/T*
-        2.82810385, # Critical Velocity Ratio U/U*
+        1.96396101, # Critical Velocity Ratio U/U*
         4.23456790, # Critical Area Ratio A/A*
         19.4712206, # Mach Angle
         49.7573467, # Prandtl-Meyer Angle
@@ -103,7 +103,7 @@ def test_input_parameters_subsonic(param_name, value):
         1.59577557, # Critical Pressure Ratio P/P*
         1.39630363, # Critical Density Ratio rho/rho*
         1.14285714, # Critical Temperature Ratio T/T*
-        0.76971237, # Critical Velocity Ratio U/U*
+        0.5345224838248488, # Critical Velocity Ratio U/U*
         1.33984375, # Critical Area Ratio A/A*
         np.nan, # Mach Angle
         np.nan, # Prandtl-Meyer Angle

@@ -108,7 +108,7 @@ def test_raise_error_isentropic():
     # the function and either produce errors or produce random junk results
     func(TypeError, ise.critical_velocity_ratio, -1, nocheck=True)  # int is not subscriptable
     func(TypeError, ise.critical_velocity_ratio, 2, gamma=0.9, nocheck=True)  # int is not subscriptable
-    assert np.all(ise.critical_velocity_ratio.__no_check__([2, 3, -1]) - np.asarray([2, 2, 2]) == 0)
+    assert np.all(ise.critical_velocity_ratio.__no_check__([2, 3, -1]) - np.asarray([1, 1, 1]) == 0)
 
 
 def test_raise_error_fanno():
