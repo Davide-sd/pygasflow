@@ -1,10 +1,11 @@
 Changelog
 ---------
 
-vFuture
+v1.3.1
 =======
 
 * added :func:`~pygasflow.shockwave.m1_from_rayleigh_pitot_pressure_ratio`.
+* fixed wrong formula of :func:`~pygasflow.isentropic.critical_velocity_ratio`.
 
 
 v1.3.0
