@@ -34,11 +34,7 @@ def critical_velocity_ratio(M, gamma=1.4):
     out : ndarray
         Critical velocity ratio U/U*.
     """
-    # need to deal with division by 0
-    ratio = np.zeros_like(M)
-    idx = M != 0
-    ratio[idx] = 1 / ((2 / (gamma + 1))**(1 / (gamma - 1)) / M[idx] * (1 + (gamma - 1) / 2 * M[idx]**2)**0.5)
-    return ratio
+    return M * ((gamma + 1) / (2 + (gamma - 1) * M**2)) ** 0.5
 
 
 @check
