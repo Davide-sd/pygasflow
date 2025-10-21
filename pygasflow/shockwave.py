@@ -3,7 +3,7 @@ import param
 from scipy.optimize import bisect, minimize_scalar
 from scipy.integrate import solve_ivp
 
-from pygasflow.utils.common import ret_correct_vals
+from pygasflow.utils.common import ret_correct_vals, _is_scalar, _is_pint_quantity
 from pygasflow.utils.roots import apply_bisection
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.utils.decorators import check_shockwave, check, deprecated
@@ -175,7 +175,7 @@ def m1_from_rayleigh_pitot_pressure_ratio(ratio, gamma=1.4):
     --------
     rayleigh_pitot_formula
     """
-    is_scalar = isinstance(ratio, Number)
+    is_scalar = _is_scalar(ratio)
     ratio = np.atleast_1d(ratio)
     ratio_lower_lim = rayleigh_pitot_formula(1, gamma)
     M1 = np.zeros_like(ratio, dtype=float)
@@ -190,6 +190,53 @@ def m1_from_rayleigh_pitot_pressure_ratio(ratio, gamma=1.4):
     if is_scalar:
         return M1[0]
     return M1
+
+
+def shock_compression(pr=None, dr=None, gamma=1.4):
+    """Solve the Hugoniot equation for a calorically perfect gas in order to
+    compute either the pressure ratio P2/P1 or the density ratio rho2/rho1
+    across the schock wave.
+
+    Parameters
+    ----------
+    pr : None, float or array_like
+        Pressure ration P2/P1 across the shock wave. If None, ``dr`` must be
+        provided instead.
+    dr : None, float or array_like
+        Density ration rho2/rho1 across the shock wave. If None, ``pr`` must be
+        provided instead.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+
+    Returns
+    -------
+    pr : float or ndarray
+        Pressure ratio p2/p1 across the shock wave.
+    dr : float or ndarray
+        Density ratio rho2/rho1 across the shock wave.
+
+    References
+    ----------
+    Anderson's, last equation of section 3.7.
+    """
+    a = (gamma + 1) / (gamma - 1)
+    if pr is not None:
+        is_scalar = isinstance(pr, Number)
+        pr = np.atleast_1d(pr)
+        v1_v2 = (pr * a + 1) / (pr + a)
+        dr = v1_v2
+    elif dr is not None:
+        is_scalar = isinstance(dr, Number)
+        dr = np.atleast_1d(dr)
+        v1_v2 = dr
+        pr = (a * v1_v2 - 1) / (a - v1_v2)
+        pr[a <= v1_v2] = np.nan
+    else:
+        raise ValueError("Either `pr` or `dr` must be numerical values.")
+
+    if is_scalar:
+        return pr[0], dr[0]
+    return pr, dr
 
 
 @check_shockwave
@@ -397,7 +444,11 @@ def theta_from_mach_beta(M1, beta, gamma=1.4):
         returned and a warning message will be raised.
     """
     M1 = np.atleast_1d(M1)
+    is_pint = _is_pint_quantity(beta)
+    if is_pint:
+        beta = beta.to("deg").magnitude
     beta = np.deg2rad(beta)
+
     # it must be len(beta)=len(theta) for indexing
     if isinstance(beta, Number):
         beta *= np.ones_like(M1)
@@ -422,7 +473,7 @@ def theta_from_mach_beta(M1, beta, gamma=1.4):
             "WARNING: detachment detected in at least one element of"
             " the flow turning angle theta array. Be careful!")
 
-    return ret_correct_vals(np.rad2deg(theta))
+    return ret_correct_vals(np.rad2deg(theta), "deg" if is_pint else None)
 
 
 @check_shockwave
@@ -448,6 +499,9 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
     # Exact and Approximate Solutions to the Oblique Shock Equations for
     # Real-Time Applications, T.T. Hartley, R. Brandis, and F. Mossayebi, 1991
 
+    is_pint = _is_pint_quantity(theta)
+    if is_pint:
+        theta = theta.to("deg").magnitude
     theta = np.deg2rad(theta)
 
     # equations 3, 4, 5
@@ -508,8 +562,9 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
             beta_weak[i], beta_strong[i] = func(Q[i], R[i], _d, b[i])
         # idx = M1 == 1
         # beta_weak[idx], beta_strong[idx] = 90, 90
-    beta_weak = ret_correct_vals(np.rad2deg(beta_weak))
-    beta_strong = ret_correct_vals(np.rad2deg(beta_strong))
+    units = "deg" if is_pint else None
+    beta_weak = ret_correct_vals(np.rad2deg(beta_weak), units)
+    beta_strong = ret_correct_vals(np.rad2deg(beta_strong), units)
     return { "weak": beta_weak, "strong": beta_strong }
 
 
@@ -550,10 +605,14 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
 
     if beta is not None:
+        if _is_pint_quantity(beta):
+            beta = beta.to("deg").magnitude
         beta = np.deg2rad(beta)
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
         tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
     elif theta is not None:
+        if _is_pint_quantity(theta):
+            theta = theta.to("deg").magnitude
         beta = beta_from_mach_theta(M1, theta, gamma=gamma)
         beta = np.deg2rad(beta[flag])
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
@@ -640,9 +699,13 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
 
     MN1 = -1
     if beta is not None:
+        if _is_pint_quantity(beta):
+            beta = beta.to("deg").magnitude
         beta = np.deg2rad(beta)
         MN1 = M1 * np.sin(beta)
     elif theta is not None:
+        if _is_pint_quantity(theta):
+            theta = theta.to("deg").magnitude
         # check for detachment (when theta > theta_max(M1))
         theta_max = max_theta_from_mach(M1, gamma)
         if np.any(theta > theta_max):
@@ -1064,6 +1127,12 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
         " parameters:\n" +
         "beta = {}\n".format(beta) +
         "theta = {}\n".format(theta))
+
+    if _is_pint_quantity(beta):
+        beta = beta.to("deg").magnitude
+    if _is_pint_quantity(theta):
+        theta = theta.to("deg").magnitude
+
     # case beta == 90 and theta == 0, from which M = 1
     idx0 = np.bitwise_and(beta == 90, theta == 0)
     # if beta == 0 and theta == 0, mach goes to infinity. But num and den both
@@ -1120,6 +1189,14 @@ def mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma=1.4):
             f"`ratio_name` must be one of the following: {allowed_ratios}."
             f" Instead, '{ratio_name}' was received.")
 
+    # NOTE: for bisection I need theta to be a regular number. But if
+    # pint is used to create theta, then I'd like beta to be returned
+    # with units as well
+    theta_original = theta
+    if _is_pint_quantity(theta):
+        theta_original = theta.to("deg")
+        theta = theta_original.magnitude
+
     def func(M1, theta, gamma, Mn_target, region):
         beta = beta_from_mach_theta(M1, theta, gamma)[region]
         Mn1 = M1 * np.sin(np.deg2rad(beta))
@@ -1155,8 +1232,8 @@ def mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma=1.4):
         # weak solution.
         M_r1 = bisect(func, a=a, b=b, args=(theta, gamma, Mn1, "strong"))
         M_r2 = bisect(func, a=a, b=b, args=(theta, gamma, Mn1, "weak"))
-        beta1 = beta_from_mach_theta(M_r1, theta, gamma)["strong"]
-        beta2 = beta_from_mach_theta(M_r2, theta, gamma)["weak"]
+        beta1 = beta_from_mach_theta(M_r1, theta_original, gamma)["strong"]
+        beta2 = beta_from_mach_theta(M_r2, theta_original, gamma)["weak"]
     else:
         # there should be two weak solutions
         # TODO: if func(a, theta, gamma, Mn1, "strong") == 0 there are two
@@ -1170,8 +1247,8 @@ def mach_beta_from_theta_ratio(theta, ratio_name, ratio_value, gamma=1.4):
             _min = _min.x
             M_r1 = bisect(func, a=a, b=_min, args=(theta, gamma, Mn1, "weak"))
             M_r2 = bisect(func, a=_min, b=b, args=(theta, gamma, Mn1, "weak"))
-            beta1 = beta_from_mach_theta(M_r1, theta, gamma)["weak"]
-            beta2 = beta_from_mach_theta(M_r2, theta, gamma)["weak"]
+            beta1 = beta_from_mach_theta(M_r1, theta_original, gamma)["weak"]
+            beta2 = beta_from_mach_theta(M_r2, theta_original, gamma)["weak"]
         except ValueError:
             # assume there is no solution
             raise ValueError(
@@ -2297,6 +2374,13 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
     # Section 4). The 'ish' part indicates that this function only solve the
     # first part of step 3. The other part is left for other functions.
 
+    is_pint = _is_pint_quantity(beta)
+    deg_units = None
+    if is_pint:
+        beta = beta.to("deg")
+        deg_units = beta.units
+        beta = beta.magnitude
+
     # Step 1. Compute M2 and theta (delta, in the book), just behind the shock.
     # delta = flow deflection angle
     delta = theta_from_mach_beta.__no_check__(M, beta, gamma)
@@ -2350,6 +2434,9 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
 
     # the cone angle is the angle where V_theta = 0.
     theta_c = np.rad2deg(result.t[-1])
+    if is_pint:
+        theta_c *= deg_units
+
     # at the cone surface, V_theta = 0, therefore V = V_r
     Vc = result.y[0, -1]
     # Mach number at the cone surface
@@ -2388,6 +2475,10 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     if theta_c < 0:
         raise ValueError("The half-cone angle must be > 0.")
 
+    is_pint = _is_pint_quantity(theta_c)
+    if is_pint:
+        theta_c = theta_c.to("deg").magnitude
+
     def function(M):
         # find the theta_c_max associated to the given Mach number in order to
         # chose the correct bisection interval for 'weak' or 'strong' solution.
@@ -2419,7 +2510,8 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
     Mc = np.zeros_like(M1)
     for i, m in enumerate(M1):
         Mc[i], theta_c_comp[i], beta[i] = function(m)
-    return ret_correct_vals(Mc), ret_correct_vals(theta_c_comp), ret_correct_vals(beta)
+    units = "deg" if is_pint else None
+    return ret_correct_vals(Mc), ret_correct_vals(theta_c_comp, units), ret_correct_vals(beta, units)
 
 
 @check_shockwave

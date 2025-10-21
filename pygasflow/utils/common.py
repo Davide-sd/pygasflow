@@ -2,6 +2,7 @@ import numpy as np
 from packaging import version
 import warnings
 import pygasflow
+from numbers import Number
 curr_numpy_ver = version.parse(np.__version__)
 np_2_0_0 = version.parse("2.0.0")
 
@@ -13,9 +14,10 @@ def convert_to_ndarray(x):
     1 dimensional.
     """
     if not isinstance(x, np.ndarray):
+        units = x.units if _is_pint_quantity(x) else 1
         if curr_numpy_ver >= np_2_0_0:
-            return np.atleast_1d(np.asarray(x, dtype=np.float64))
-        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64))
+            return np.atleast_1d(np.asarray(x, dtype=np.float64)) * units
+        return np.atleast_1d(np.array(x, copy=False, dtype=np.float64)) * units
     if x.ndim == 0:
         if curr_numpy_ver >= np_2_0_0:
             return np.atleast_1d(np.asarray(x, dtype=np.float64))
@@ -27,39 +29,105 @@ def convert_to_ndarray(x):
     return x
 
 
-def ret_correct_vals(x):
-    """ Many functions implemented in this package requires their input
+def ret_correct_vals(x, units=None):
+    """
+    Many functions implemented in this package requires their input
     arguments to be Numpy arrays, hence a few decorators take care of the
     conversion before applying the function.
     However, If I pass a scalar value to a function, I would like it to return
     a scalar value, and not a Numpy one-dimensional or zero-dimensional array.
     These function extract the scalar array from a 0-D or 1-D Numpy array.
+
+    Parameters
+    ==========
+    x :
+        The numerical values.
+    unit : str or None
+        If ``pint`` is installed, ``unit`` can be a string representing the
+        unit to be applied to ``x``.
     """
-    if isinstance(x, tuple):
+    if units is None:
+        units = 1
+    else:
+        ureg = pygasflow.defaults.pint_ureg
+        if ureg is None:
+            raise ValueError(
+                "A `pint.Quantity was detected. However,"
+                " the module doesn't know how to construct new quantities"
+                " because no unit registry was set. Please, set the following"
+                " attribute to the appropriate instance of `pint.UnitRegistry`:"
+                " `pygasflow.defaults.pint_ureg`"
+            )
+        if units == "deg":
+            units = ureg.deg
+
+    if isinstance(x, FlowResultsList):
         # Many functions return a tuple of elements. If I give in input a single
         # mach number, it may happens that the function return a tuple of 1-D
         # Numpy arrays. But I want a tuple of numbers. Hence, the following lines
         # of code extract the values from the 1-D array and return a modified
         # tuple of elements.
-        new_x = []
-        for e in x:
-            new_x.append(ret_correct_vals(e))
-        return new_x
-    elif isinstance(x, ShockResults):
+        for i, v in enumerate(x):
+            x[i] = ret_correct_vals(v)
+        return x
+    elif isinstance(x, tuple):
+        return [ret_correct_vals(v) for v in x]
+    elif isinstance(x, FlowResultsDict):
         for k in x:
             x[k] = ret_correct_vals(x[k])
+        return x
     elif isinstance(x, dict):
         # Many functions may return a dictionary of elements. Each value may
         # be a 1-D one-element array. If that's the case, extract that number.
-        x = {k: ret_correct_vals(v) for k, v in x.items()}
-    if isinstance(x, np.ndarray) and (x.ndim == 1) and (x.size == 1):
-        return x[0]
-    elif isinstance(x, np.ndarray) and (x.ndim == 0):
-        return x[()]
+        for k, v in x.items():
+            x[k] = ret_correct_vals(v)
+    if isinstance(x, np.ndarray) or _is_pint_quantity(x):
+        if (x.ndim == 1) and (x.size == 1):
+            return x[0] * units
+        elif (x.ndim == 0):
+            return x[()] * units
+        else:
+            return x * units
     return x
 
 
-class ShockResults(dict):
+class _ShowMixin:
+    def show(self):
+        if self.printer is None:
+            raise ValueError(
+                "Cannot show the results because `printer` was not"
+                " assigned at initialization."
+            )
+        self.printer(self)
+
+
+class FlowResultsList(list, _ShowMixin):
+    """
+    This class implements a list with a `show()` method,
+    which renders a nice table of results. This allow users to
+    avoid calling `print_<flow_type>_results()`, which is combersome.
+    """
+    def __init__(self, iterable=(), printer=None):
+        self.printer = printer
+        super().__init__(iterable)
+
+
+ShockResultsList = FlowResultsList
+
+
+class FlowResultsDict(dict, _ShowMixin):
+    """
+    This class implements a dictionary with a `show()` method,
+    which renders a nice table of results. This allow users to
+    avoid calling `print_<flow_type>_results()`, which is combersome.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.printer = kwargs.pop("printer", None)
+        super().__init__(*args, **kwargs)
+
+
+class ShockResults(FlowResultsDict):
     """This class implements the deprecation of old keys for the results
     of pygasflow.solvers.shockwave_solver and
     pygasflow.solvers.conical_shockwave_solver.
@@ -136,20 +204,78 @@ def _print_results_helper(
             " They must be the same. You are likely using a wrong printing"
             " function for the solver that produced `data`."
         )
+
+    if isinstance(data, dict):
+        keys = list(data.keys())
+        data = data.values()
+        key_formatter = "{:8}"
+        key_label = "key"
+    else:
+        keys = list(range(len(data)))
+        key_formatter = "{:<6}"
+        key_label = "idx"
+
     if number_formatter is None:
         number_formatter = pygasflow.defaults.print_number_formatter
     if label_formatter is None:
         label_formatter = "{:12}"
 
-    data = list(data)
-    if hasattr(data[0], "__iter__"):
-        for l, d in zip(labels, data):
-            s = label_formatter.format(l)
-            s += "".join([number_formatter.format(n) for n in d])
-            print(s)
-    else:
-        s = label_formatter + number_formatter
-        for l, d in zip(labels, data):
-            print(s.format(l, d))
+    # header line
+    header = (
+        key_formatter.format(key_label) +
+        label_formatter.format("quantity")
+    )
+    print(header)
+    print("-" * len(header))
+
+    for k, l, d in zip(keys, labels, data):
+        if _is_pint_quantity(d):
+            mag = d.magnitude
+            unit = f"{d.units:~}"  # short notation (e.g., deg, m/s)
+            label_with_unit = f"{l} [{unit}]"
+        else:
+            mag = d
+            label_with_unit = l
+
+        # Ensure magnitude is an array for unified handling
+        mag = np.atleast_1d(mag)
+        # Format each numerical element
+        formatted_numbers = [number_formatter.format(m) for m in mag]
+
+        # Build the line
+        s = (
+            key_formatter.format(k) +
+            label_formatter.format(label_with_unit) +
+            "".join(formatted_numbers)
+        )
+        print(s)
+
     if blank_line:
         print()
+
+
+def _is_pint_quantity(val):
+    try:
+        import pint
+        if isinstance(val, pint.Quantity):
+            return True
+    except ImportError:
+        return False
+
+
+def _is_scalar(val):
+    """Verify if the provided numerical value is scalar or iterable.
+
+    Parameters
+    ==========
+    val : number, list, tuple, array
+
+    Returns
+    =======
+    result : boolean
+    """
+    is_scalar = isinstance(val, Number)
+    if not is_scalar:
+        if _is_pint_quantity(val):
+            is_scalar = isinstance(val.magnitude, Number)
+    return is_scalar

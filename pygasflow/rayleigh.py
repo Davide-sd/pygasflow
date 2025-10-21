@@ -1,3 +1,7 @@
+"""
+General functions to deal with 1-D flow with heat addition.
+"""
+
 import numpy as np
 
 from pygasflow.utils.roots import apply_bisection
@@ -438,3 +442,23 @@ def get_ratios_from_mach(M, gamma):
     eps = critical_entropy_parameter.__no_check__(M, gamma)
 
     return prs, drs, trs, tprs, ttrs, urs, eps
+
+
+def specific_heat(Cp, T01, T02):
+    """Compute the specific heat per unit mass, q, added or detracted from a
+    the flow.
+
+    Parameters
+    ----------
+    Cp : float or array
+        Specific heat at constant-pressure, [J / (Kg K)].
+    T01, T02 : float or array
+        Total temperatures at two states of the flow.
+
+    Returns
+    -------
+    q : float or array
+        Specific heat per unit mass, [J/ Kg]
+    """
+    q = Cp * (T02 - T01)
+    return q

@@ -16,6 +16,8 @@
 import numpy as np
 from pygasflow.solvers.fanno import fanno_solver, print_fanno_results
 import pytest
+from contextlib import redirect_stdout
+import io
 
 
 @pytest.mark.parametrize("param_name, value", [
@@ -139,8 +141,61 @@ def test_error_for_multiple_gamma():
         fanno_solver("m", [2, 4, 6], gamma=[1.2, 1.3])
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_fanno_results(to_dict):
-    res1 = fanno_solver("m", 4, to_dict=to_dict)
-    print_fanno_results(res1)
-    print_fanno_results(res1, "{:.3f}")
+def test_print_fanno_results_number_formatter():
+    res = fanno_solver("m", 4, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_fanno_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_fanno_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+m       M                4.00000000
+prs     P / P*           0.13363062
+drs     rho / rho*       0.46770717
+trs     T / T*           0.28571429
+tprs    P0 / P0*        10.71875000
+urs     U / U*           2.13808994
+fps     4fL* / D         0.63306493
+eps     (s*-s) / R       2.37199454
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     M                4.00000000
+1     P / P*           0.13363062
+2     rho / rho*       0.46770717
+3     T / T*           0.28571429
+4     P0 / P0*        10.71875000
+5     U / U*           2.13808994
+6     4fL* / D         0.63306493
+7     (s*-s) / R       2.37199454
+"""
+    )
+])
+def test_show_isentropic_results(to_dict, expected):
+    res = fanno_solver("m", 4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

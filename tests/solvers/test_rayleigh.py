@@ -11,6 +11,8 @@
 import numpy as np
 from pygasflow.solvers.rayleigh import rayleigh_solver, print_rayleigh_results
 import pytest
+from contextlib import redirect_stdout
+import io
 
 
 @pytest.mark.parametrize("param_name, value", [
@@ -206,8 +208,61 @@ def test_error_for_multiple_gamma():
         rayleigh_solver("m", [2, 4, 6], gamma=[1.2, 1.3])
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_rayleigh_results(to_dict):
-    res1 = rayleigh_solver("m", 4, to_dict=to_dict)
-    print_rayleigh_results(res1)
-    print_rayleigh_results(res1, "{:.3f}")
+def test_print_rayleigh_results_number_formatter():
+    res = rayleigh_solver("m", 4, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_rayleigh_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_rayleigh_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+m       M                4.00000000
+prs     P / P*           0.10256410
+drs     rho / rho*       0.60937500
+trs     T / T*           0.16831032
+tprs    P0 / P0*         8.22684925
+ttrs    T0 / T0*         0.58908613
+urs     U / U*           1.64102564
+eps     (s*-s) / R       3.95954318
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     M                4.00000000
+1     P / P*           0.10256410
+2     rho / rho*       0.60937500
+3     T / T*           0.16831032
+4     P0 / P0*         8.22684925
+5     T0 / T0*         0.58908613
+6     U / U*           1.64102564
+7     (s*-s) / R       3.95954318
+"""
+    )
+])
+def test_show_rayleigh_results(to_dict, expected):
+    res = rayleigh_solver("m", 4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

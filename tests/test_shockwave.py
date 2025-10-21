@@ -2,6 +2,7 @@
 import numpy as np
 import os
 import pytest
+import pygasflow
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.shockwave import (
     oblique_mach_downstream,
@@ -16,12 +17,24 @@ from pygasflow.shockwave import (
     mach_from_theta_beta,
     sonic_point_oblique_shock,
     theta_from_mach_beta,
+    beta_from_mach_theta,
     mach_beta_from_theta_ratio,
     m1_from_rayleigh_pitot_pressure_ratio,
+    mach_cone_angle_from_shock_angle,
+    shock_angle_from_mach_cone_angle,
 )
 from pygasflow.solvers.shockwave import oblique_shockwave_solver as ss
 from tempfile import TemporaryDirectory
 from numbers import Number
+import pint
+
+ureg = pint.UnitRegistry()
+pygasflow.defaults.pint_ureg = ureg
+dimensionless = ureg.m / ureg.m
+
+
+def test_dimensionless():
+    assert isinstance(dimensionless, ureg.Unit)
 
 
 class Test_oblique_mach_downstream:
@@ -1287,8 +1300,142 @@ class Test_mach_beta_from_theta_ratio:
     (1.77157, 1.2, 1),
     (3.05, 1.4, 1.4002184324045146),
     (21.07, 1.4, 4.000186364255953),
+    (3.4130434782608696 * dimensionless, 1.4, 1.49993881),
     ([1.89293, 3.05, 21.07], 1.4, [1, 1.4002184324045146, 4.000186364255953])
 ])
 def test_m1_from_rayleigh_pitot_pressure_ratio(pr, gamma, expected_mach):
     m1 = m1_from_rayleigh_pitot_pressure_ratio(pr, gamma)
     assert np.allclose(m1, expected_mach)
+    if isinstance(pr, pint.Quantity):
+        assert not isinstance(m1, pint.Quantity)
+
+
+class Test_pint_quantities:
+    """
+    Test that functions are able to deal with pint quantities in
+    a logical and consistent manner.
+    """
+
+    @pytest.mark.parametrize("m1, beta, expected_res", [
+        # no pint quantities -> returns only numbers (they are
+        # meant to be in deg, as per documentation)
+        (5, 15, 4.90753045),
+        ([5, 10], 15, np.array([4.90753045, 10.54044177])),
+        # with pint: input in deg -> output in deg
+        (5, 15 * ureg.deg, 4.90753045 * ureg.deg),
+        ([5, 10], 15 * ureg.deg, np.array([4.90753045, 10.54044177]) * ureg.deg),
+        # with pint: input in radians -> output in deg (as per documentation)
+        (5, 0.2617993877991494 * ureg.radians, 4.90753045 * ureg.deg),
+        ([5, 10], 0.2617993877991494 * ureg.radians, np.array([4.90753045, 10.54044177]) * ureg.deg),
+    ])
+    def test_theta_from_mach_beta(self, m1, beta, expected_res):
+        theta = theta_from_mach_beta(m1, beta)
+        assert np.allclose(theta, expected_res)
+
+    @pytest.mark.parametrize("m1, theta, expected_res", [
+        # no pint quantities -> returns only numbers (they are
+        # meant to be in deg, as per documentation)
+        (5, 15, {"weak": 24.3217078, "strong": 86.07389125}),
+        (
+            [5, 10],
+            15,
+            {
+                'weak': np.array([24.3217078 , 19.94157681]),
+                'strong': np.array([86.07389125, 86.68404438])
+            }
+        ),
+        # with pint: input in deg -> output in deg
+        (5, 15 * ureg.deg, {"weak": 24.3217078 * ureg.deg, "strong": 86.07389125 * ureg.deg}),
+        (
+            [5, 10],
+            15 * ureg.deg,
+            {
+                'weak': np.array([24.3217078 , 19.94157681]) * ureg.deg,
+                'strong': np.array([86.07389125, 86.68404438]) * ureg.deg
+            }
+        ),
+        # with pint: input in radians -> output in deg (as per documentation)
+        (5, 0.2617993877991494 * ureg.radians, {"weak": 24.3217078 * ureg.deg, "strong": 86.07389125 * ureg.deg}),
+        (
+            [5, 10],
+            0.2617993877991494 * ureg.radians,
+            {
+                'weak': np.array([24.3217078 , 19.94157681]) * ureg.deg,
+                'strong': np.array([86.07389125, 86.68404438]) * ureg.deg
+            }
+        ),
+    ])
+    def test_beta_from_mach_theta(self, m1, theta, expected_res):
+        beta = beta_from_mach_theta(m1, theta)
+        assert np.allclose(beta["weak"], expected_res["weak"])
+        assert np.allclose(beta["strong"], expected_res["strong"])
+
+
+    @pytest.mark.parametrize("beta, expected_mach_downstream", [
+        (60, [1.04454822, 1.12256381]),
+        ([60, 30], [1.04454822, 2.36734555]),
+        # pint quantities will be removed
+        (60 * ureg.deg, [1.04454822, 1.12256381]),
+        (np.array([60, 30]) * ureg.deg, [1.04454822, 2.36734555])
+    ])
+    def test_oblique_mach_downstream_input_beta(self, beta, expected_mach_downstream):
+        M1 = [1.5, 3]
+        md = oblique_mach_downstream(M1, beta=beta)
+        assert np.allclose(md, expected_mach_downstream)
+
+    @pytest.mark.parametrize("theta, flag, expected_mach_downstream", [
+        (10, "weak", [2.50500068, 3.99916193]),
+        (10, "strong", [0.48924158, 0.42546429]),
+        ([10, 20], "weak", [2.50500068, 3.02215165]),
+        ([10, 20], "strong", [0.48924158, 0.46018705]),
+        # pint quantities will be removed
+        (10 * ureg.deg, "weak", [2.50500068, 3.99916193]),
+        (10 * ureg.deg, "strong", [0.48924158, 0.42546429]),
+        (np.array([10, 20]) * ureg.deg, "weak", [2.50500068, 3.02215165]),
+        (np.array([10, 20]) * ureg.deg, "strong", [0.48924158, 0.46018705]),
+    ])
+    def test_oblique_mach_downstream_input_theta(self, theta, flag, expected_mach_downstream):
+        M1 = [3, 5]
+        md = oblique_mach_downstream(M1, theta=theta, flag=flag)
+        assert np.allclose(md, expected_mach_downstream)
+
+    @pytest.mark.parametrize(
+        "theta, ratio_name, ratio, gamma, expected_mu, expected_beta", [
+            (
+                20, "pressure", 5.211572502219574, 1.4,
+                [2.1988953952848878, 4.000000000000945],
+                [77.53610314972948, 32.46389685026701],
+            ),
+            (
+                20 * ureg.deg, "pressure", 5.211572502219574, 1.4,
+                [2.1988953952848878, 4.000000000000945],
+                [77.53610314972948 * ureg.deg, 32.46389685026701 * ureg.deg],
+            ),
+    ])
+    def test_mach_beta_from_theta_ratio(self, theta, ratio_name, ratio, gamma, expected_mu, expected_beta):
+        Mu, beta = mach_beta_from_theta_ratio(theta, ratio_name, ratio, gamma)
+        assert np.allclose(Mu, expected_mu)
+        assert np.allclose(beta, expected_beta)
+
+    @pytest.mark.parametrize(
+        "m, beta, expected_mc, expected_theta_c", [
+            (3, 30, 2.2715619341546964, 20.41312851722251),
+            (3, 30 * ureg.deg, 2.2715619341546964, 20.41312851722251 * ureg.deg),
+        ]
+    )
+    def test_mach_cone_angle_from_shock_angle(self, m, beta, expected_mc, expected_theta_c):
+        mc, theta_c = mach_cone_angle_from_shock_angle(m, beta)
+        assert np.isclose(mc, expected_mc)
+        assert np.isclose(theta_c, expected_theta_c)
+
+    @pytest.mark.parametrize(
+        "m1, theta_c, expected_mc, expected_beta", [
+            (3, 30, 1.8309950137099495, 39.78414687581577),
+            (3, 30 * ureg.deg, 1.8309950137099495, 39.78414687581577 * ureg.deg),
+        ]
+    )
+    def test_shock_angle_from_mach_cone_angle(self, m1, theta_c, expected_mc, expected_beta):
+        mc, _, beta = shock_angle_from_mach_cone_angle(m1, theta_c)
+        assert np.isclose(mc, expected_mc)
+        assert np.isclose(beta, expected_beta)
+

@@ -1,5 +1,9 @@
 import numpy as np
-from pygasflow.utils.common import convert_to_ndarray, ret_correct_vals
+from pygasflow.utils.common import (
+    convert_to_ndarray,
+    ret_correct_vals,
+    _is_pint_quantity
+)
 from timeit import default_timer as timer
 from functools import wraps
 import inspect
@@ -95,6 +99,8 @@ def _check_flag_shockwave(flag):
 def _check_angle(angle_name, angle):
     #  some functions can accept an angle with value None!
     if angle is not None:
+        if _is_pint_quantity(angle):
+            angle = angle.to("deg").magnitude
         angle = np.asarray(angle)
         if np.any(angle < 0) or np.any(angle > 90):
             raise ValueError("The {} must be 0 <= {} <= 90.".format(*angle_name))

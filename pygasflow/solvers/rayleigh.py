@@ -4,6 +4,9 @@ from pygasflow.utils.common import (
     ret_correct_vals,
     _should_solver_return_dict,
     _print_results_helper,
+    _is_pint_quantity,
+    FlowResultsDict,
+    FlowResultsList,
 )
 from pygasflow.utils.decorators import check
 from numbers import Number
@@ -144,6 +147,9 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     if not isinstance(gamma, Number):
         raise ValueError("The specific heats ratio must be > 1.")
 
+    if _is_pint_quantity(param_value):
+        param_value = param_value.magnitude
+
     M = None
     if param_name == "m":
         M = param_value
@@ -182,17 +188,21 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     prs, drs, trs, tprs, ttrs, urs, eps = ray.get_ratios_from_mach.__no_check__(M, gamma)
 
     if to_dict:
-        return {
-            "m": M,
-            "prs": prs,
-            "drs": drs,
-            "trs": trs,
-            "tprs": tprs,
-            "ttrs": ttrs,
-            "urs": urs,
-            "eps": eps
-        }
-    return M, prs, drs, trs, tprs, ttrs, urs, eps
+        return FlowResultsDict(
+            m=M,
+            prs=prs,
+            drs=drs,
+            trs=trs,
+            tprs=tprs,
+            ttrs=ttrs,
+            urs=urs,
+            eps=eps,
+            printer=print_rayleigh_results
+        )
+    return FlowResultsList(
+        [M, prs, drs, trs, tprs, ttrs, urs, eps],
+        printer=print_rayleigh_results
+    )
 
 
 def print_rayleigh_results(results, number_formatter=None, blank_line=False):
@@ -210,10 +220,9 @@ def print_rayleigh_results(results, number_formatter=None, blank_line=False):
     --------
     rayleigh_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
     # will process these labels and convert them to Latex, thanks to
     # the substitutions I implemented in doc/conf.py
     labels = ["M", "P / P*", "rho / rho*", "T / T*", "P0 / P0*",
         "T0 / T0*", "U / U*", "(s*-s) / R"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)

@@ -13,6 +13,7 @@ from pygasflow.solvers import (
     sonic_condition,
     De_Laval_Solver
 )
+import warnings
 
 ise = isentropic_solver
 fan = fanno_solver
@@ -30,7 +31,7 @@ from pygasflow.nozzles import (
 import pygasflow.atd
 from pygasflow.common import pressure_coefficient, sound_speed
 
-class defaults(param.Parameterized):
+class _defaults(param.Parameterized):
     """Default options for the module.
     """
     solver_to_dict = param.Boolean(False, doc="""
@@ -40,6 +41,33 @@ class defaults(param.Parameterized):
 
     print_number_formatter = param.String("{:>15.8f}",
         doc="Formatter to be used with number in printing functions.")
+
+    pint_ureg = param.Parameter(default=None, doc="""
+        Pint's ``UnitRegistry`` instance to be used by this module.""")
+
+    @param.depends("pint_ureg", watch=True, on_init=True)
+    def _validate_pint_ureg(self):
+        try:
+            import pint
+            if (
+                (self.pint_ureg is not None)
+                and (not isinstance(self.pint_ureg, pint.UnitRegistry))
+            ):
+                raise TypeError(
+                    "`pint_ureg` must be an instance of `pint.UnitRegistry`."
+                    f" Instead, pint_ureg='{self.pint_ureg}' was received."
+                )
+        except ImportError:
+            warnings.warn(
+                "`pint` is not installed, so the default value for"
+                " `pint_ureg` will be set to `None`.",
+                stacklevel=0
+            )
+            with param.discard_events(self):
+                self.pint_ureg = None
+
+
+defaults = _defaults()
 
 
 __all__ = [

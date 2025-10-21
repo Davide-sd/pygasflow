@@ -8,6 +8,8 @@ from pygasflow.solvers.gas import (
     print_sonic_condition_results,
 )
 import pytest
+from contextlib import redirect_stdout
+import io
 
 
 expected1 = [1.4, 287.05, 1004.6750000000002, 717.6250000000002]
@@ -211,22 +213,157 @@ def test_sonic_condition():
     assert np.allclose(res["trs"][1:], expected_trs)
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_gas_results(to_dict):
-    res1 = gas_solver("gamma", 1.4, "r", 287.05, to_dict=to_dict)
-    print_gas_results(res1)
-    print_gas_results(res1, "{:.3f}")
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+gamma   gamma            1.40000000
+R       R              287.05000000
+Cp      Cp            1004.67500000
+Cv      Cv             717.62500000
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     gamma            1.40000000
+1     R              287.05000000
+2     Cp            1004.67500000
+3     Cv             717.62500000
+"""
+    )
+])
+def test_show_gas_results(to_dict, expected):
+    res = gas_solver("gamma", 1.4, "R", 287.05, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_ideal_gas_results(to_dict):
-    res1 = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=to_dict)
-    print_ideal_gas_results(res1)
-    print_ideal_gas_results(res1, "{:.3f}")
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+p       P           101345.64336000
+rho     rho              1.22590000
+R       R              287.05000000
+T       T              288.00000000
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     P           101345.64336000
+1     rho              1.22590000
+2     R              287.05000000
+3     T              288.00000000
+"""
+    )
+])
+def test_show_ideal_gas_results(to_dict, expected):
+    res = ideal_gas_solver("p", rho=1.2259, R=287.05, T=288, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_sonic_condition_results(to_dict):
-    res1 = sonic_condition(1.4, to_dict=to_dict)
-    print_sonic_condition_results(res1)
-    print_sonic_condition_results(res1, "{:.3f}")
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+drs     rho0/rho*        1.57744097
+prs     P0/P*            1.89292916
+ars     a0/T*            1.09544512
+trs     T0/T*            1.20000000
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     rho0/rho*        1.57744097
+1     P0/P*            1.89292916
+2     a0/T*            1.09544512
+3     T0/T*            1.20000000
+"""
+    )
+])
+def test_show_sonic_condition_results(to_dict, expected):
+    res = sonic_condition(1.4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
+
+
+def test_print_gas_results_number_formatter():
+    res = gas_solver("gamma", 1.4, "r", 287.05, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_gas_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_gas_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+def test_print_ideal_gas_results_number_formatter():
+    res = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_ideal_gas_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_ideal_gas_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+def test_print_sonic_condition_results_number_formatter():
+    res = sonic_condition(1.4, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_sonic_condition_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_sonic_condition_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2

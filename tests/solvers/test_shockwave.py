@@ -16,6 +16,7 @@
 
 import numpy as np
 import pytest
+import pygasflow
 from pygasflow.solvers.shockwave import (
     oblique_shockwave_solver as ss,
     conical_shockwave_solver as css,
@@ -24,6 +25,13 @@ from pygasflow.solvers.shockwave import (
     print_normal_shockwave_results,
     print_oblique_shockwave_results,
 )
+import pint
+from contextlib import redirect_stdout
+import io
+
+
+ureg = pint.UnitRegistry()
+pygasflow.defaults.pint_ureg = ureg
 
 
 class Test_normal_shockwave_solver:
@@ -440,6 +448,27 @@ class Test_oblique_shockwave_solver:
         res = ss(ratio_name, ratio_value, "theta", [10, 20], gamma=1.4)
         assert np.allclose(res, expected_res)
 
+    @pytest.mark.parametrize(
+        "p1_name, p1_value, p2_name, p2_value, expected_beta, expected_theta", [
+        ("mu", 3, "beta", 20, 20, 0.77333743),
+        ("mu", [3, 4], "beta", 20, 20, [0.77333743, 7.44422029]),
+        ("mu", 3, "beta", 20 * ureg.deg, 20 * ureg.deg, 0.77333743 * ureg.deg),
+        ("mu", [3, 4], "beta", 20 * ureg.deg, 20 * ureg.deg, np.array([0.77333743, 7.44422029]) * ureg.deg),
+        ("mu", 3, "theta", 20, 37.76363415, 20),
+        ("mu", [3, 4], "theta", 20, [37.76363415, 32.46389685], 20),
+        ("mu", 3, "theta", 20 * ureg.deg, 37.76363415 * ureg.deg, 20 * ureg.deg),
+        ("mu", [3, 4], "theta", 20 * ureg.deg, np.array([37.76363415, 32.46389685]) * ureg.deg, 20 * ureg.deg),
+        ("beta", 30, "theta", 20, 30, 20),
+        ("beta", 30 * ureg.deg, "theta", 20, 30 * ureg.deg, 20 * ureg.deg),
+        ("beta", 30, "theta", 20 * ureg.deg, 30 * ureg.deg, 20 * ureg.deg),
+        ("beta", 30 * ureg.deg, "theta", 20 * ureg.deg, 30 * ureg.deg, 20 * ureg.deg),
+    ])
+    def test_pint(self, p1_name, p1_value, p2_name, p2_value, expected_beta, expected_theta):
+        res = ss(p1_name, p1_value, p2_name, p2_value, gamma=1.4, to_dict=True)
+        assert np.allclose(res["beta"], expected_beta)
+        assert np.allclose(res["theta"], expected_theta)
+
+
 
 class Test_conical_shockwave:
     def setup_method(self, method):
@@ -535,22 +564,189 @@ def test_error_gamma_less_equal_than_one(g):
         css([2.5, 5], "mc", 1.5, gamma=g)
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_normal_shockwave_results(to_dict):
-    res1 = nss("mu", 4, to_dict=to_dict)
-    print_normal_shockwave_results(res1)
-    print_normal_shockwave_results(res1, "{:.3f}")
+def test_print_normal_shockwave_results_number_formatter():
+    res = nss("mu", 4, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_normal_shockwave_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_normal_shockwave_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_oblique_shockwave_results(to_dict):
-    res1 = ss("mu", 4, "theta", 15, to_dict=to_dict)
-    print_oblique_shockwave_results(res1)
-    print_oblique_shockwave_results(res1, "{:.3f}")
+def test_print_oblique_shockwave_results_number_formatter():
+    res = ss("mu", 4, "theta", 15, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_oblique_shockwave_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_oblique_shockwave_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_conical_shockwave_results(to_dict):
-    res1 = css(4, "theta_c", 10, to_dict=to_dict)
-    print_conical_shockwave_results(res1)
-    print_conical_shockwave_results(res1, "{:.3f}")
+def test_print_conical_shockwave_results_number_formatter():
+    res = css(4, "theta_c", 10, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_conical_shockwave_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_conical_shockwave_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+mu      Mu               4.00000000
+md      Md               0.43495884
+pr      pd/pu           18.50000000
+dr      rhod/rhou        4.57142857
+tr      Td/Tu            4.04687500
+tpr     p0d/p0u          0.13875622
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     Mu               4.00000000
+1     Md               0.43495884
+2     pd/pu           18.50000000
+3     rhod/rhou        4.57142857
+4     Td/Tu            4.04687500
+5     p0d/p0u          0.13875622
+"""
+    )
+])
+def test_show_normal_shockwave_results(to_dict, expected):
+    res = nss("mu", 4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+mu      Mu               4.00000000
+mnu     Mnu              1.81987210
+md      Md               2.92900771
+mnd     Mnd              0.61211866
+beta    beta            27.06287693
+theta   theta           15.00000000
+pr      pd/pu            3.69725687
+dr      rhod/rhou        2.39073189
+tr      Td/Tu            1.54649582
+tpr     p0d/p0u          0.80382035
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     Mu               4.00000000
+1     Mnu              1.81987210
+2     Md               2.92900771
+3     Mnd              0.61211866
+4     beta            27.06287693
+5     theta           15.00000000
+6     pd/pu            3.69725687
+7     rhod/rhou        2.39073189
+8     Td/Tu            1.54649582
+9     p0d/p0u          0.80382035
+"""
+    )
+])
+def test_show_oblique_shockwave_results(to_dict, expected):
+    res = ss("mu", 4, "theta", 15, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity    
+--------------------
+mu      Mu               4.00000000
+mc      Mc               3.53055059
+theta_c theta_c         10.00000000
+beta    beta            17.71483846
+delta   delta            4.60288072
+pr      pd/pu            1.56160867
+dr      rhod/rhou        1.37135529
+tr      Td/Tu            1.13873384
+tpr     p0d/p0u          0.99104738
+pc_pu   pc/pu            1.88925415
+rhoc_rhourho_c/rhou       1.57121058
+Tc_Tu   Tc/Tu            1.20241944
+"""
+    ),
+    (
+        False,
+        """idx   quantity    
+------------------
+0     Mu               4.00000000
+1     Mc               3.53055059
+2     theta_c         10.00000000
+3     beta            17.71483846
+4     delta            4.60288072
+5     pd/pu            1.56160867
+6     rhod/rhou        1.37135529
+7     Td/Tu            1.13873384
+8     p0d/p0u          0.99104738
+9     pc/pu            1.88925415
+10    rho_c/rhou       1.57121058
+11    Tc/Tu            1.20241944
+"""
+    )
+])
+def test_show_conical_shockwave_results(to_dict, expected):
+    res = css(4, "theta_c", 10, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

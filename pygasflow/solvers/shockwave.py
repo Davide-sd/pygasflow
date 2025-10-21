@@ -1,6 +1,7 @@
 import numpy as np
 import warnings
 from numbers import Number
+import pygasflow
 from pygasflow.isentropic import (
     pressure_ratio as ise_PR,
     density_ratio as ise_DR,
@@ -22,8 +23,10 @@ from pygasflow.shockwave import (
 )
 from pygasflow.utils.common import (
     ShockResults,
+    ShockResultsList,
     _should_solver_return_dict,
     _print_results_helper,
+    _is_pint_quantity
 )
 from pygasflow.utils.decorators import check_shockwave
 
@@ -221,6 +224,7 @@ def oblique_shockwave_solver(
         raise ValueError("The specific heats ratio must be > 1.")
     beta, theta = None, None
     MN1, M1 = None, None
+    is_pint = False
 
     def _check_name(name):
         # deprecate m1,mn1,m2,mn2
@@ -242,10 +246,16 @@ def oblique_shockwave_solver(
         raise ValueError("p2_value must be a real positive number.")
     if p2_name == 'beta':
         beta = p2_value
+        if _is_pint_quantity(beta):
+            is_pint = True
+            beta = beta.to("deg").magnitude
         if (not np.all(beta >= 0)) or (not np.all(beta <= 90)):
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
     elif p2_name == 'theta':
         theta = p2_value
+        if _is_pint_quantity(theta):
+            is_pint = True
+            theta = theta.to("deg").magnitude
         # TODO: is this condition correct? The 0 and 90 part????
         if np.any(theta < 0) or np.any(theta > 90):
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
@@ -262,6 +272,10 @@ def oblique_shockwave_solver(
             f"p1_name must be either one of {available_p1names}."
             f" Instead, '{p1_name}' was received."
         )
+    if p1_name not in ["beta", "theta"]:
+        if _is_pint_quantity(p1_value):
+            is_pint = True
+            p1_value = p1_value.magnitude
     if p1_name in ['pressure', 'temperature', 'density', 'total_pressure', 'mnd']:
         MN1 = get_upstream_normal_mach_from_ratio.__no_check__(p1_name, p1_value, gamma)
     elif p1_name == "mnu":
@@ -274,6 +288,9 @@ def oblique_shockwave_solver(
         if beta is None:
             raise ValueError("If you provide p1_name='theta', it must be p2_name='beta'.")
         theta = p1_value
+        if _is_pint_quantity(theta):
+            is_pint = True
+            theta = theta.to("deg").magnitude
         if (theta < 0) or (theta > 90):
             raise ValueError("The flow angle theta must be 0 <= theta <= 90.")
         if not isinstance(beta, np.ndarray):
@@ -283,6 +300,9 @@ def oblique_shockwave_solver(
         if theta is None:
             raise ValueError("If you provide p1_name='beta', it must be p2_name='theta'.")
         beta = p1_value
+        if _is_pint_quantity(beta):
+            is_pint = True
+            beta = beta.to("deg").magnitude
         if (beta < 0) or (beta > 90):
             raise ValueError("The shock wave angle must be 0 <= beta <= 90.")
         if not isinstance(theta, np.ndarray):
@@ -292,6 +312,7 @@ def oblique_shockwave_solver(
         # TODO:
         # Is it even possible to solve it knowing only M2, beta or M2, theta?????
         raise NotImplementedError("Solving a shock wave with a given M2 is not yet implemented.")
+
 
     if (M1 is not None) and (MN1 is not None):
         beta = beta_from_upstream_mach.__no_check__(M1, MN1)
@@ -368,6 +389,10 @@ def oblique_shockwave_solver(
     # TODO
     # 1. What if p1_name is M2????
     #
+    if is_pint:
+        deg = pygasflow.defaults.pint_ureg.deg
+        beta *= deg
+        theta *= deg
 
     if to_dict:
         return ShockResults(
@@ -380,9 +405,13 @@ def oblique_shockwave_solver(
             pr=pr,
             dr=dr,
             tr=tr,
-            tpr=tpr
+            tpr=tpr,
+            printer=print_oblique_shockwave_results
         )
-    return M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr
+    return ShockResultsList(
+        [M1, MN1, M2, MN2, beta, theta, pr, dr, tr, tpr],
+        printer=print_oblique_shockwave_results
+    )
 
 
 shockwave_solver = oblique_shockwave_solver
@@ -485,9 +514,14 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
         gamma=gamma, to_dict=to_dict)
     if not to_dict:
         idx_to_exclude = [1, 3, 4, 5]
-        return [r for i, r in enumerate(results) if i not in idx_to_exclude]
+        short_results = ShockResultsList(
+            [r for i, r in enumerate(results) if i not in idx_to_exclude],
+            printer=print_normal_shockwave_results
+        )
+        return short_results
     for k in ["mnu", "mnd", "beta", "theta"]:
         results.pop(k)
+    results.printer = print_normal_shockwave_results
     return results
 
 
@@ -679,9 +713,13 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
             tpr=tpr,
             pc_pu=pc_p1,
             rhoc_rhou=rhoc_rho1,
-            Tc_Tu=Tc_T1
+            Tc_Tu=Tc_T1,
+            printer=print_conical_shockwave_results
         )
-    return Mu, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1
+    return ShockResultsList(
+        [Mu, Mc, theta_c, beta, delta, pr, dr, tr, tpr, pc_p1, rhoc_rho1, Tc_T1],
+        printer=print_conical_shockwave_results
+    )
 
 
 def print_normal_shockwave_results(
@@ -701,9 +739,8 @@ def print_normal_shockwave_results(
     --------
     normal_shockwave_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Md", "pd/pu", "rhod/rhou", "Td/Tu", "p0d/p0u"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
 
 
 def print_oblique_shockwave_results(
@@ -723,10 +760,9 @@ def print_oblique_shockwave_results(
     --------
     oblique_shockwave_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Mnu", "Md", "Mnd", "beta", "theta", "pd/pu",
         "rhod/rhou", "Td/Tu", "p0d/p0u"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
 
 
 def print_conical_shockwave_results(
@@ -746,7 +782,6 @@ def print_conical_shockwave_results(
     --------
     conical_shockwave_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["Mu", "Mc", "theta_c", "beta", "delta", "pd/pu", "rhod/rhou",
         "Td/Tu", "p0d/p0u", "pc/pu", "rho_c/rhou", "Tc/Tu"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)

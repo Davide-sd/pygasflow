@@ -1,9 +1,13 @@
 import numpy as np
+import pygasflow
 import pygasflow.isentropic as ise
 from pygasflow.utils.common import (
     ret_correct_vals,
     _should_solver_return_dict,
     _print_results_helper,
+    _is_pint_quantity,
+    FlowResultsDict,
+    FlowResultsList,
 )
 from pygasflow.utils.decorators import check
 from numbers import Number
@@ -160,6 +164,13 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     if not isinstance(gamma, Number):
         raise ValueError("The specific heats ratio must be > 1.")
 
+    is_pint = _is_pint_quantity(param_value)
+    if is_pint:
+        if param_name in ["mach_angle", "prandtl_meyer"]:
+            param_value = param_value.to("deg").magnitude
+        else:
+            param_value = param_value.magnitude
+
     M = None
     if param_name == "m":
         M = param_value
@@ -186,21 +197,30 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     M = np.atleast_1d(M)
     pr, dr, tr, prs, drs, trs, urs, ar, ma, pm = ise.get_ratios_from_mach.__no_check__(M, gamma)
 
+    if is_pint:
+        deg = pygasflow.defaults.pint_ureg.deg
+        ma *= deg
+        pm *= deg
+
     if to_dict:
-        return {
-            "m": M,
-            "pr": pr,
-            "dr": dr,
-            "tr": tr,
-            "prs": prs,
-            "drs": drs,
-            "trs": trs,
-            "urs": urs,
-            "ars": ar,
-            "ma": ma,
-            "pm": pm
-        }
-    return M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm
+        return FlowResultsDict(
+            m=M,
+            pr=pr,
+            dr=dr,
+            tr=tr,
+            prs=prs,
+            drs=drs,
+            trs=trs,
+            urs=urs,
+            ars=ar,
+            ma=ma,
+            pm=pm,
+            printer=print_isentropic_results
+        )
+    return FlowResultsList(
+        [M, pr, dr, tr, prs, drs, trs, urs, ar, ma, pm],
+        printer=print_isentropic_results
+    )
 
 
 def print_isentropic_results(results, number_formatter=None, blank_line=False):
@@ -218,11 +238,10 @@ def print_isentropic_results(results, number_formatter=None, blank_line=False):
     --------
     isentropic_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
     # will process these labels and convert them to Latex, thanks to
     # the substitutions I implemented in doc/conf.py
     labels = ["M", "P / P0", "rho / rho0", "T / T0",
         "P / P*", "rho / rho*", "T / T*", "U / U*", "A / A*",
         "Mach Angle", "Prandtl-Meyer"]
-    _print_results_helper(data, labels, "{:18}", number_formatter, blank_line)
+    _print_results_helper(results, labels, "{:20}", number_formatter, blank_line)

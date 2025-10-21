@@ -19,6 +19,8 @@ from pygasflow.solvers.isentropic import (
     print_isentropic_results,
 )
 import pytest
+from contextlib import redirect_stdout
+import io
 
 
 def test_input_mach():
@@ -152,8 +154,67 @@ def test_error_for_multiple_gamma():
         ise("m", [2, 4, 6], gamma=[1.2, 1.3])
 
 
-@pytest.mark.parametrize("to_dict", [True, False])
-def test_print_isentropic_results(to_dict):
-    res1 = ise("m", 4, to_dict=to_dict)
-    print_isentropic_results(res1)
-    print_isentropic_results(res1, "{:.3f}")
+def test_print_isentropic_results_number_formatter():
+    res = ise("m", 4, to_dict=True)
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        print_isentropic_results(res)
+    output1 = f1.getvalue()
+
+    f2 = io.StringIO()
+    with redirect_stdout(f2):
+        print_isentropic_results(res, "{:.3f}")
+    output2 = f2.getvalue()
+
+    assert output1 != output2
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True,
+        """key     quantity            
+----------------------------
+m       M                        4.00000000
+pr      P / P0                   0.00658609
+dr      rho / rho0               0.02766157
+tr      T / T0                   0.23809524
+prs     P / P*                   0.01246700
+drs     rho / rho*               0.04363449
+trs     T / T*                   0.28571429
+urs     U / U*                   2.13808994
+ars     A / A*                  10.71875000
+ma      Mach Angle              14.47751219
+pm      Prandtl-Meyer           65.78481980
+"""
+    ),
+    (
+        False,
+        """idx   quantity            
+--------------------------
+0     M                        4.00000000
+1     P / P0                   0.00658609
+2     rho / rho0               0.02766157
+3     T / T0                   0.23809524
+4     P / P*                   0.01246700
+5     rho / rho*               0.04363449
+6     T / T*                   0.28571429
+7     U / U*                   2.13808994
+8     A / A*                  10.71875000
+9     Mach Angle              14.47751219
+10    Prandtl-Meyer           65.78481980
+"""
+    )
+])
+def test_show_isentropic_results(to_dict, expected):
+    res = ise("m", 4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

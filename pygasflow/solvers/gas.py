@@ -7,6 +7,8 @@ from pygasflow.isentropic import (
 from pygasflow.utils.common import (
     _should_solver_return_dict,
     _print_results_helper,
+    FlowResultsDict,
+    FlowResultsList,
 )
 from pygasflow.utils.decorators import check
 
@@ -162,8 +164,14 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
         )
 
     if to_dict:
-        return {"gamma": gamma, "R": r, "Cp": Cp, "Cv": Cv}
-    return gamma, r, Cp, Cv
+        return FlowResultsDict(
+            gamma=gamma,
+            R=r,
+            Cp=Cp,
+            Cv=Cv,
+            printer=print_gas_results
+        )
+    return FlowResultsList([gamma, r, Cp, Cv], printer=print_gas_results)
 
 
 def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=None):
@@ -252,8 +260,14 @@ def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=None):
         T = p / (rho * R)
 
     if to_dict:
-        return {"p": p, "rho": rho, "R": R, "T": T}
-    return p, rho, R, T
+        return FlowResultsDict(
+            p=p,
+            rho=rho,
+            R=R,
+            T=T,
+            printer=print_ideal_gas_results
+        )
+    return FlowResultsList([p, rho, R, T], printer=print_ideal_gas_results)
 
 
 @check([0], skip_gamma_check=True)
@@ -298,8 +312,17 @@ def sonic_condition(gamma=1.4, to_dict=False):
     ars = sonic_sound_speed_ratio.__no_check__(gamma)
     trs = sonic_temperature_ratio.__no_check__(gamma)
     if to_dict:
-        return {"drs": drs, "prs": prs, "ars": ars, "trs": trs}
-    return drs, prs, ars, trs
+        return FlowResultsDict(
+            drs=drs,
+            prs=prs,
+            ars=ars,
+            trs=trs,
+            printer=print_sonic_condition_results
+        )
+    return FlowResultsList(
+        [drs, prs, ars, trs],
+        printer=print_sonic_condition_results
+    )
 
 
 def print_gas_results(results, number_formatter=None, blank_line=False):
@@ -317,9 +340,8 @@ def print_gas_results(results, number_formatter=None, blank_line=False):
     --------
     gas_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["gamma", "R", "Cp", "Cv"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
 
 
 def print_ideal_gas_results(results, number_formatter=None, blank_line=False):
@@ -337,9 +359,8 @@ def print_ideal_gas_results(results, number_formatter=None, blank_line=False):
     --------
     ideal_gas_solver
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["P", "rho", "R", "T"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
 
 
 def print_sonic_condition_results(results, number_formatter=None, blank_line=False):
@@ -357,6 +378,5 @@ def print_sonic_condition_results(results, number_formatter=None, blank_line=Fal
     --------
     sonic_condition
     """
-    data = results.values() if isinstance(results, dict) else results
     labels = ["rho0/rho*", "P0/P*", "a0/T*", "T0/T*"]
-    _print_results_helper(data, labels, None, number_formatter, blank_line)
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
