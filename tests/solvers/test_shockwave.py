@@ -703,20 +703,20 @@ def test_show_oblique_shockwave_results(to_dict, expected):
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-mu      Mu               4.00000000
-mc      Mc               3.53055059
-theta_c theta_c         10.00000000
-beta    beta            17.71483846
-delta   delta            4.60288072
-pr      pd/pu            1.56160867
-dr      rhod/rhou        1.37135529
-tr      Td/Tu            1.13873384
-tpr     p0d/p0u          0.99104738
-pc_pu   pc/pu            1.88925415
-rhoc_rhourho_c/rhou       1.57121058
-Tc_Tu   Tc/Tu            1.20241944
+        """key        quantity    
+-----------------------
+mu         Mu               4.00000000
+mc         Mc               3.53055059
+theta_c    theta_c         10.00000000
+beta       beta            17.71483846
+delta      delta            4.60288072
+pr         pd/pu            1.56160867
+dr         rhod/rhou        1.37135529
+tr         Td/Tu            1.13873384
+tpr        p0d/p0u          0.99104738
+pc_pu      pc/pu            1.88925415
+rhoc_rhou  rho_c/rhou       1.57121058
+Tc_Tu      Tc/Tu            1.20241944
 """
     ),
     (

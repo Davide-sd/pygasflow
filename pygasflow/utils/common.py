@@ -231,8 +231,10 @@ def _print_results_helper(
 
     if isinstance(data, dict):
         keys = list(data.keys())
+        max_length = max(len(k) for k in keys)
+        max_length = max(8, max_length + 2)
         data = data.values()
-        key_formatter = "{:8}"
+        key_formatter = "{:" + str(max_length) + "}"
         key_label = "key"
     else:
         keys = list(range(len(data)))
