@@ -2418,11 +2418,12 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
     # Section 4). The 'ish' part indicates that this function only solve the
     # first part of step 3. The other part is left for other functions.
 
-    import pygasflow
-    deg_units = pygasflow.defaults.pint_ureg.deg
-
     is_pint = _is_pint_quantity(beta)
     beta = _sanitize_angle(beta)
+    deg_units = None
+    if is_pint:
+        import pygasflow
+        deg_units = pygasflow.defaults.pint_ureg.deg
 
     # Step 1. Compute M2 and theta (delta, in the book), just behind the shock.
     # delta = flow deflection angle
