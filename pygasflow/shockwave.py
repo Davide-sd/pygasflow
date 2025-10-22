@@ -3,7 +3,15 @@ import param
 from scipy.optimize import bisect, minimize_scalar
 from scipy.integrate import solve_ivp
 
-from pygasflow.utils.common import ret_correct_vals, _is_scalar, _is_pint_quantity
+import pygasflow
+from pygasflow.utils.common import (
+    ret_correct_vals,
+    _is_scalar,
+    _is_pint_quantity,
+    _sanitize_angle,
+    FlowResultsDict,
+    FlowResultsList,
+)
 from pygasflow.utils.roots import apply_bisection
 from pygasflow.generic import characteristic_mach_number
 from pygasflow.utils.decorators import check_shockwave, check, deprecated
@@ -1453,6 +1461,19 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         # this import is here in order to avoid circular imports
         from pygasflow.solvers import oblique_shockwave_solver
 
+        c1 = _is_pint_quantity(self.theta_origin)
+        c2 = _is_pint_quantity(theta)
+        if (c1 is not c2):
+            raise ValueError(
+                "The current `PressureDeflectionLocus.theta_origin="
+                f"{self.theta_origin}` is " + ("" if c1 else "not ") + "a `pint`"
+                f" quantity, while the provide `theta={theta}`"
+                " is " + ("" if c2 else "not ") + "a `pint` quantity."
+                " This is likely going to introduce unexpected errors."
+                " Consider using `pint` quantities everywhere, or just pass"
+                " in their magnitudes."
+            )
+
         res = oblique_shockwave_solver(
             "mu", self.M, "theta", abs(theta), gamma=self.gamma, to_dict=True)
         return type(self)(
@@ -1479,11 +1500,16 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         watch=True, on_init=True
     )
     def update_func(self):
+        from pygasflow.solvers.shockwave import print_oblique_shockwave_results
         beta_detachment, theta_max = detachment_point_oblique_shock(
             self.M, self.gamma)
 
         def func(theta, region="weak"):
-            actual_theta = abs(self.theta_origin - theta)
+            is_pint = _is_pint_quantity(self.theta_origin) or _is_pint_quantity(theta)
+            theta_origin = _sanitize_angle(self.theta_origin)
+            theta = _sanitize_angle(theta)
+
+            actual_theta = abs(theta_origin - theta)
             beta = beta_from_mach_theta(
                 self.M, actual_theta, self.gamma)[region]
             Mn_up = self.M * np.sin(np.deg2rad(beta))
@@ -1500,8 +1526,12 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             tpr *= self.tpr_to_fs_at_origin
             M_down = Mn_down /  np.sin(np.deg2rad(beta - actual_theta))
 
-            sign = 1 if theta >= self.theta_origin else -1
+            sign = 1 if theta >= theta_origin else -1
             theta_corrected = sign * actual_theta
+
+            if is_pint:
+                theta_corrected *= pygasflow.defaults.pint_ureg.deg
+                beta *= pygasflow.defaults.pint_ureg.deg
 
             keys = [
                 "mu", "mnu", "md", "mnd", "beta", "theta",
@@ -1511,7 +1541,10 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
                 self.M, Mn_up, M_down, Mn_down, beta, theta_corrected,
                 pr, tr, dr, tpr
             ]
-            res = {k: v for k, v in zip(keys, values)}
+            res = FlowResultsDict(
+                **{k: v for k, v in zip(keys, values)},
+                printer=print_oblique_shockwave_results
+            )
             return res
 
         # sonic point
@@ -1760,10 +1793,16 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         # total temperature doesn't change across a shock wave
         T0_d = 1 / ise_temperature_ratio(M_fs, self.gamma) * T_fs
 
-        res = {
-            "M": M_d, "T": T_d, "p": p_d, "rho": rho_d,
-            "T0": T0_d, "p0": p0_d, "rho0": rho0_d
-        }
+        res = FlowResultsDict(
+            M=M_d,
+            T=T_d,
+            p=p_d,
+            rho=rho_d,
+            T0=T0_d,
+            p0=p0_d,
+            rho0=rho0_d,
+            printer=None
+        )
         return res
 
     @staticmethod
@@ -1833,7 +1872,7 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             isinstance(t, (tuple, list))
             and (len(t) == 2)
             and isinstance(t[0], PressureDeflectionLocus)
-            and isinstance(t[1], Number)
+            and (isinstance(t[1], Number) or _is_pint_quantity(t[1]))
             for t in segments
         ):
             raise ValueError(
@@ -1844,8 +1883,12 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             )
         theta_list = []
         pr_list = []
+
         for (pdl, final_theta) in segments:
-            final_theta -= pdl.theta_origin
+            theta_origin = _sanitize_angle(pdl.theta_origin)
+            final_theta = _sanitize_angle(final_theta)
+
+            final_theta -= theta_origin
             theta, pr = pdl.pressure_deflection_segment(final_theta, **kwargs)
             theta_list.append(theta)
             pr_list.append(pr)
@@ -2020,8 +2063,13 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
             theta = np.append(theta, -theta[::-1])
             pr = np.append(pr, pr[::-1])
 
-        theta += self.theta_origin
-        pr *= self.pr_to_fs_at_origin
+        theta_origin = _sanitize_angle(self.theta_origin)
+        pr_to_fs_at_origin = self.pr_to_fs_at_origin
+        if _is_pint_quantity(pr_to_fs_at_origin):
+            pr_to_fs_at_origin = pr_to_fs_at_origin.magnitude
+
+        theta += theta_origin
+        pr *= pr_to_fs_at_origin
 
         return theta, pr
 
@@ -2235,8 +2283,12 @@ class PressureDeflectionLocus(param.Parameterized, _BasePDLocus):
         if is_right_running_wave:
             theta = -theta
 
-        theta += self.theta_origin
-        pr *= self.pr_to_fs_at_origin
+        theta_origin = _sanitize_angle(self.theta_origin)
+        pr_to_fs_at_origin = self.pr_to_fs_at_origin
+        if _is_pint_quantity(pr_to_fs_at_origin):
+            pr_to_fs_at_origin = pr_to_fs_at_origin.magnitude
+        theta += theta_origin
+        pr *= pr_to_fs_at_origin
 
         return theta, pr
 

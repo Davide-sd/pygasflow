@@ -6,6 +6,7 @@ import numpy as np
 import panel as pn
 from pygasflow.interactive.diagrams.flow_base import BasePlot
 from pygasflow.shockwave import PressureDeflectionLocus
+from pygasflow.utils.common import _is_pint_quantity, _sanitize_angle
 
 
 def _compute_arrows_position(x, y, num_arrows=1, dir=1):
@@ -143,6 +144,10 @@ class PressureDeflectionDiagram(BasePlot, pn.viewable.Viewer):
         lbl : :class:`bokeh.models.Label`
         circle_rend : :class:`bokeh.models.GlyphRenderer`
         """
+        theta = _sanitize_angle(theta)
+        if _is_pint_quantity(pr):
+            pr = pr.magnitude
+
         kwargs.setdefault("x_offset", 0)
         kwargs.setdefault("y_offset", 15)
         kwargs.setdefault("text_align", "center")

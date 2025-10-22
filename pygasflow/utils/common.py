@@ -91,13 +91,37 @@ def ret_correct_vals(x, units=None):
     return x
 
 
+def _sanitize_angle(angle):
+    """
+    Extract the appropriate numerical value of the angle.
+
+    NOTE: this step is very important. Turns out that you can
+    convert a pint unitless quantity to degrees, thus introducing
+    weird errors. For example, try `ureg.Quantity(0).to("deg")`
+    """
+    if _is_pint_quantity(angle):
+        if angle.unitless:
+            angle = angle.magnitude
+        else:
+            angle = angle.to("deg").magnitude
+    return angle
+
+
 class _ShowMixin:
+    @staticmethod
+    def _default_printer(results):
+        if isinstance(results, dict):
+            labels = list(results.keys())
+        else:
+            raise NotImplementedError(
+                f"The current `results` is of type {type(results)},"
+                " from which labels cannot be extracted."
+            )
+        _print_results_helper(results, labels)
+
     def show(self):
         if self.printer is None:
-            raise ValueError(
-                "Cannot show the results because `printer` was not"
-                " assigned at initialization."
-            )
+            self.printer = self._default_printer
         self.printer(self)
 
 

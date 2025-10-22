@@ -27,6 +27,9 @@ from pygasflow.solvers.shockwave import oblique_shockwave_solver as ss
 from tempfile import TemporaryDirectory
 from numbers import Number
 import pint
+from contextlib import redirect_stdout
+import io
+
 
 ureg = pint.UnitRegistry()
 pygasflow.defaults.pint_ureg = ureg
@@ -712,6 +715,74 @@ def test_pressure_deflection_locus_example_4_10():
     shock2 = l2.shockwave_at_theta(0, region="weak")
     assert np.isclose(shock2["theta"], -theta1)
     assert np.isclose(shock2["beta"], 45.33424941323747)
+
+
+def test_pressure_deflection_locus_example_4_10_pint():
+    # Example 4.10 from "Modern Compressible Flow, Anderson"
+
+    gamma = 1.4
+    M1 = 2.8
+    theta1 = ureg.Quantity(16, ureg.deg)  # (positive because it creates a left running shock wave)
+    T1 = ureg.Quantity(519, ureg.degR)
+    p1 = ureg.Quantity(1, ureg.atm)
+
+    l1 = PressureDeflectionLocus(
+        M=M1, gamma=gamma, label="1", theta_origin=ureg.Quantity(0, ureg.deg))
+    l2 = l1.new_locus_from_shockwave(theta1, label="2")
+
+    res1 = l1.flow_quantities_at_locus_origin(p1, T1, None)
+    assert np.isclose(res1["M"], 2.8)
+    assert np.isclose(res1["T"].magnitude, 519)
+    assert np.isclose(res1["p"].magnitude, 1)
+    assert np.isnan(res1["rho"])
+    assert np.isclose(res1["p0"].magnitude, 27.13829555269978)
+    assert np.isclose(res1["T0"].magnitude, 1332.7919999999997)
+    assert np.isnan(res1["rho0"])
+
+    f1 = io.StringIO()
+    with redirect_stdout(f1):
+        res1.show()
+    output1 = f1.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output1 == """key     quantity    
+--------------------
+M       M                2.80000000
+T       T [°R]         519.00000000
+p       p [atm]          1.00000000
+rho     rho                     nan
+T0      T0 [°R]       1332.79200000
+p0      p0 [atm]        27.13829555
+rho0    rho0                    nan
+"""
+
+    res2 = l2.flow_quantities_at_locus_origin(p1, T1, None)
+    assert np.isclose(res2["M"], 2.0585267920301744)
+    assert np.isclose(res2["T"].magnitude, 721.4004347373847)
+    assert np.isclose(res2["p"].magnitude, 2.830893893824571)
+    assert np.isnan(res2["rho"])
+    assert np.isclose(res2["p0"].magnitude, 24.264676915994347)
+    assert np.isclose(res2["T0"].magnitude, 1332.7919999999997)
+    assert np.isnan(res2["rho0"])
+
+    res3 = l2.flow_quantities_after_shockwave(0, p1, T1, None)
+    assert np.isclose(res3["M"], 1.457847510395878)
+    assert np.isclose(res3["T"].magnitude, 935.2507108767023)
+    assert np.isclose(res3["p"].magnitude, 6.607497448853544)
+    assert np.isnan(res3["rho"])
+    assert np.isclose(res3["p0"].magnitude, 22.82743737842192)
+    assert np.isclose(res3["T0"].magnitude, 1332.7919999999997)
+    assert np.isnan(res3["rho0"])
+
+    shock1 = l1.shockwave_at_theta(theta1, region="weak")
+    assert np.isclose(shock1["theta"], theta1)
+    assert np.isclose(shock1["beta"].magnitude, 34.9226304011263)
+
+    shock2 = l2.shockwave_at_theta(0, region="weak")
+    assert np.isclose(shock2["theta"], -theta1)
+    assert np.isclose(shock2["beta"].magnitude, 45.33424941323747)
 
 
 def test_pressure_deflection_locus_intersection_shocks_opposite_families():
