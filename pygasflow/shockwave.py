@@ -453,8 +453,7 @@ def theta_from_mach_beta(M1, beta, gamma=1.4):
     """
     M1 = np.atleast_1d(M1)
     is_pint = _is_pint_quantity(beta)
-    if is_pint:
-        beta = beta.to("deg").magnitude
+    beta = _sanitize_angle(beta)
     beta = np.deg2rad(beta)
 
     # it must be len(beta)=len(theta) for indexing
@@ -508,8 +507,7 @@ def beta_from_mach_theta(M1, theta, gamma=1.4):
     # Real-Time Applications, T.T. Hartley, R. Brandis, and F. Mossayebi, 1991
 
     is_pint = _is_pint_quantity(theta)
-    if is_pint:
-        theta = theta.to("deg").magnitude
+    theta = _sanitize_angle(theta)
     theta = np.deg2rad(theta)
 
     # equations 3, 4, 5
@@ -613,14 +611,12 @@ def oblique_mach_downstream(M1, beta=None, theta=None, gamma=1.4, flag='weak'):
         raise ValueError("Flag must be either 'weak' or 'strong' or 'both'.")
 
     if beta is not None:
-        if _is_pint_quantity(beta):
-            beta = beta.to("deg").magnitude
+        beta = _sanitize_angle(beta)
         beta = np.deg2rad(beta)
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
         tpr = total_pressure_ratio(M1 * np.sin(beta), gamma=gamma)
     elif theta is not None:
-        if _is_pint_quantity(theta):
-            theta = theta.to("deg").magnitude
+        theta = _sanitize_angle(theta)
         beta = beta_from_mach_theta(M1, theta, gamma=gamma)
         beta = np.deg2rad(beta[flag])
         pr = pressure_ratio(M1 * np.sin(beta), gamma=gamma)
@@ -707,13 +703,11 @@ def normal_mach_upstream(M1, beta=None, theta=None, gamma=1.4, flag="weak"):
 
     MN1 = -1
     if beta is not None:
-        if _is_pint_quantity(beta):
-            beta = beta.to("deg").magnitude
+        beta = _sanitize_angle(beta)
         beta = np.deg2rad(beta)
         MN1 = M1 * np.sin(beta)
     elif theta is not None:
-        if _is_pint_quantity(theta):
-            theta = theta.to("deg").magnitude
+        theta = _sanitize_angle(theta)
         # check for detachment (when theta > theta_max(M1))
         theta_max = max_theta_from_mach(M1, gamma)
         if np.any(theta > theta_max):
@@ -1136,10 +1130,8 @@ def mach_from_theta_beta(theta, beta, gamma=1.4):
         "beta = {}\n".format(beta) +
         "theta = {}\n".format(theta))
 
-    if _is_pint_quantity(beta):
-        beta = beta.to("deg").magnitude
-    if _is_pint_quantity(theta):
-        theta = theta.to("deg").magnitude
+    beta = _sanitize_angle(beta)
+    theta = _sanitize_angle(theta)
 
     # case beta == 90 and theta == 0, from which M = 1
     idx0 = np.bitwise_and(beta == 90, theta == 0)
@@ -2426,12 +2418,11 @@ def mach_cone_angle_from_shock_angle(M, beta, gamma=1.4):
     # Section 4). The 'ish' part indicates that this function only solve the
     # first part of step 3. The other part is left for other functions.
 
+    import pygasflow
+    deg_units = pygasflow.defaults.pint_ureg.deg
+
     is_pint = _is_pint_quantity(beta)
-    deg_units = None
-    if is_pint:
-        beta = beta.to("deg")
-        deg_units = beta.units
-        beta = beta.magnitude
+    beta = _sanitize_angle(beta)
 
     # Step 1. Compute M2 and theta (delta, in the book), just behind the shock.
     # delta = flow deflection angle
@@ -2528,8 +2519,7 @@ def shock_angle_from_mach_cone_angle(M1, theta_c, gamma=1.4, flag="weak"):
         raise ValueError("The half-cone angle must be > 0.")
 
     is_pint = _is_pint_quantity(theta_c)
-    if is_pint:
-        theta_c = theta_c.to("deg").magnitude
+    theta_c = _sanitize_angle(theta_c)
 
     def function(M):
         # find the theta_c_max associated to the given Mach number in order to
