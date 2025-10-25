@@ -244,7 +244,16 @@ def _print_results_helper(
     if number_formatter is None:
         number_formatter = pygasflow.defaults.print_number_formatter
     if label_formatter is None:
-        label_formatter = "{:12}"
+        labels_length = []
+        for l, d in zip(labels, data):
+            if _is_pint_quantity(d):
+                unit = f"{d.units:~}"  # short notation (e.g., deg, m/s)
+                label_with_unit = f"{l} [{unit}]"
+                labels_length.append(len(label_with_unit))
+            else:
+                labels_length.append(len(l))
+        max_length = max(13, max(labels_length) + 2)
+        label_formatter = "{:" + str(max_length) + "}"
 
     # header line
     header = (

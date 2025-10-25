@@ -615,26 +615,26 @@ def test_print_conical_shockwave_results_number_formatter():
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-mu      Mu               4.00000000
-md      Md               0.43495884
-pr      pd/pu           18.50000000
-dr      rhod/rhou        4.57142857
-tr      Td/Tu            4.04687500
-tpr     p0d/p0u          0.13875622
+        """key     quantity     
+---------------------
+mu      Mu                4.00000000
+md      Md                0.43495884
+pr      pd/pu            18.50000000
+dr      rhod/rhou         4.57142857
+tr      Td/Tu             4.04687500
+tpr     p0d/p0u           0.13875622
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     Mu               4.00000000
-1     Md               0.43495884
-2     pd/pu           18.50000000
-3     rhod/rhou        4.57142857
-4     Td/Tu            4.04687500
-5     p0d/p0u          0.13875622
+        """idx   quantity     
+-------------------
+0     Mu                4.00000000
+1     Md                0.43495884
+2     pd/pu            18.50000000
+3     rhod/rhou         4.57142857
+4     Td/Tu             4.04687500
+5     p0d/p0u           0.13875622
 """
     )
 ])
@@ -655,34 +655,34 @@ def test_show_normal_shockwave_results(to_dict, expected):
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-mu      Mu               4.00000000
-mnu     Mnu              1.81987210
-md      Md               2.92900771
-mnd     Mnd              0.61211866
-beta    beta            27.06287693
-theta   theta           15.00000000
-pr      pd/pu            3.69725687
-dr      rhod/rhou        2.39073189
-tr      Td/Tu            1.54649582
-tpr     p0d/p0u          0.80382035
+        """key     quantity     
+---------------------
+mu      Mu                4.00000000
+mnu     Mnu               1.81987210
+md      Md                2.92900771
+mnd     Mnd               0.61211866
+beta    beta             27.06287693
+theta   theta            15.00000000
+pr      pd/pu             3.69725687
+dr      rhod/rhou         2.39073189
+tr      Td/Tu             1.54649582
+tpr     p0d/p0u           0.80382035
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     Mu               4.00000000
-1     Mnu              1.81987210
-2     Md               2.92900771
-3     Mnd              0.61211866
-4     beta            27.06287693
-5     theta           15.00000000
-6     pd/pu            3.69725687
-7     rhod/rhou        2.39073189
-8     Td/Tu            1.54649582
-9     p0d/p0u          0.80382035
+        """idx   quantity     
+-------------------
+0     Mu                4.00000000
+1     Mnu               1.81987210
+2     Md                2.92900771
+3     Mnd               0.61211866
+4     beta             27.06287693
+5     theta            15.00000000
+6     pd/pu             3.69725687
+7     rhod/rhou         2.39073189
+8     Td/Tu             1.54649582
+9     p0d/p0u           0.80382035
 """
     )
 ])
@@ -703,38 +703,38 @@ def test_show_oblique_shockwave_results(to_dict, expected):
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key        quantity    
------------------------
-mu         Mu               4.00000000
-mc         Mc               3.53055059
-theta_c    theta_c         10.00000000
-beta       beta            17.71483846
-delta      delta            4.60288072
-pr         pd/pu            1.56160867
-dr         rhod/rhou        1.37135529
-tr         Td/Tu            1.13873384
-tpr        p0d/p0u          0.99104738
-pc_pu      pc/pu            1.88925415
-rhoc_rhou  rho_c/rhou       1.57121058
-Tc_Tu      Tc/Tu            1.20241944
+        """key        quantity     
+------------------------
+mu         Mu                4.00000000
+mc         Mc                3.53055059
+theta_c    theta_c          10.00000000
+beta       beta             17.71483846
+delta      delta             4.60288072
+pr         pd/pu             1.56160867
+dr         rhod/rhou         1.37135529
+tr         Td/Tu             1.13873384
+tpr        p0d/p0u           0.99104738
+pc_pu      pc/pu             1.88925415
+rhoc_rhou  rho_c/rhou        1.57121058
+Tc_Tu      Tc/Tu             1.20241944
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     Mu               4.00000000
-1     Mc               3.53055059
-2     theta_c         10.00000000
-3     beta            17.71483846
-4     delta            4.60288072
-5     pd/pu            1.56160867
-6     rhod/rhou        1.37135529
-7     Td/Tu            1.13873384
-8     p0d/p0u          0.99104738
-9     pc/pu            1.88925415
-10    rho_c/rhou       1.57121058
-11    Tc/Tu            1.20241944
+        """idx   quantity     
+-------------------
+0     Mu                4.00000000
+1     Mc                3.53055059
+2     theta_c          10.00000000
+3     beta             17.71483846
+4     delta             4.60288072
+5     pd/pu             1.56160867
+6     rhod/rhou         1.37135529
+7     Td/Tu             1.13873384
+8     p0d/p0u           0.99104738
+9     pc/pu             1.88925415
+10    rho_c/rhou        1.57121058
+11    Tc/Tu             1.20241944
 """
     )
 ])
@@ -745,6 +745,38 @@ def test_show_conical_shockwave_results(to_dict, expected):
     with redirect_stdout(f):
         res.show()
     output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
+
+
+def test_print_with_pint():
+    M_inf = 2
+    theta_c = 15 * ureg.deg
+    res = css(M_inf, "theta_c", theta_c, to_dict=True)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    expected = """key        quantity       
+--------------------------
+mu         Mu                  2.00000000
+mc         Mc                  1.70686796
+theta_c    theta_c [deg]      15.00000000
+beta       beta [deg]         33.91469753
+delta      delta [deg]         4.57913858
+pr         pd/pu               1.28614663
+dr         rhod/rhou           1.19636349
+tr         Td/Tu               1.07504671
+tpr        p0d/p0u             0.99837756
+pc_pu      pc/pu               1.56629305
+rhoc_rhou  rho_c/rhou          1.37718896
+Tc_Tu      Tc/Tu               1.13731165
+"""
 
     # NOTE: for this tests to succeed, VSCode option
     # "trim trailing whitespaces in regex and strings"

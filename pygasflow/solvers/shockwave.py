@@ -646,6 +646,7 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     theta_c = 45
 
     """
+    is_pint = False
     to_dict = _should_solver_return_dict(to_dict)
     if not isinstance(gamma, Number):
         raise ValueError("The specific heats ratio must be > 1.")
@@ -665,10 +666,16 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
                 "The Mach number at the cone's surface must be Mc >= 0.")
     elif param_name == 'beta':
         beta = param_value
+        if _is_pint_quantity(beta):
+            is_pint = True
+            beta = beta.to("deg").magnitude
         if (not isinstance(beta, Number)) or (beta <= 0) or (beta > 90):
             raise ValueError("The shock wave angle must be 0 < beta <= 90.")
     else:
         theta_c = param_value
+        if _is_pint_quantity(theta_c):
+            is_pint = True
+            theta_c = theta_c.to("deg").magnitude
         if (not isinstance(theta_c, Number)) or (theta_c <= 0) or (theta_c > 90):
             raise ValueError("The half cone angle must be 0 < theta_c < 90.")
 
@@ -699,6 +706,12 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     theta_c = theta_c * np.ones_like(Mu)
     if not isinstance(Mc, np.ndarray):
         Mc = Mc * np.ones_like(Mu)
+
+    if is_pint:
+        deg = pygasflow.defaults.pint_ureg.deg
+        beta *= deg
+        theta_c *= deg
+        delta *= deg
 
     if to_dict:
         return ShockResults(

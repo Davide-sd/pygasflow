@@ -216,22 +216,22 @@ def test_sonic_condition():
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-gamma   gamma            1.40000000
-R       R              287.05000000
-Cp      Cp            1004.67500000
-Cv      Cv             717.62500000
+        """key     quantity     
+---------------------
+gamma   gamma             1.40000000
+R       R               287.05000000
+Cp      Cp             1004.67500000
+Cv      Cv              717.62500000
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     gamma            1.40000000
-1     R              287.05000000
-2     Cp            1004.67500000
-3     Cv             717.62500000
+        """idx   quantity     
+-------------------
+0     gamma             1.40000000
+1     R               287.05000000
+2     Cp             1004.67500000
+3     Cv              717.62500000
 """
     )
 ])
@@ -252,22 +252,22 @@ def test_show_gas_results(to_dict, expected):
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-p       P           101345.64336000
-rho     rho              1.22590000
-R       R              287.05000000
-T       T              288.00000000
+        """key     quantity     
+---------------------
+p       P            101345.64336000
+rho     rho               1.22590000
+R       R               287.05000000
+T       T               288.00000000
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     P           101345.64336000
-1     rho              1.22590000
-2     R              287.05000000
-3     T              288.00000000
+        """idx   quantity     
+-------------------
+0     P            101345.64336000
+1     rho               1.22590000
+2     R               287.05000000
+3     T               288.00000000
 """
     )
 ])
@@ -288,22 +288,22 @@ def test_show_ideal_gas_results(to_dict, expected):
 @pytest.mark.parametrize("to_dict, expected", [
     (
         True,
-        """key     quantity    
---------------------
-drs     rho0/rho*        1.57744097
-prs     P0/P*            1.89292916
-ars     a0/T*            1.09544512
-trs     T0/T*            1.20000000
+        """key     quantity     
+---------------------
+drs     rho0/rho*         1.57744097
+prs     P0/P*             1.89292916
+ars     a0/T*             1.09544512
+trs     T0/T*             1.20000000
 """
     ),
     (
         False,
-        """idx   quantity    
-------------------
-0     rho0/rho*        1.57744097
-1     P0/P*            1.89292916
-2     a0/T*            1.09544512
-3     T0/T*            1.20000000
+        """idx   quantity     
+-------------------
+0     rho0/rho*         1.57744097
+1     P0/P*             1.89292916
+2     a0/T*             1.09544512
+3     T0/T*             1.20000000
 """
     )
 ])
