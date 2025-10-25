@@ -1,6 +1,6 @@
 from numbers import Number
 import numpy as np
-
+from pygasflow.utils.common import _sanitize_angle
 from pygasflow.utils.roots import apply_bisection
 from pygasflow.utils.decorators import check
 
@@ -400,6 +400,7 @@ def m_from_prandtl_meyer_angle(angle, gamma=1.4):
     M : array_like
         Mach Number.
     """
+    angle = _sanitize_angle(angle)
     nu_max = (np.sqrt((gamma + 1) / (gamma - 1)) - 1) * 90
     if np.any(angle < 0) or np.any(angle > nu_max):
         raise ValueError("Prandtl-Meyer angle must be between 0 and {}".format(nu_max))
