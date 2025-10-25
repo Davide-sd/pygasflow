@@ -10,6 +10,8 @@ from pygasflow.solvers.gas import (
 import pytest
 from contextlib import redirect_stdout
 import io
+import pint
+ureg = pint.UnitRegistry()
 
 
 expected1 = [1.4, 287.05, 1004.6750000000002, 717.6250000000002]
@@ -367,3 +369,63 @@ def test_print_sonic_condition_results_number_formatter():
     output2 = f2.getvalue()
 
     assert output1 != output2
+
+
+@pytest.mark.parametrize(
+    "results, expected", [
+        (
+            ideal_gas_solver(
+                "p",
+                rho=1.2259 * ureg.kg / ureg.m**3,
+                R=287.05 * ureg.J / (ureg.kg * ureg.K),
+                T=288*ureg.K,
+                to_dict=True
+            ),
+            """key     quantity           
+---------------------------
+p       P [J / m ** 3]     101345.64336000
+rho     rho [kg / m ** 3]       1.22590000
+R       R [J / K / kg]        287.05000000
+T       T [K]                 288.00000000
+"""
+        ),
+        (
+            gas_solver(
+                "gamma", 1.4,
+                "R", 287.05 * ureg.J / (ureg.kg * ureg.K),
+                to_dict=True
+            ),
+            """key     quantity         
+-------------------------
+gamma   gamma                 1.40000000
+R       R [J / K / kg]      287.05000000
+Cp      Cp [J / K / kg]    1004.67500000
+Cv      Cv [J / K / kg]     717.62500000
+"""
+        ),
+        (
+            gas_solver(
+                "cp", 1006 * ureg.J / (ureg.kg * ureg.K),
+                "R", 287.05 * ureg.J / (ureg.kg * ureg.K),
+                to_dict=True
+            ),
+            """key     quantity         
+-------------------------
+gamma   gamma []              1.39926281
+R       R [J / K / kg]      287.05000000
+Cp      Cp [J / K / kg]    1006.00000000
+Cv      Cv [J / K / kg]     718.95000000
+"""
+        )
+    ]
+)
+def test_print_with_pint(results, expected):
+    f = io.StringIO()
+    with redirect_stdout(f):
+        results.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
