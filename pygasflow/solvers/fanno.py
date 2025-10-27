@@ -77,33 +77,37 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
 
     Compute all ratios starting from a Mach number:
 
-    >>> from pygasflow.solvers import fanno_solver, print_fanno_results
+    >>> from pygasflow.solvers import fanno_solver
     >>> res = fanno_solver("m", 2)
     >>> res
     [np.float64(2.0), np.float64(0.408248290463863), np.float64(0.6123724356957945), np.float64(0.6666666666666667), np.float64(1.6875000000000002), np.float64(1.632993161855452), np.float64(0.3049965025814798), np.float64(0.523248143764548)]
-    >>> print_fanno_results(res)
-    M                2.00000000
-    P / P*           0.40824829
-    rho / rho*       0.61237244
-    T / T*           0.66666667
-    P0 / P0*         1.68750000
-    U / U*           1.63299316
-    4fL* / D         0.30499650
-    (s*-s) / R       0.52324814
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     M                 2.00000000
+    1     P / P*            0.40824829
+    2     rho / rho*        0.61237244
+    3     T / T*            0.66666667
+    4     P0 / P0*          1.68750000
+    5     U / U*            1.63299316
+    6     4fL* / D          0.30499650
+    7     (s*-s) / R        0.52324814
 
     Compute the subsonic Mach number starting from the critical friction
     parameter:
 
     >>> results = fanno_solver("friction_sub", 0.3049965025814798)
-    >>> print_fanno_results(results)
-    M                0.65725799
-    P / P*           1.59904374
-    rho / rho*       1.44766442
-    T / T*           1.10456796
-    P0 / P0*         1.12898142
-    U / U*           0.69076782
-    4fL* / D         0.30499650
-    (s*-s) / R       0.12131583
+    >>> results.show()
+    idx   quantity     
+    -------------------
+    0     M                 0.65725799
+    1     P / P*            1.59904374
+    2     rho / rho*        1.44766442
+    3     T / T*            1.10456796
+    4     P0 / P0*          1.12898142
+    5     U / U*            0.69076782
+    6     4fL* / D          0.30499650
+    7     (s*-s) / R        0.12131583
     >>> print(results[0])
     0.6572579935727846
 
@@ -111,15 +115,17 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
     for a gas having specific heat ratio gamma=1.2:
 
     >>> results = fanno_solver("m", [0.5, 1.5], 1.2)
-    >>> print_fanno_results(results)
-    M                0.50000000     1.50000000
-    P / P*           2.07187908     0.63173806
-    rho / rho*       1.93061460     0.70352647
-    T / T*           1.07317073     0.89795918
-    P0 / P0*         1.35628665     1.20502889
-    U / U*           0.51796977     1.42141062
-    4fL* / D         1.29396294     0.18172829
-    (s*-s) / R       0.30475056     0.18650354
+    >>> results.show()
+    idx   quantity     
+    -------------------
+    0     M                 0.50000000     1.50000000
+    1     P / P*            2.07187908     0.63173806
+    2     rho / rho*        1.93061460     0.70352647
+    3     T / T*            1.07317073     0.89795918
+    4     P0 / P0*          1.35628665     1.20502889
+    5     U / U*            0.51796977     1.42141062
+    6     4fL* / D          1.29396294     0.18172829
+    7     (s*-s) / R        0.30475056     0.18650354
     >>> print(results[3])
     [1.07317073 0.89795918]
 
@@ -129,6 +135,17 @@ def fanno_solver(param_name, param_value, gamma=1.4, to_dict=None):
     >>> results = fanno_solver("m", [0.5, 1.5], 1.2, to_dict=True)
     >>> results
     {'m': array([0.5, 1.5]), 'prs': array([2.07187908, 0.63173806]), 'drs': array([1.9306146 , 0.70352647]), 'trs': array([1.07317073, 0.89795918]), 'tprs': array([1.35628665, 1.20502889]), 'urs': array([0.51796977, 1.42141062]), 'fps': array([1.29396294, 0.18172829]), 'eps': array([0.30475056, 0.18650354])}
+    >>> results.show()
+    key     quantity     
+    ---------------------
+    m       M                 0.50000000     1.50000000
+    prs     P / P*            2.07187908     0.63173806
+    drs     rho / rho*        1.93061460     0.70352647
+    trs     T / T*            1.07317073     0.89795918
+    tprs    P0 / P0*          1.35628665     1.20502889
+    urs     U / U*            0.51796977     1.42141062
+    fps     4fL* / D          1.29396294     0.18172829
+    eps     (s*-s) / R        0.30475056     0.18650354
     >>> print(results["trs"])
     [1.07317073 0.89795918]
 

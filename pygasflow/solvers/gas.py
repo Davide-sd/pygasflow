@@ -60,10 +60,26 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
     --------
 
     >>> from pygasflow.solvers.gas import gas_solver
-    >>> gas_solver("gamma", 1.4, "r", 287.05)
-    (1.4, 287.05, 1004.6750000000002, 717.6250000000002)
-    >>> gas_solver("gamma", 1.4, "r", 287.05, to_dict=True)
+    >>> res1 = gas_solver("gamma", 1.4, "r", 287.05)
+    >>> res1
+    [1.4, 287.05, 1004.6750000000002, 717.6250000000002]
+    >>> res1.show()
+    idx   quantity     
+    -------------------
+    0     gamma             1.40000000
+    1     R               287.05000000
+    2     Cp             1004.67500000
+    3     Cv              717.62500000
+    >>> res2 = gas_solver("gamma", 1.4, "r", 287.05, to_dict=True)
+    >>> res2
     {'gamma': 1.4, 'R': 287.05, 'Cp': 1004.6750000000002, 'Cv': 717.6250000000002}
+    >>> res2.show()
+    key     quantity     
+    ---------------------
+    gamma   gamma             1.40000000
+    R       R               287.05000000
+    Cp      Cp             1004.67500000
+    Cv      Cv              717.62500000
 
     """
     to_dict = _should_solver_return_dict(to_dict)
@@ -218,10 +234,26 @@ def ideal_gas_solver(wanted, p=None, rho=None, R=None, T=None, to_dict=None):
     --------
 
     >>> from pygasflow.solvers.gas import ideal_gas_solver
-    >>> ideal_gas_solver("p", R=287.05, T=288, rho=1.2259)
-    (101345.64336000002, 1.2259, 287.05, 288)
-    >>> ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=True)
+    >>> res1 = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259)
+    >>> res1
+    [101345.64336000002, 1.2259, 287.05, 288]
+    >>> res1.show()
+    idx   quantity     
+    -------------------
+    0     P            101345.64336000
+    1     rho               1.22590000
+    2     R               287.05000000
+    3     T               288.00000000
+    >>> res2 = ideal_gas_solver("p", R=287.05, T=288, rho=1.2259, to_dict=True)
+    >>> res2
     {'p': 101345.64336000002, 'rho': 1.2259, 'R': 287.05, 'T': 288}
+    >>> res2.show()
+    key     quantity     
+    ---------------------
+    p       P            101345.64336000
+    rho     rho               1.22590000
+    R       R               287.05000000
+    T       T               288.00000000
     """
     to_dict = _should_solver_return_dict(to_dict)
     wanted = wanted.lower()
@@ -303,8 +335,16 @@ def sonic_condition(gamma=1.4, to_dict=False):
     --------
 
     >>> from pygasflow.solvers import sonic_condition
-    >>> print(sonic_condition(1.4, to_dict=True))
+    >>> res = sonic_condition(1.4, to_dict=True)
+    >>> res
     {'drs': np.float64(1.5774409656148785), 'prs': np.float64(1.892929158737854), 'ars': np.float64(1.0954451150103321), 'trs': np.float64(1.2)}
+    >>> res.show()
+    key     quantity     
+    ---------------------
+    drs     rho0/rho*         1.57744097
+    prs     P0/P*             1.89292916
+    ars     a0/T*             1.09544512
+    trs     T0/T*             1.20000000
 
     """
     drs = sonic_density_ratio.__no_check__(gamma)

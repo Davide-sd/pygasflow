@@ -117,59 +117,62 @@ def oblique_shockwave_solver(
     Compute all ratios across a weak oblique shockwave starting with the
     upstream Mach number and the deflection angle, using air:
 
-    >>> from pygasflow.solvers import (
-    ...     oblique_shockwave_solver,
-    ...     print_oblique_shockwave_results
-    ... )
+    >>> from pygasflow.solvers import oblique_shockwave_solver
     >>> res = oblique_shockwave_solver("mu", 2, "theta", 15, flag="weak")
-    >>> type(res)
-    <class 'list'>
+    >>> isinstance(res, list)
+    True
     >>> res
     [np.float64(2.0), np.float64(1.42266946274781), np.float64(1.4457163651405158), np.float64(0.7303538499327245), np.float64(45.343616761854385), np.float64(15.0), np.float64(2.1946531336076665), np.float64(1.7289223315067423), np.float64(1.2693763586794804), np.float64(0.9523563236996431)]
-    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               2.00000000
-    Mnu              1.42266946
-    Md               1.44571637
-    Mnd              0.73035385
-    beta            45.34361676
-    theta           15.00000000
-    pd/pu            2.19465313
-    rhod/rhou        1.72892233
-    Td/Tu            1.26937636
-    p0d/p0u          0.95235632
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                2.00000000
+    1     Mnu               1.42266946
+    2     Md                1.44571637
+    3     Mnd               0.73035385
+    4     beta             45.34361676
+    5     theta            15.00000000
+    6     pd/pu             2.19465313
+    7     rhod/rhou         1.72892233
+    8     Td/Tu             1.26937636
+    9     p0d/p0u           0.95235632
 
     Using the same parameters, but computing the solution across a
     strong oblique shock wave:
 
     >>> res = oblique_shockwave_solver("mu", 2, "theta", 15, flag="strong")
-    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               2.00000000
-    Mnu              1.96858679
-    Md               0.64397092
-    Mnd              0.58283386
-    beta            79.83168734
-    theta           15.00000000
-    pd/pu            4.35455626
-    rhod/rhou        2.61984550
-    Td/Tu            1.66214239
-    p0d/p0u          0.73553800
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                2.00000000
+    1     Mnu               1.96858679
+    2     Md                0.64397092
+    3     Mnd               0.58283386
+    4     beta             79.83168734
+    5     theta            15.00000000
+    6     pd/pu             4.35455626
+    7     rhod/rhou         2.61984550
+    8     Td/Tu             1.66214239
+    9     p0d/p0u           0.73553800
 
     Compute all ratios and parameters across an oblique shockwave starting
     from the shock wave angle and the deflection angle, using methane at 20°C
     as the fluid:
 
     >>> res = oblique_shockwave_solver("theta", 8, "beta", 80, gamma=1.32)
-    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               1.48192901
-    Mnu              1.45941518
-    Md               0.74770536
-    Mnd              0.71111005
-    beta            80.00000000
-    theta            8.00000000
-    pd/pu            2.28573992
-    rhod/rhou        1.84271117
-    Td/Tu            1.24042224
-    p0d/p0u          0.93983678
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                1.48192901
+    1     Mnu               1.45941518
+    2     Md                0.74770536
+    3     Mnd               0.71111005
+    4     beta             80.00000000
+    5     theta             8.00000000
+    6     pd/pu             2.28573992
+    7     rhod/rhou         1.84271117
+    8     Td/Tu             1.24042224
+    9     p0d/p0u           0.93983678
 
     Compute all ratios and parameters across an oblique shockwave starting
     from some ratio and the deflection angle. This mode of operation
@@ -179,22 +182,37 @@ def oblique_shockwave_solver(
     Hence, the ``flag`` keyword argument is not used by this mode of operation:
 
     >>> res = oblique_shockwave_solver("pressure", 4.5, "theta", 20, gamma=1.4)
-    >>> print_oblique_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               2.06488358     3.53991435
-    Mnu              2.00000000     2.00000000
-    Md               0.69973294     2.32136532
-    Mnd              0.57735027     0.57735027
-    beta            75.59872102    34.40127898
-    theta           20.00000000    20.00000000
-    pd/pu            4.50000000     4.50000000
-    rhod/rhou        2.66666667     2.66666667
-    Td/Tu            1.68750000     1.68750000
-    p0d/p0u          0.72087386     0.72087386
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                2.06488358     3.53991435
+    1     Mnu               2.00000000     2.00000000
+    2     Md                0.69973294     2.32136532
+    3     Mnd               0.57735027     0.57735027
+    4     beta             75.59872102    34.40127898
+    5     theta            20.00000000    20.00000000
+    6     pd/pu             4.50000000     4.50000000
+    7     rhod/rhou         2.66666667     2.66666667
+    8     Td/Tu             1.68750000     1.68750000
+    9     p0d/p0u           0.72087386     0.72087386
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers:
 
     >>> res = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60)
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     Mu                1.50000000     3.00000000
+    1     Mnu               1.29903811     2.59807621
+    2     Md                1.04454822     1.12256381
+    3     Mnd               0.78644587     0.50403775
+    4     beta             60.00000000    60.00000000
+    5     theta            11.15732683    33.32007997
+    6     pd/pu             1.80208333     7.70833333
+    7     rhod/rhou         1.51401869     3.44680851
+    8     Td/Tu             1.19026492     2.23636831
+    9     p0d/p0u           0.97953995     0.46084919
     >>> print(res[2])
     [1.04454822 1.12256381]
 
@@ -202,8 +220,21 @@ def oblique_shockwave_solver(
     multiple upstream Mach numbers, returning a dictionary:
 
     >>> res = oblique_shockwave_solver("mu", [1.5, 3], "beta", 60, to_dict=True)
-    >>> type(res)
-    <class 'pygasflow.utils.common.ShockResults'>
+    >>> isinstance(res, dict)
+    True
+    >>> res.show()
+    key     quantity     
+    ---------------------
+    mu      Mu                1.50000000     3.00000000
+    mnu     Mnu               1.29903811     2.59807621
+    md      Md                1.04454822     1.12256381
+    mnd     Mnd               0.78644587     0.50403775
+    beta    beta             60.00000000    60.00000000
+    theta   theta            11.15732683    33.32007997
+    pr      pd/pu             1.80208333     7.70833333
+    dr      rhod/rhou         1.51401869     3.44680851
+    tr      Td/Tu             1.19026492     2.23636831
+    tpr     p0d/p0u           0.97953995     0.46084919
     >>> print(res["md"])
     [1.04454822 1.12256381]
 
@@ -470,39 +501,49 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     Compute all ratios across a normal shockwave starting with the upstream
     Mach number, using air:
 
-    >>> from pygasflow.solvers import (
-    ...     normal_shockwave_solver,
-    ...     print_normal_shockwave_results
-    ... )
+    >>> from pygasflow.solvers import normal_shockwave_solver
     >>> res = normal_shockwave_solver("mu", 2)
-    >>> type(res)
-    <class 'list'>
-    >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               2.00000000
-    Md               0.57735027
-    pd/pu            4.50000000
-    rhod/rhou        2.66666667
-    Td/Tu            1.68750000
-    p0d/p0u          0.72087386
+    >>> isinstance(res, list)
+    True
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                2.00000000
+    1     Md                0.57735027
+    2     pd/pu             4.50000000
+    3     rhod/rhou         2.66666667
+    4     Td/Tu             1.68750000
+    5     p0d/p0u           0.72087386
 
     Compute all ratios and parameters across a normal shockwave starting
     from the downstream Mach number, using methane at 20°C:
 
     >>> res = normal_shockwave_solver("md", 0.4, gamma=1.32)
-    >>> print_normal_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               4.47562845
-    Md               0.40000000
-    pd/pu           22.65625000
-    rhod/rhou        5.52586207
-    Td/Tu            4.10003900
-    p0d/p0u          0.06721057
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                4.47562845
+    1     Md                0.40000000
+    2     pd/pu            22.65625000
+    3     rhod/rhou         5.52586207
+    4     Td/Tu             4.10003900
+    5     p0d/p0u           0.06721057
 
     Compute the Mach number downstream of an oblique shockwave starting with
     multiple upstream Mach numbers, returning a dictionary:
 
     >>> res = normal_shockwave_solver("mu", [1.5, 3], to_dict=True)
-    >>> type(res)
-    <class 'pygasflow.utils.common.ShockResults'>
+    >>> isinstance(res, dict)
+    True
+    >>> res.show()
+    key     quantity     
+    ---------------------
+    mu      Mu                1.50000000     3.00000000
+    md      Md                0.70108874     0.47519096
+    pr      pd/pu             2.45833333    10.33333333
+    dr      rhod/rhou         1.86206897     3.85714286
+    tr      Td/Tu             1.32021605     2.67901235
+    tpr     p0d/p0u           0.92978651     0.32834389
     >>> print(res["md"])
     [0.70108874 0.47519096]
 
@@ -597,31 +638,45 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     Compute all quantities across a conical shockwave starting from the
     upstream Mach number and the half cone angle:
 
-    >>> from pygasflow.solvers import (
-    ...     conical_shockwave_solver,
-    ...     print_conical_shockwave_results
-    ... )
+    >>> from pygasflow.solvers import conical_shockwave_solver
     >>> res = conical_shockwave_solver(2.5, "theta_c", 15)
-    >>> type(res)
-    <class 'list'>
-    >>> print_conical_shockwave_results(res)    # doctest: +NORMALIZE_WHITESPACE
-    Mu               2.50000000
-    Mc               2.11792959
-    theta_c         15.00000000
-    beta            28.45459370
-    delta            6.22901918
-    pd/pu            1.48865970
-    rhod/rhou        1.32626646
-    Td/Tu            1.12244390
-    p0d/p0u          0.99361737
-    pc/pu            1.80518641
-    rho_c/rhou       1.52207313
-    Tc/Tu            1.18600505
+    >>> isinstance(res, list)
+    True
+    >>> res.show()    # doctest: +NORMALIZE_WHITESPACE
+    idx   quantity     
+    -------------------
+    0     Mu                2.50000000
+    1     Mc                2.11792959
+    2     theta_c          15.00000000
+    3     beta             28.45459370
+    4     delta             6.22901918
+    5     pd/pu             1.48865970
+    6     rhod/rhou         1.32626646
+    7     Td/Tu             1.12244390
+    8     p0d/p0u           0.99361737
+    9     pc/pu             1.80518641
+    10    rho_c/rhou        1.52207313
+    11    Tc/Tu             1.18600505
 
     Compute the pressure ratio across a conical shockwave starting with
     multiple upstream Mach numbers and Mach numbers at the cone surface:
 
     >>> res = conical_shockwave_solver([2.5, 5], "mc", 1.5)
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     Mu                2.50000000     5.00000000
+    1     Mc                1.50000000     1.50000000
+    2     theta_c          31.69943179    44.78663038
+    3     beta             44.57115023    53.33848167
+    4     delta            21.26058010    36.98108963
+    5     pd/pu             3.42459174    18.60172442
+    6     rhod/rhou         2.28631129     4.57733550
+    7     Td/Tu             1.49786766     4.06387612
+    8     p0d/p0u           0.83262941     0.13748699
+    9     pc/pu             3.87527523    19.81540542
+    10    rho_c/rhou        2.49739959     4.78872298
+    11    Tc/Tu             1.55172414     4.13793103
     >>> print(res[5])
     [ 3.42459174 18.60172442]
 
@@ -630,8 +685,23 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     but returning a dictionary:
 
     >>> res = conical_shockwave_solver([2.5, 5], "mc", 1.5, to_dict=True)
-    >>> type(res)
-    <class 'pygasflow.utils.common.ShockResults'>
+    >>> isinstance(res, dict)
+    True
+    >>> res.show()
+    key        quantity     
+    ------------------------
+    mu         Mu                2.50000000     5.00000000
+    mc         Mc                1.50000000     1.50000000
+    theta_c    theta_c          31.69943179    44.78663038
+    beta       beta             44.57115023    53.33848167
+    delta      delta            21.26058010    36.98108963
+    pr         pd/pu             3.42459174    18.60172442
+    dr         rhod/rhou         2.28631129     4.57733550
+    tr         Td/Tu             1.49786766     4.06387612
+    tpr        p0d/p0u           0.83262941     0.13748699
+    pc_pu      pc/pu             3.87527523    19.81540542
+    rhoc_rhou  rho_c/rhou        2.49739959     4.78872298
+    Tc_Tu      Tc/Tu             1.55172414     4.13793103
     >>> print(res["pr"])
     [ 3.42459174 18.60172442]
 

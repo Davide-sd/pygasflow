@@ -80,32 +80,36 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
 
     Compute all ratios starting from a single Mach number:
 
-    >>> from pygasflow.solvers import rayleigh_solver, print_rayleigh_results
+    >>> from pygasflow.solvers import rayleigh_solver
     >>> res = rayleigh_solver("m", 2)
     >>> res
     [np.float64(2.0), np.float64(0.36363636363636365), np.float64(0.6875), np.float64(0.5289256198347108), np.float64(1.5030959785260414), np.float64(0.793388429752066), np.float64(1.4545454545454546), np.float64(1.2175752061512626)]
-    >>> print_rayleigh_results(res)
-    M                2.00000000
-    P / P*           0.36363636
-    rho / rho*       0.68750000
-    T / T*           0.52892562
-    P0 / P0*         1.50309598
-    T0 / T0*         0.79338843
-    U / U*           1.45454545
-    (s*-s) / R       1.21757521
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     M                 2.00000000
+    1     P / P*            0.36363636
+    2     rho / rho*        0.68750000
+    3     T / T*            0.52892562
+    4     P0 / P0*          1.50309598
+    5     T0 / T0*          0.79338843
+    6     U / U*            1.45454545
+    7     (s*-s) / R        1.21757521
 
     Compute the subsonic Mach number starting from the critical entropy ratio:
 
     >>> res = rayleigh_solver("entropy_sub", 0.5)
-    >>> print_rayleigh_results(res)
-    M                0.66341885
-    P / P*           1.48498826
-    rho / rho*       1.53003501
-    T / T*           0.97055835
-    P0 / P0*         1.05396114
-    T0 / T0*         0.87999306
-    U / U*           0.65357982
-    (s*-s) / R       0.50000000
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     M                 0.66341885
+    1     P / P*            1.48498826
+    2     rho / rho*        1.53003501
+    3     T / T*            0.97055835
+    4     P0 / P0*          1.05396114
+    5     T0 / T0*          0.87999306
+    6     U / U*            0.65357982
+    7     (s*-s) / R        0.50000000
     >>> print(res[0])
     0.6634188478510624
 
@@ -113,15 +117,17 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     for a gas having specific heat ratio gamma=1.2:
 
     >>> res = rayleigh_solver("m", [0.5, 1.5], 1.2)
-    >>> print_rayleigh_results(res)
-    M                0.50000000     1.50000000
-    P / P*           1.69230769     0.59459459
-    rho / rho*       2.36363636     0.74747475
-    T / T*           0.71597633     0.79547115
-    P0 / P0*         1.10781288     1.13417842
-    T0 / T0*         0.66715976     0.88586560
-    U / U*           0.42307692     1.33783784
-    (s*-s) / R       2.53074211     0.85304875
+    >>> res.show()
+    idx   quantity     
+    -------------------
+    0     M                 0.50000000     1.50000000
+    1     P / P*            1.69230769     0.59459459
+    2     rho / rho*        2.36363636     0.74747475
+    3     T / T*            0.71597633     0.79547115
+    4     P0 / P0*          1.10781288     1.13417842
+    5     T0 / T0*          0.66715976     0.88586560
+    6     U / U*            0.42307692     1.33783784
+    7     (s*-s) / R        2.53074211     0.85304875
     >>> print(res[3])
     [0.71597633 0.79547115]
 
@@ -129,6 +135,17 @@ def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     for a gas having specific heat ratio gamma=1.2, returning a dictionary:
 
     >>> res = rayleigh_solver("m", [0.5, 1.5], 1.2, to_dict=True)
+    >>> res.show()
+    key     quantity     
+    ---------------------
+    m       M                 0.50000000     1.50000000
+    prs     P / P*            1.69230769     0.59459459
+    drs     rho / rho*        2.36363636     0.74747475
+    trs     T / T*            0.71597633     0.79547115
+    tprs    P0 / P0*          1.10781288     1.13417842
+    ttrs    T0 / T0*          0.66715976     0.88586560
+    urs     U / U*            0.42307692     1.33783784
+    eps     (s*-s) / R        2.53074211     0.85304875
     >>> print(res["trs"])
     [0.71597633 0.79547115]
 

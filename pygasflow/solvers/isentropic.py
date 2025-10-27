@@ -77,72 +77,80 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
 
     Compute all ratios starting from a single Mach number:
 
-    >>> from pygasflow.solvers import isentropic_solver, print_isentropic_results
+    >>> from pygasflow.solvers import isentropic_solver
     >>> res = isentropic_solver("m", 2)
     >>> res
-    [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.23004814583331168), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(2.3515101530718505), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
-    >>> print_isentropic_results(res)
-    M                      2.00000000
-    P / P0                 0.12780453
-    rho / rho0             0.23004815
-    T / T0                 0.55555556
-    P / P*                 0.24192491
-    rho / rho*             0.36288737
-    T / T*                 0.66666667
-    U / U*                 2.35151015
-    A / A*                 1.68750000
-    Mach Angle            30.00000000
-    Prandtl-Meyer         26.37976081
+    [np.float64(2.0), np.float64(0.12780452546295096), np.float64(0.23004814583331168), np.float64(0.5555555555555556), np.float64(0.24192491286747442), np.float64(0.36288736930121157), np.float64(0.6666666666666667), np.float64(1.632993161855452), np.float64(1.6875000000000002), np.float64(30.000000000000004), np.float64(26.379760813416457)]
+    >>> res.show()
+    idx   quantity            
+    --------------------------
+    0     M                        2.00000000
+    1     P / P0                   0.12780453
+    2     rho / rho0               0.23004815
+    3     T / T0                   0.55555556
+    4     P / P*                   0.24192491
+    5     rho / rho*               0.36288737
+    6     T / T*                   0.66666667
+    7     U / U*                   1.63299316
+    8     A / A*                   1.68750000
+    9     Mach Angle              30.00000000
+    10    Prandtl-Meyer           26.37976081
 
     Compute all parameters starting from the pressure ratio:
 
     >>> res = isentropic_solver("pressure", 0.12780452546295096)
-    >>> print_isentropic_results(res)
-    M                      2.00000000
-    P / P0                 0.12780453
-    rho / rho0             0.23004815
-    T / T0                 0.55555556
-    P / P*                 0.24192491
-    rho / rho*             0.36288737
-    T / T*                 0.66666667
-    U / U*                 2.35151015
-    A / A*                 1.68750000
-    Mach Angle            30.00000000
-    Prandtl-Meyer         26.37976081
+    >>> res.show()
+    idx   quantity            
+    --------------------------
+    0     M                        2.00000000
+    1     P / P0                   0.12780453
+    2     rho / rho0               0.23004815
+    3     T / T0                   0.55555556
+    4     P / P*                   0.24192491
+    5     rho / rho*               0.36288737
+    6     T / T*                   0.66666667
+    7     U / U*                   1.63299316
+    8     A / A*                   1.68750000
+    9     Mach Angle              30.00000000
+    10    Prandtl-Meyer           26.37976081
 
     Compute the Mach number starting from the Mach Angle:
 
     >>> results = isentropic_solver("mach_angle", 25)
-    >>> print_isentropic_results(results)
-    M                      2.36620158
-    P / P0                 0.07210756
-    rho / rho0             0.15285231
-    T / T0                 0.47174663
-    P / P*                 0.13649451
-    rho / rho*             0.24111550
-    T / T*                 0.56609595
-    U / U*                 2.56365309
-    A / A*                 2.32958260
-    Mach Angle            25.00000000
-    Prandtl-Meyer         35.92354277
+    >>> results.show()
+    idx   quantity            
+    --------------------------
+    0     M                        2.36620158
+    1     P / P0                   0.07210756
+    2     rho / rho0               0.15285231
+    3     T / T0                   0.47174663
+    4     P / P*                   0.13649451
+    5     rho / rho*               0.24111550
+    6     T / T*                   0.56609595
+    7     U / U*                   1.78031465
+    8     A / A*                   2.32958260
+    9     Mach Angle              25.00000000
+    10    Prandtl-Meyer           35.92354277
     >>> print(results[0])
     2.3662015831524985
 
     Compute the pressure ratios starting from two Mach numbers:
 
     >>> results = isentropic_solver("m", [2, 3])
-    >>> print_isentropic_results(results)
-    M                      2.00000000     3.00000000
-    P / P0                 0.12780453     0.02722368
-    rho / rho0             0.23004815     0.07622631
-    T / T0                 0.55555556     0.35714286
-    P / P*                 0.24192491     0.05153250
-    rho / rho*             0.36288737     0.12024251
-    T / T*                 0.66666667     0.42857143
-    U / U*                 2.35151015     2.82810386
-    A / A*                 1.68750000     4.23456790
-    Mach Angle            30.00000000    19.47122063
-    Prandtl-Meyer         26.37976081    49.75734674
+    >>> results.show()
+    idx   quantity            
+    --------------------------
+    0     M                        2.00000000     3.00000000
+    1     P / P0                   0.12780453     0.02722368
+    2     rho / rho0               0.23004815     0.07622631
+    3     T / T0                   0.55555556     0.35714286
+    4     P / P*                   0.24192491     0.05153250
+    5     rho / rho*               0.36288737     0.12024251
+    6     T / T*                   0.66666667     0.42857143
+    7     U / U*                   1.63299316     1.96396101
+    8     A / A*                   1.68750000     4.23456790
+    9     Mach Angle              30.00000000    19.47122063
+    10    Prandtl-Meyer           26.37976081    49.75734674
     >>> print(results[1])
     [0.12780453 0.02722368]
 
@@ -150,6 +158,20 @@ def isentropic_solver(param_name, param_value, gamma=1.4, to_dict=None):
     dictionary:
 
     >>> results = isentropic_solver("m", [2, 3], to_dict=True)
+    >>> results.show()
+    key     quantity            
+    ----------------------------
+    m       M                        2.00000000     3.00000000
+    pr      P / P0                   0.12780453     0.02722368
+    dr      rho / rho0               0.23004815     0.07622631
+    tr      T / T0                   0.55555556     0.35714286
+    prs     P / P*                   0.24192491     0.05153250
+    drs     rho / rho*               0.36288737     0.12024251
+    trs     T / T*                   0.66666667     0.42857143
+    urs     U / U*                   1.63299316     1.96396101
+    ars     A / A*                   1.68750000     4.23456790
+    ma      Mach Angle              30.00000000    19.47122063
+    pm      Prandtl-Meyer           26.37976081    49.75734674
     >>> print(results["pr"])
     [0.12780453 0.02722368]
 

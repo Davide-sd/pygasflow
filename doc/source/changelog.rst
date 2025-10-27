@@ -1,6 +1,20 @@
 Changelog
 ---------
 
+v1.4.0
+======
+
+* Improved usability of the solvers by implementing the ``show()`` method
+  on the returned list/dict of results.
+
+* Added support to `pint <https://github.com/hgrecco/pint>`_ in order
+  to define, operate and manipulate physical quantities.
+
+* Documentation:
+  * Added a few solutions to *'Modern Compressible Flow with Historical Perspective'*
+    as a showcase of the capabilities of this module.
+
+
 v1.3.1
 =======
 
