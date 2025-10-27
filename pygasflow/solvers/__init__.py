@@ -1,4 +1,8 @@
-from .isentropic import isentropic_solver, print_isentropic_results
+from .isentropic import (
+    isentropic_solver,
+    print_isentropic_results,
+    isentropic_compression
+)
 from .fanno import fanno_solver, print_fanno_results
 from .rayleigh import rayleigh_solver, print_rayleigh_results
 from .shockwave import (

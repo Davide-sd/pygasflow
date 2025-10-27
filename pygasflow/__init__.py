@@ -2,6 +2,7 @@ import param
 from pygasflow._version import __version__
 from pygasflow.solvers import (
     isentropic_solver,
+    isentropic_compression,
     fanno_solver,
     rayleigh_solver,
     shockwave_solver,
@@ -77,6 +78,7 @@ __all__ = [
     "ss",
     "css",
     "isentropic_solver",
+    "isentropic_compression",
     "fanno_solver",
     "rayleigh_solver",
     "shockwave_solver",

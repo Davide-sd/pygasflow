@@ -245,3 +245,109 @@ def print_isentropic_results(results, number_formatter=None, blank_line=False):
         "P / P*", "rho / rho*", "T / T*", "U / U*", "A / A*",
         "Mach Angle", "Prandtl-Meyer"]
     _print_results_helper(results, labels, "{:20}", number_formatter, blank_line)
+
+
+
+def isentropic_compression(pr=None, dr=None, tr=None, gamma=1.4, to_dict=None):
+    """
+    Solve the isentropic compression (or expansion) by providing a ratio.
+
+    Parameters
+    ----------
+    pr : array_like, optional
+        Pressure ratio p2/p1
+    dr : array_like, optional
+        Density ratio rho2/rho1
+    tr : array_like, optional
+        Temperature ratio T2/T1
+    gamma : float, optional
+        Specific heats ratio. Must be gamma > 1.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
+    
+    Returns
+    -------
+    pr : array_like
+        Pressure ratio p2/p1
+    dr : array_like
+        Density ratio rho2/rho1
+    tr : array_like
+        Temperature ratio T2/T1
+    
+    Examples
+    --------
+
+    >>> from pygasflow import isentropic_compression
+    >>> T1 = 290    # K
+    >>> res = isentropic_compression(pr=2, to_dict=True)
+    >>> res.show()
+    key     quantity            
+    ----------------------------
+    pr      P2 / P1                  2.00000000
+    dr      rho2 / rho1              1.64067071
+    tr      T2 / T1                  1.21901365
+    >>> T2_T1 = res["tr"]
+    >>> T2 = T2_T1 * T1
+    >>> T2
+    np.float64(353.5139597192979)
+
+    See Also
+    --------
+    shock_compression
+
+    """
+    to_dict = _should_solver_return_dict(to_dict)
+    if pr is not None:
+        is_scalar = isinstance(pr, Number)
+        pr = np.atleast_1d(pr)
+        dr = pr ** (1 / gamma)
+        tr = pr ** (1 - 1 / gamma)
+    elif dr is not None:
+        is_scalar = isinstance(dr, Number)
+        dr = np.atleast_1d(dr)
+        pr = dr ** gamma
+        tr = pr ** (1 - 1 / gamma)
+    elif tr is not None:
+        is_scalar = isinstance(tr, Number)
+        tr = np.atleast_1d(tr)
+        pr = tr ** (gamma / (gamma - 1))
+        dr = pr ** (1 / gamma)
+    else:
+        raise ValueError(
+            "Either `pr` or `dr` or `tr` must be numerical values.")
+    if is_scalar:
+        pr, dr, tr = pr[0], dr[0], tr[0]
+
+    if to_dict:
+        return FlowResultsDict(
+            pr=pr, dr=dr, tr=tr,
+            printer=print_isentropic_compression_results
+        )
+    return FlowResultsList(
+        [pr, dr, tr],
+        printer=print_isentropic_compression_results
+    )
+
+
+def print_isentropic_compression_results(results, number_formatter=None, blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    number_formatter : str or None
+        A formatter to properly show floating point numbers. For example,
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    isentropic_solver
+    """
+    # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
+    # will process these labels and convert them to Latex, thanks to
+    # the substitutions I implemented in doc/conf.py
+    labels = ["P2 / P1", "rho2 / rho1", "T2 / T1"]
+    _print_results_helper(results, labels, "{:20}", number_formatter, blank_line)

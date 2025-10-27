@@ -572,27 +572,3 @@ def sonic_density_ratio(gamma):
     idx = gamma > 1
     ratio[idx] = ((gamma[idx] + 1) / 2)**(1 / (gamma[idx] - 1))
     return ratio
-
-
-def isentropic_compression(pr=None, dr=None, tr=None, gamma=1.4):
-    if pr is not None:
-        is_scalar = isinstance(pr, Number)
-        pr = np.atleast_1d(pr)
-        dr = pr ** (1 / gamma)
-        tr = pr ** (1 - 1 / gamma)
-    elif dr is not None:
-        is_scalar = isinstance(dr, Number)
-        dr = np.atleast_1d(dr)
-        pr = dr ** gamma
-        tr = pr ** (1 - 1 / gamma)
-    elif tr is not None:
-        is_scalar = isinstance(tr, Number)
-        tr = np.atleast_1d(tr)
-        pr = tr ** (gamma / (gamma - 1))
-        dr = pr ** (1 / gamma)
-    else:
-        raise ValueError(
-            "Either `pr` or `dr` or `tr` must be numerical values.")
-    if is_scalar:
-        return pr[0], dr[0], tr[0]
-    return pr, dr, tr

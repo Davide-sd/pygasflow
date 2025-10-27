@@ -83,6 +83,7 @@ Isentropic Solver
 
 .. autofunction:: isentropic_solver
 .. autofunction:: print_isentropic_results
+.. autofunction:: isentropic_compression
 
 
 Fanno Solver

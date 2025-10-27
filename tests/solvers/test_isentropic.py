@@ -17,6 +17,7 @@ import numpy as np
 from pygasflow.solvers.isentropic import (
     isentropic_solver as ise,
     print_isentropic_results,
+    isentropic_compression,
 )
 import pytest
 from contextlib import redirect_stdout
@@ -218,3 +219,33 @@ def test_show_isentropic_results(to_dict, expected):
     # "trim trailing whitespaces in regex and strings"
     # must be disabled!
     assert output == expected
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_isentropic_compression_return_type(to_dict):
+    res = isentropic_compression(pr=2, to_dict=to_dict)
+    assert isinstance(res, dict if to_dict else list)
+
+
+@pytest.mark.parametrize("param", [
+    {"pr": [1.        , 1.36670259, 1.76411853, 2.18903784, 2.63901582]},
+    {"dr": [1.  , 1.25, 1.5 , 1.75, 2.  ]},
+    {"tr": [1.        , 1.09336207, 1.17607902, 1.25087876, 1.31950791]}
+])
+def test_isentropic_compression_to_list(param):
+    pr, dr, tr = isentropic_compression(**param, to_dict=False)
+    assert np.allclose(pr, [1.        , 1.36670259, 1.76411853, 2.18903784, 2.63901582])
+    assert np.allclose(dr, [1.  , 1.25, 1.5 , 1.75, 2.  ])
+    assert np.allclose(tr, [1.        , 1.09336207, 1.17607902, 1.25087876, 1.31950791])
+
+
+@pytest.mark.parametrize("param", [
+    {"pr": [1.        , 1.36670259, 1.76411853, 2.18903784, 2.63901582]},
+    {"dr": [1.  , 1.25, 1.5 , 1.75, 2.  ]},
+    {"tr": [1.        , 1.09336207, 1.17607902, 1.25087876, 1.31950791]}
+])
+def test_isentropic_compression_to_dict(param):
+    res = isentropic_compression(**param, to_dict=True)
+    assert np.allclose(res["pr"], [1.        , 1.36670259, 1.76411853, 2.18903784, 2.63901582])
+    assert np.allclose(res["dr"], [1.  , 1.25, 1.5 , 1.75, 2.  ])
+    assert np.allclose(res["tr"], [1.        , 1.09336207, 1.17607902, 1.25087876, 1.31950791])
