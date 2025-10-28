@@ -15,7 +15,8 @@ from numbers import Number
 @check([1])
 def rayleigh_solver(param_name, param_value, gamma=1.4, to_dict=None):
     """
-    Compute all Rayleigh ratios and Mach number given an input parameter.
+    Given an input parameter, compute all ratios and Mach number 
+    of 1-D flow with heat addition (Rayleigh flow).
 
     Parameters
     ----------
