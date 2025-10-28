@@ -8,10 +8,10 @@ The goal is to showcase the capabilities of **pygasflow**.
 The author of this module is reasonably confident about the correctness
 of most of these exercise.
 
-`pin <https://github.com/hgrecco/pint>`_ was used as it allows to define,
-operate and manipulate physical quantities.
+The module `pint <https://github.com/hgrecco/pint>`_ was used as it allows
+to define, operate and manipulate physical quantities.
 
-**<ins>If you are a student</ins>**, please note that the only way to learn is to
+**If you are a student**, please note that the only way to learn is to
 understand the underlying concepts and apply them with hard work and
 determination. Shortcuts won't do you any good.
 
