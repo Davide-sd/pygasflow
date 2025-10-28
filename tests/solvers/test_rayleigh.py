@@ -9,7 +9,11 @@
 # rayleigh.py module. Hence I can easily compare the result with known values.
 
 import numpy as np
-from pygasflow.solvers.rayleigh import rayleigh_solver, print_rayleigh_results
+from pygasflow.solvers.rayleigh import (
+    rayleigh_solver,
+    print_rayleigh_results,
+    specific_heat_solver,
+)
 import pytest
 from contextlib import redirect_stdout
 import io
@@ -256,6 +260,81 @@ eps     (s*-s) / R        3.95954318
 ])
 def test_show_rayleigh_results(to_dict, expected):
     res = rayleigh_solver("m", 4, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected
+
+
+@pytest.mark.parametrize("params", [
+    {"Cp": 3, "T01": 2, "T02": 10},
+    {"Cp": 3, "T01": 2, "DeltaT0": 8},
+    {"Cp": 3, "T02": 10, "DeltaT0": 8},
+    {"Cp": 3, "q": 24, "DeltaT0": 8, "T01": 2},
+    {"Cp": 3, "q": 24, "DeltaT0": 8, "T02": 10},
+    {"q": 24, "Cp": 3, "T01": 2},
+    {"q": 24, "Cp": 3, "T02": 10},
+    {"q": 24, "T01": 2, "T02": 10},
+
+])
+def test_specific_heat_solver_scalar_1(params):
+    res = specific_heat_solver(**params)
+    assert isinstance(res, dict)
+    assert len(res) == 6
+    assert len(set(res.keys()).difference(
+        ["q", "Cp", "T01", "T02", "DeltaT0", "q_Cp"])) == 0
+    assert np.isclose(res["q"], 24)
+    assert np.isclose(res["Cp"], 3)
+    assert np.isclose(res["T02"], 10)
+    assert np.isclose(res["T01"], 2)
+    assert np.isclose(res["DeltaT0"], 8)
+    assert np.isclose(res["q_Cp"], 8)
+
+
+@pytest.mark.parametrize("params, none_keys", [
+    ({"Cp": 3, "DeltaT0": 8}, ["T01", "T02"]),
+    ({"q_Cp": 8, "DeltaT0": 8}, ["q", "Cp", "T01", "T02"]),
+    ({"DeltaT0": 8, "T01": 2}, ["q", "Cp"]),
+    ({"q_Cp": 8, "T01": 2}, ["q", "Cp"]),
+])
+def test_specific_heat_solver_scalar_2(params, none_keys):
+    res = specific_heat_solver(**params)
+    assert isinstance(res, dict)
+    assert len(res) == 6
+    assert len(set(res.keys()).difference(
+        ["q", "Cp", "T01", "T02", "DeltaT0", "q_Cp"])) == 0
+    expected = {
+        "q": 24,
+        "Cp": 3,
+        "T02": 10,
+        "T01": 2,
+        "DeltaT0": 8,
+        "q_Cp": 8
+    }
+    for k in res.keys():
+        if k in none_keys:
+            assert res[k] is None
+        else:
+            assert np.isclose(res[k], expected[k])
+
+
+def test_show_specific_heat_results():
+    res = specific_heat_solver(Cp=3, T01=2, T02=10)
+    expected = """key      quantity     
+----------------------
+q        q                24.00000000
+Cp       Cp                3.00000000
+T01      T01               2.00000000
+T02      T02              10.00000000
+DeltaT0  ΔT0               8.00000000
+q_Cp     q / Cp            8.00000000
+"""
 
     f = io.StringIO()
     with redirect_stdout(f):

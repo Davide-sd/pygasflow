@@ -4,7 +4,11 @@ from .isentropic import (
     isentropic_compression
 )
 from .fanno import fanno_solver, print_fanno_results
-from .rayleigh import rayleigh_solver, print_rayleigh_results
+from .rayleigh import (
+    rayleigh_solver,
+    print_rayleigh_results,
+    specific_heat_solver
+)
 from .shockwave import (
     oblique_shockwave_solver,
     shockwave_solver,
@@ -32,6 +36,7 @@ __all__ = [
     "isentropic_solver",
     "fanno_solver",
     "rayleigh_solver",
+    "specific_heat_solver",
     "shockwave_solver",
     "oblique_shockwave_solver",
     "conical_shockwave_solver",

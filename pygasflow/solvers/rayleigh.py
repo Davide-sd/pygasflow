@@ -244,3 +244,111 @@ def print_rayleigh_results(results, number_formatter=None, blank_line=False):
     labels = ["M", "P / P*", "rho / rho*", "T / T*", "P0 / P0*",
         "T0 / T0*", "U / U*", "(s*-s) / R"]
     _print_results_helper(results, labels, None, number_formatter, blank_line)
+
+
+def specific_heat_solver(q=None, Cp=None, T01=None, T02=None, DeltaT0=None, q_Cp=None):
+    """
+    Compute the missing quantities of this equation: `q = Cp * (T02 - T01)`,
+    which is valid for a calorically perfect gas.
+
+    Note that if one quantity can't be resolved, its result will be set 
+    to None.
+
+    Parameters
+    ----------
+    q : float or array, optional
+        Specific heat per unit mass.
+    Cp : float or array, optional
+        Specific heat at constant-pressure.
+    T01 : float or array, optional
+        Total temperature at the initial state of the flow.
+    T02 : float or array, optional
+        Total temperature at the final state of the flow.
+    DeltaT0 : float or array, optional
+        Total temperature difference, T02 - T01, between two
+        states of the flow.
+    q_Cp : float or array, optional
+        The ratio q / Cp.
+
+    Returns
+    -------
+    q : float or array
+        Specific heat per unit mass.
+    Cp : float or array, optional
+        Specific heat at constant-pressure.
+    T01 : float or array, optional
+        Total temperature at the initial state of the flow.
+    T02 : float or array, optional
+        Total temperature at the final state of the flow.
+    DeltaT0 : float or array, optional
+        Total temperature difference, T02 - T01, between two
+        states of the flow.
+    q_Cp : float or array, optional
+        The ratio q / Cp.
+    """
+    if q_Cp and q and Cp:
+        raise ValueError(
+            "Too many related parameters: q, Cp, q_Cp. Please,"
+            " provide at most two of them."
+        )
+    if DeltaT0 and T01 and T02:
+        raise ValueError(
+            "Too many related parameters: T01, T02, DeltaT0. Please,"
+            " provide at most two of them."
+        )
+
+    if DeltaT0:
+        if T01:
+            T02 = DeltaT0 + T01
+        elif T02:
+            T01 = T02 - DeltaT0
+    elif T02 and T01:
+        DeltaT0 = T02 - T01
+
+    if q_Cp:
+        if q:
+            Cp = (1 / q_Cp) * q
+        elif Cp:
+            q = q_Cp * Cp
+    elif q and Cp:
+        q_Cp = q / Cp
+
+    if Cp and DeltaT0:
+        q = Cp * DeltaT0
+    elif q_Cp and T02:
+        T01 = T02 - q_Cp
+        DeltaT0 = T02 - T01
+    elif q_Cp and T01:
+        T02 = q_Cp + T01
+        DeltaT0 = T02 - T01
+    elif q_Cp:
+        DeltaT0 = q_Cp
+    elif q and DeltaT0:
+        Cp = q / DeltaT0
+
+    if not q_Cp:
+        q_Cp = q / Cp if (q and Cp) else DeltaT0
+
+    return FlowResultsDict(
+        q=q, Cp=Cp, T01=T01, T02=T02, DeltaT0=DeltaT0, q_Cp=q_Cp,
+        printer=print_specific_heat_results
+    )
+
+
+def print_specific_heat_results(results, number_formatter=None, blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    number_formatter : str or None
+        A formatter to properly show floating point numbers. For example,
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    rayleigh_solver
+    """
+    labels = ["q", "Cp", "T01", "T02", "ΔT0", "q / Cp"]
+    _print_results_helper(results, labels, None, number_formatter, blank_line)
