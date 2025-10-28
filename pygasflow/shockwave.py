@@ -200,53 +200,6 @@ def m1_from_rayleigh_pitot_pressure_ratio(ratio, gamma=1.4):
     return M1
 
 
-def shock_compression(pr=None, dr=None, gamma=1.4):
-    """Solve the Hugoniot equation for a calorically perfect gas in order to
-    compute either the pressure ratio P2/P1 or the density ratio rho2/rho1
-    across the schock wave.
-
-    Parameters
-    ----------
-    pr : None, float or array_like
-        Pressure ration P2/P1 across the shock wave. If None, ``dr`` must be
-        provided instead.
-    dr : None, float or array_like
-        Density ration rho2/rho1 across the shock wave. If None, ``pr`` must be
-        provided instead.
-    gamma : float, optional
-        Specific heats ratio. Default to 1.4. Must be gamma > 1.
-
-    Returns
-    -------
-    pr : float or ndarray
-        Pressure ratio p2/p1 across the shock wave.
-    dr : float or ndarray
-        Density ratio rho2/rho1 across the shock wave.
-
-    References
-    ----------
-    Anderson's, last equation of section 3.7.
-    """
-    a = (gamma + 1) / (gamma - 1)
-    if pr is not None:
-        is_scalar = isinstance(pr, Number)
-        pr = np.atleast_1d(pr)
-        v1_v2 = (pr * a + 1) / (pr + a)
-        dr = v1_v2
-    elif dr is not None:
-        is_scalar = isinstance(dr, Number)
-        dr = np.atleast_1d(dr)
-        v1_v2 = dr
-        pr = (a * v1_v2 - 1) / (a - v1_v2)
-        pr[a <= v1_v2] = np.nan
-    else:
-        raise ValueError("Either `pr` or `dr` must be numerical values.")
-
-    if is_scalar:
-        return pr[0], dr[0]
-    return pr, dr
-
-
 @check_shockwave
 def entropy_difference(M1, gamma=1.4):
     """ Compute the dimensionless entropy difference, (s2 - s1) / C_p.

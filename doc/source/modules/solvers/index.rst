@@ -163,6 +163,8 @@ Shockwave Solvers
 .. autofunction:: conical_shockwave_solver
 .. autofunction:: print_conical_shockwave_results
 
+.. autofunction:: shock_compression
+
 
 De Laval Solver
 ===============

@@ -37,14 +37,17 @@ def oblique_shockwave_solver(
     flag="weak", to_dict=None
 ):
     """
-    Try to compute all the ratios, angles and mach numbers across the shock wave.
+    Attempt to compute all the ratios, angles and mach numbers across the 
+    shock wave.
 
     An alias of this function is `shockwave_solver`.
 
     Parameters
     ----------
     p1_name : string
-        Name of the first parameter given in input. Can be either one of:
+        Name of the first parameter given in input. In the following
+        ratios, `d` stands for downstream of the shockwave while `u` stand 
+        for upstream of the shockwave. Can be either one of:
 
         * ``'pressure'``: Pressure Ratio Pd / Pu
         * ``'temperature'``: Temperature Ratio Td / Tu
@@ -455,7 +458,9 @@ def normal_shockwave_solver(param_name, param_value, gamma=1.4, to_dict=None):
     Parameters
     ----------
     param_name : string
-        Name of the parameter given in input. Can be either one of:
+        Name of the parameter given in input. In the following
+        ratios, `d` stands for downstream of the shockwave while `u` stand 
+        for upstream of the shockwave. Can be either one of:
 
         * ``'pressure'``: Pressure Ratio Pd / Pu
         * ``'temperature'``: Temperature Ratio Td / Tu
@@ -612,13 +617,13 @@ def conical_shockwave_solver(Mu, param_name, param_value, gamma=1.4, flag="weak"
     delta : float
         Flow deflection angle.
     pr : float
-        Pressure ratio across the shock wave.
+        Pressure ratio across the shock wave, Pd / Pu.
     dr : float
-        Density ratio across the shock wave.
+        Density ratio across the shock wave, rhod / rhou.
     tr : float
-        Temperature ratio across the shock wave.
+        Temperature ratio across the shock wave, Td / Tu.
     tpr : float
-        Total Pressure ratio across the shock wave.
+        Total Pressure ratio across the shock wave, P0d / P0u.
     pc_pu : float
         Pressure ratio between the cone's surface and the upstream condition.
     rhoc_rhou : float
@@ -868,3 +873,108 @@ def print_conical_shockwave_results(
     labels = ["Mu", "Mc", "theta_c", "beta", "delta", "pd/pu", "rhod/rhou",
         "Td/Tu", "p0d/p0u", "pc/pu", "rho_c/rhou", "Tc/Tu"]
     _print_results_helper(results, labels, None, number_formatter, blank_line)
+
+
+def shock_compression(pr=None, dr=None, gamma=1.4, to_dict=None):
+    """
+    Solve the Hugoniot equation for a calorically perfect gas in order to
+    compute either the pressure ratio P2/P1 or the density ratio rho2/rho1
+    across the schock wave.
+
+    Parameters
+    ----------
+    pr : None, float or array_like
+        Pressure ration Pd / Pu across the shock wave. If None, ``dr`` must be
+        provided instead.
+    dr : None, float or array_like
+        Density ration rhod / rhou across the shock wave. If None, ``pr`` must be
+        provided instead.
+    gamma : float, optional
+        Specific heats ratio. Default to 1.4. Must be gamma > 1.
+    to_dict : bool, optional
+        If False, the function returns a list of results. If True, it returns
+        a dictionary in which the keys are listed in the Returns section.
+        Default to False (return a list of results).
+
+    Returns
+    -------
+    pr : float or ndarray
+        Pressure ratio Pd / Pu across the shock wave.
+    dr : float or ndarray
+        Density ratio rhod / rhou across the shock wave.
+    
+    Examples
+    --------
+
+    >>> from pygasflow import shock_compression
+    >>> rho1 = 1   # kg / m**3
+    >>> res = shock_compression(pr=2, to_dict=True)
+    >>> res.show()
+    key     quantity            
+    ----------------------------
+    pr      P2 / P1                  2.00000000
+    dr      rho2 / rho1              1.62500000
+    >>> rho2_rho1 = res["dr"]
+    >>> rho2 = rho2_rho1 * rho1
+    >>> rho2
+    np.float64(1.6250000000000002)
+
+    See Also
+    --------
+    :func:`~pygasflow.solvers.isentropic.isentropic_compression`
+
+    References
+    ----------
+    Anderson's, last equation of section 3.7.
+    """
+    to_dict = _should_solver_return_dict(to_dict)
+
+    a = (gamma + 1) / (gamma - 1)
+    if pr is not None:
+        is_scalar = isinstance(pr, Number)
+        pr = np.atleast_1d(pr)
+        v1_v2 = (pr * a + 1) / (pr + a)
+        dr = v1_v2
+    elif dr is not None:
+        is_scalar = isinstance(dr, Number)
+        dr = np.atleast_1d(dr)
+        v1_v2 = dr
+        pr = (a * v1_v2 - 1) / (a - v1_v2)
+        pr[a <= v1_v2] = np.nan
+    else:
+        raise ValueError("Either `pr` or `dr` must be numerical values.")
+
+    if is_scalar:
+        pr, dr = pr[0], dr[0]
+
+    if to_dict:
+        return ShockResults(
+            pr=pr, dr=dr,
+            printer=print_shock_compression_results
+        )
+    return ShockResultsList(
+        [pr, dr],
+        printer=print_shock_compression_results
+    )
+
+
+def print_shock_compression_results(results, number_formatter=None, blank_line=False):
+    """
+    Parameters
+    ----------
+    results : list or dict
+    number_formatter : str or None
+        A formatter to properly show floating point numbers. For example,
+        ``"{:>8.3f}"`` to show numbers with 3 decimal places.
+    blank_line : bool
+        If True, a blank line will be printed after the results.
+
+    See Also
+    --------
+    shock_compression
+    """
+    # NOTE: the white space wrapping '/' are necessary, otherwise Sphinx
+    # will process these labels and convert them to Latex, thanks to
+    # the substitutions I implemented in doc/conf.py
+    labels = ["P2 / P1", "rho2 / rho1"]
+    _print_results_helper(results, labels, "{:20}", number_formatter, blank_line)

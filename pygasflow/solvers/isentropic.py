@@ -317,7 +317,7 @@ def isentropic_compression(pr=None, dr=None, tr=None, gamma=1.4, to_dict=None):
 
     See Also
     --------
-    shock_compression
+    :func:`~pygasflow.solvers.shockwave.shock_compression`
 
     """
     to_dict = _should_solver_return_dict(to_dict)

@@ -13,6 +13,7 @@ from .shockwave import (
     print_normal_shockwave_results,
     print_oblique_shockwave_results,
     print_conical_shockwave_results,
+    shock_compression,
 )
 from .de_laval import (
     De_Laval_Solver,
@@ -35,6 +36,7 @@ __all__ = [
     "oblique_shockwave_solver",
     "conical_shockwave_solver",
     "normal_shockwave_solver",
+    "shock_compression",
     "De_Laval_Solver",
     "find_shockwave_area_ratio",
     "gas_solver",

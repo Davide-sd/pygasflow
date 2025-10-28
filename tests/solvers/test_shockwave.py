@@ -24,6 +24,7 @@ from pygasflow.solvers.shockwave import (
     print_conical_shockwave_results,
     print_normal_shockwave_results,
     print_oblique_shockwave_results,
+    shock_compression,
 )
 import pint
 from contextlib import redirect_stdout
@@ -782,3 +783,30 @@ Tc_Tu      Tc/Tu               1.13731165
     # "trim trailing whitespaces in regex and strings"
     # must be disabled!
     assert output == expected
+
+
+@pytest.mark.parametrize("to_dict", [True, False])
+def test_shock_compression_return_type(to_dict):
+    res = shock_compression(pr=2, to_dict=to_dict)
+    assert isinstance(res, dict if to_dict else list)
+
+
+@pytest.mark.parametrize("param", [
+    {"pr": [1.        , 1.9245283 , 3.13043478, 4.76923077, 7.125     ]},
+    {"dr": [1.        , 1.58333333, 2.16666667, 2.75      , 3.33333333]},
+])
+def test_shock_compression_to_list(param):
+    pr, dr = shock_compression(**param, to_dict=False)
+    assert np.allclose(pr, [1.        , 1.9245283 , 3.13043478, 4.76923077, 7.125     ])
+    assert np.allclose(dr, [1.        , 1.58333333, 2.16666667, 2.75      , 3.33333333])
+
+
+@pytest.mark.parametrize("param", [
+    {"pr": [1.        , 1.9245283 , 3.13043478, 4.76923077, 7.125     ]},
+    {"dr": [1.        , 1.58333333, 2.16666667, 2.75      , 3.33333333]},
+])
+def test_shock_compression_to_dict(param):
+    res = shock_compression(**param, to_dict=True)
+    assert np.allclose(res["pr"], [1.        , 1.9245283 , 3.13043478, 4.76923077, 7.125     ])
+    assert np.allclose(res["dr"], [1.        , 1.58333333, 2.16666667, 2.75      , 3.33333333])
+
