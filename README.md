@@ -62,25 +62,60 @@ The easiest way is to call a solver. Let's say you need to solve an isentropic f
 
 ```python
 from pygasflow import isentropic_solver
-help(isentropic_solver)
-isentropic_solver("m", 2, to_dict=True)
-# {'m': 2.0,
-#  'pr': 0.12780452546295096,
-#  'dr': 0.2300481458333117,
-#  'tr': 0.5555555555555556,
-#  'prs': 0.24192491286747442,
-#  'drs': 0.36288736930121157,
-#  'trs': 0.6666666666666667,
-#  'urs': 2.3515101530718505,
-#  'ars': 1.6875000000000002,
-#  'ma': 30.000000000000004,
-#  'pm': 26.379760813416457}
+T1 = 290   # K
+p1 = 1     # atm
+
+# compute ratios and quantities for an isentropic flow at Mach 2
+res = isentropic_solver("m", 2, to_dict=True)
+res.show()
+# key     quantity
+# ----------------------------
+# m       M                        2.00000000
+# pr      P / P0                   0.12780453
+# dr      rho / rho0               0.23004815
+# tr      T / T0                   0.55555556
+# prs     P / P*                   0.24192491
+# drs     rho / rho*               0.36288737
+# trs     T / T*                   0.66666667
+# urs     U / U*                   1.63299316
+# ars     A / A*                   1.68750000
+# ma      Mach Angle              30.00000000
+# pm      Prandtl-Meyer           26.37976081
+
+# compute total quantities
+T0 = (1 / res["tr"]) * T1
+P0 = (1 / res["pr"]) * p1
+print("---------")
+print(f"P0 = {P0} atm")
+print(f"T0 = {T0} K")
+---------
+P0 = 7.824449066867263 atm
+T0 = 522.0 K
 ```
 
 Should a solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits your needs.
 
 Please:
 
-* take a look at the notebooks contained in the [examples](examples/) folder. You can also try this package online with Binder. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
 * visit the [documentation page](https://pygasflow.readthedocs.io/en/latest/).
-* If you find any errors, open an issue or submit a pull request!
+* take a look at the notebooks contained in the [examples](examples/) folder. You can also try this package online with Binder. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
+
+
+## How to Contribute
+
+Contributions are welcomed. If you find any errors, or would like to provide further examples of usage, open an issue or submit a pull request. Here is how to open a pull request:
+
+1. fork this repository.
+2. download the repository: git clone https://github.com/<YOUR-USERNAME>/pygasflow.git
+3. enter the project directory: `cd pygasflow`
+4. create a new branch: `git branch -d YOUR-BRANCH-NAME`
+5. do the necessary edits and commit them.
+6. push the branch to your remote: `git push origin YOUR-BRANCH-NAME`
+7. open the Pull Request.
+
+**<ins>NOTE about AI-LLM usage:</ins>** I have nothing against the use of these tools. However, many people are unable to properly control their outputs. In practice, these tools often modifies too much. With this in mind:
+
+* No [vibe coding](https://en.wikipedia.org/wiki/Vibe_coding). I prefer that you code manually and understand exactly what you are doing. If you are unable to code without an LLM, open an issue and clearly explain what's wrong or what could be implemented.
+* If there is a comment in the code, it is very likely to be important to me (the maintainer). Equally important are variable names, function names etc. If the LLM is going to change variable names, remove comments or reorganize the code just for the sake of it, I'll close the PR immediately.
+
+

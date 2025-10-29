@@ -4,13 +4,22 @@ Changelog
 v1.4.0
 ======
 
-* Improved usability of the solvers by implementing the ``show()`` method
-  on the returned list/dict of results.
+* Improved usability of the functions exposed by `pygasflow.solvers`.
+  In particular, the ``show()`` method was implemented on the returned
+  list/dict of results in order to visualize a nice table of numerical data.
 
-* Added support to `pint <https://github.com/hgrecco/pint>`_ in order
-  to define, operate and manipulate physical quantities.
+* Added `pint <https://github.com/hgrecco/pint>`_ support to the solvers
+  exposed  by `pygasflow.solvers`. *pint* is a module that allows to define,
+  operate and manipulate physical quantities.
+
+* Added functions:
+
+  * :func:`~pygasflow.solvers.isentropic.isentropic_compression`
+  * :func:`~pygasflow.solvers.shockwave.shock_compression`
+  * :func:`~pygasflow.solvers.rayleigh.specific_heat_solver`
 
 * Documentation:
+
   * Added a few solutions to *'Modern Compressible Flow with Historical Perspective'*
     as a showcase of the capabilities of this module.
 
