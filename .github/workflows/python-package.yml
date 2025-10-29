@@ -39,7 +39,11 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
+    - name: Install package locally for Doctests
+      run: |
+        pip install -e .
     - name: Doctests
+      if: matrix.python-version == '3.13'
       working-directory: doc
       run: |
         make doctest
