@@ -18,6 +18,11 @@ import os
 import sys
 import inspect
 import sphinx_rtd_theme
+import ast
+import re
+import doctest
+import numpy as np
+from numbers import Number
 from pygasflow.utils.doc_utils import param_formatter, modify_panel_code
 
 sys.path.insert(0, os.path.abspath('../../'))
@@ -256,6 +261,76 @@ def replace(app, what, name, obj, options, lines):
 def setup(app):
     app.connect('autodoc-process-docstring', replace)
     app.connect("autodoc-process-docstring", param_formatter, priority=-100)
+
+
+# -- Custom Checker for floating point tolerance for doctests ----------------
+
+class FloatingPointTolerantOutputChecker(doctest.OutputChecker):
+    """
+    In this module, many doctests returns list of floating point numbers
+    or dictionaries whose values are floating point numbers. This module
+    also extensively uses Numpy. Depending on the machine, doctests may
+    pass or fail. For example:
+    
+    * test expectes this number: 0.02722368370386282
+    * test got this number:      0.027223683703862824
+
+    Here, doctest is going to fail, even though for the purpose of this module 
+    these two numbers are identical.
+
+    Here comes this checker: it takes the expected string, and the computed
+    string. Then it converts them to Python objects and compares the values
+    numerically, instead of semantically.
+    """
+
+    def check_output(self, want, got, optionflags):
+        # Try the normal doctest comparison first
+        if super().check_output(want, got, optionflags):
+            return True
+
+        # strip `np.float64(number)` function calls, and keeps only `number`
+        reg = r'np\.float64\(([^)]+)\)'
+        want = re.sub(reg, r'\1', want)
+        got = re.sub(reg, r'\1', got)
+
+        try:
+            # NOTE: I could use `eval()`, but that executes any valid
+            # Python expression. Because I intend to use doctests also on
+            # PR created by other users, I cannot guarantee the safety of
+            # their code. Hence, `ast.literal` is the preferred choice,
+            # because it doesn't allow function calls, attribute access, etc.
+            want_val = ast.literal_eval(want.strip())
+            got_val = ast.literal_eval(got.strip())
+        except Exception:
+            return False
+
+        return self._compare_values(want_val, got_val)
+
+    def _compare_values(self, a, b):
+        # Handle numeric types (scalars)
+        if isinstance(a, Number) and isinstance(b, Number):
+            return np.allclose(a, b, rtol=1e-8, atol=1e-12)
+
+        iterable = (np.ndarray, list, tuple)
+        if isinstance(a, iterable) and isinstance(b, iterable):
+            if len(a) != len(b):
+                return False
+            return np.allclose(a, b, rtol=1e-8, atol=1e-12)
+
+        # Handle dictionaries
+        if isinstance(a, dict) and isinstance(b, dict):
+            if set(a.keys()) != set(b.keys()):
+                return False
+            a_values = [a[k] for k in a]
+            b_values = [b[k] for k in a]
+            return np.allclose(a_values, b_values, rtol=1e-8, atol=1e-12)
+
+        # Fallback for non-numeric or mismatched types
+        return a == b
+
+
+# Register the custom checker globally
+doctest.OutputChecker = FloatingPointTolerantOutputChecker
 
 
 # -- Options for intersphinx extension ---------------------------------------
