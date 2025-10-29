@@ -106,7 +106,7 @@ Please:
 Contributions are welcomed. If you find any errors, or would like to provide further examples of usage, open an issue or submit a pull request. Here is how to open a pull request:
 
 1. fork this repository.
-2. download the repository: git clone https://github.com/<YOUR-USERNAME>/pygasflow.git
+2. download the repository: `git clone https://github.com/<YOUR-USERNAME>/pygasflow.git`
 3. enter the project directory: `cd pygasflow`
 4. create a new branch: `git branch -d YOUR-BRANCH-NAME`
 5. do the necessary edits and commit them.
