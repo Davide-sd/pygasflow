@@ -88,9 +88,9 @@ P0 = (1 / res["pr"]) * p1
 print("---------")
 print(f"P0 = {P0} atm")
 print(f"T0 = {T0} K")
----------
-P0 = 7.824449066867263 atm
-T0 = 522.0 K
+# ---------
+# P0 = 7.824449066867263 atm
+# T0 = 522.0 K
 ```
 
 Should a solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits your needs.
