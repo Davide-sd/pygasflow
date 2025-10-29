@@ -747,15 +747,15 @@ def test_pressure_deflection_locus_example_4_10_pint():
     # NOTE: for this tests to succeed, VSCode option
     # "trim trailing whitespaces in regex and strings"
     # must be disabled!
-    assert output1 == """key     quantity    
---------------------
-M       M                2.80000000
-T       T [°R]         519.00000000
-p       p [atm]          1.00000000
-rho     rho                     nan
-T0      T0 [°R]       1332.79200000
-p0      p0 [atm]        27.13829555
-rho0    rho0                    nan
+    assert output1 == """key     quantity     
+---------------------
+M       M                 2.80000000
+T       T [°R]          519.00000000
+p       p [atm]           1.00000000
+rho     rho                      nan
+T0      T0 [°R]        1332.79200000
+p0      p0 [atm]         27.13829555
+rho0    rho0                     nan
 """
 
     res2 = l2.flow_quantities_at_locus_origin(p1, T1, None)
