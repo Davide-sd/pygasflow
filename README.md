@@ -41,6 +41,18 @@ in this module:
 </div>
 
 
+## Development and Support
+
+If you feel like a feature could be implemented, open an issue or create a PR.
+Implementing new features and fixing bugs requires time and energy too.
+If you found this module useful and would like to show your appreciation,
+please consider sponsoring this project with either one of these options:
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/davide_sd)
+or
+[![](https://img.shields.io/static/v1?label=Github%20Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/Davide-sd)
+
+
 ## Installation
 
 The repository is avaliable on PyPi:
@@ -58,7 +70,8 @@ conda install conda-forge::pygasflow
 
 ## Usage
 
-The easiest way is to call a solver. Let's say you need to solve an isentropic flow:
+The easiest way is to call a solver.
+Let's say you need to solve an isentropic flow:
 
 ```python
 from pygasflow import isentropic_solver
@@ -93,29 +106,13 @@ print(f"T0 = {T0} K")
 # T0 = 522.0 K
 ```
 
-Should a solver not be sufficient for your use case, feel free to explore the code implemented inside each flow's type, maybe you'll find a function that suits your needs.
+Should a solver not be sufficient for your use case, feel free to explore the
+code implemented inside each flow's type, maybe you'll find a function that
+suits your needs.
 
 Please:
 
 * visit the [documentation page](https://pygasflow.readthedocs.io/en/latest/).
-* take a look at the notebooks contained in the [examples](examples/) folder. You can also try this package online with Binder. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
-
-
-## How to Contribute
-
-Contributions are welcomed. If you find any errors, or would like to provide further examples of usage, open an issue or submit a pull request. Here is how to open a pull request:
-
-1. fork this repository.
-2. download the repository: `git clone https://github.com/<YOUR-USERNAME>/pygasflow.git`
-3. enter the project directory: `cd pygasflow`
-4. create a new branch: `git branch -d YOUR-BRANCH-NAME`
-5. do the necessary edits and commit them.
-6. push the branch to your remote: `git push origin YOUR-BRANCH-NAME`
-7. open the Pull Request.
-
-**<ins>NOTE about AI-LLM usage:</ins>** I have nothing against the use of these tools. However, many people are unable to properly control their outputs. In practice, these tools often modifies too much. With this in mind:
-
-* No [vibe coding](https://en.wikipedia.org/wiki/Vibe_coding). I prefer that you code manually and understand exactly what you are doing. If you are unable to code without an LLM, open an issue and clearly explain what's wrong or what could be implemented.
-* If there is a comment in the code, it is very likely to be important to me (the maintainer). Equally important are variable names, function names etc. If the LLM is going to change variable names, remove comments or reorganize the code just for the sake of it, I'll close the PR immediately.
-
+* take a look at the notebooks contained in the [examples](examples/) folder.
+  You can also try this package online with Binder. [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/Davide-sd/pygasflow/HEAD)
 
