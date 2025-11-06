@@ -162,6 +162,9 @@ def viscosity_chapman_enskog(T, gas="air", M=None, sigma=None, Sigma_mu=None):
     >>> viscosity_chapman_enskog(50 * ureg.K)
     <Quantity(3.44520547e-06, 'kilogram / meter / second')>
 
+    Comparison of the viscosity of different gases over a
+    range of temperatures.
+
     .. plot::
        :context: close-figs
        :include-source: True
