@@ -15,6 +15,7 @@ def convert_to_ndarray(x):
     """
     if not isinstance(x, np.ndarray):
         units = x.units if _is_pint_quantity(x) else 1
+        x = x.magnitude if _is_pint_quantity(x) else x
         if curr_numpy_ver >= np_2_0_0:
             return np.atleast_1d(np.asarray(x, dtype=np.float64)) * units
         return np.atleast_1d(np.array(x, copy=False, dtype=np.float64)) * units
@@ -314,3 +315,8 @@ def _is_scalar(val):
         if _is_pint_quantity(val):
             is_scalar = isinstance(val.magnitude, Number)
     return is_scalar
+
+
+def _parse_pint_units(input_string: str):
+    ureg = pygasflow.defaults.pint_ureg
+    return ureg.parse_units(input_string)
