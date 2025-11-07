@@ -293,8 +293,7 @@ def _print_results_helper(
 def _is_pint_quantity(val):
     try:
         import pint
-        if isinstance(val, pint.Quantity):
-            return True
+        return isinstance(val, pint.Quantity)
     except ImportError:
         return False
 
