@@ -3,23 +3,12 @@ from pygasflow.atd.viscosity import (
     viscosity_air_power_law, viscosity_air_southerland,
     viscosity_chapman_enskog
 )
-import pint
 import pytest
-import pygasflow
-
-
-ureg = pint.UnitRegistry()
-pygasflow.defaults.pint_ureg = ureg
-K = ureg.K
-m = ureg.m
-s = ureg.s
-kg = ureg.kg
-J = ureg.J
-W = ureg.W
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_viscosity_air_power_law(use_pint):
+def test_viscosity_air_power_law(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -48,7 +37,8 @@ def test_viscosity_air_power_law(use_pint):
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_viscosity_air_southerland(use_pint):
+def test_viscosity_air_southerland(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -77,7 +67,8 @@ def test_viscosity_air_southerland(use_pint):
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_viscosity_chapman_enskog_mode_1(use_pint):
+def test_viscosity_chapman_enskog_mode_1(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -144,13 +135,14 @@ def test_viscosity_chapman_enskog_mode_2():
     assert not np.isclose(res_mode_1, res_mode_2)
 
 
-def test_viscosity_chapman_enskog_mode_2_errors():
+def test_viscosity_chapman_enskog_mode_2_errors(setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T, M, sigma, Sigma_mu = 300, 28.9, 3.7E-10 * 1e10, 1.1
 
     # everything is fine if quantities have appropriate dimensions
     viscosity_chapman_enskog(
         T*K,
-        M=M*kg/ureg.kmol,
+        M=M*kg/kmol,
         sigma=sigma*m,
         Sigma_mu=Sigma_mu
     )
@@ -160,7 +152,7 @@ def test_viscosity_chapman_enskog_mode_2_errors():
         ValueError,
         lambda: viscosity_chapman_enskog(
             T*K,
-            M=M*kg/ureg.kmol,
+            M=M*kg/kmol,
             sigma=sigma*m,
             Sigma_mu=Sigma_mu*s
         )
@@ -170,7 +162,7 @@ def test_viscosity_chapman_enskog_mode_2_errors():
         ValueError,
         lambda: viscosity_chapman_enskog(
             T*K,
-            M=M*kg/ureg.kmol,
+            M=M*kg/kmol,
             sigma=sigma,
             Sigma_mu=Sigma_mu*s
         )
@@ -191,7 +183,7 @@ def test_viscosity_chapman_enskog_mode_2_errors():
         ValueError,
         lambda: viscosity_chapman_enskog(
             T,
-            M=M*kg/ureg.kmol,
+            M=M*kg/kmol,
             sigma=sigma*m,
             Sigma_mu=Sigma_mu*s
         )

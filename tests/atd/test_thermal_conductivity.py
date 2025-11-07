@@ -3,23 +3,12 @@ from pygasflow.atd.thermal_conductivity import (
     thermal_conductivity_power_law, thermal_conductivity_hansen,
     thermal_conductivity_chapman_enskog, thermal_conductivity_eucken
 )
-import pint
 import pytest
-import pygasflow
-
-
-ureg = pint.UnitRegistry()
-pygasflow.defaults.pint_ureg = ureg
-W = ureg.W
-m = ureg.m
-s = ureg.s
-K = ureg.K
-J = ureg.J
-kg = ureg.kg
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_thermal_conductivity_power_law(use_pint):
+def test_thermal_conductivity_power_law(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -48,7 +37,8 @@ def test_thermal_conductivity_power_law(use_pint):
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_thermal_conductivity_hansen(use_pint):
+def test_thermal_conductivity_hansen(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -77,7 +67,8 @@ def test_thermal_conductivity_hansen(use_pint):
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_thermal_conductivity_chapman_enskog(use_pint):
+def test_thermal_conductivity_chapman_enskog(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     T1 = 50
     T2 = 350
     T3 = np.array([50, 100, 200, 300, 500, 1000])
@@ -135,7 +126,8 @@ def test_thermal_conductivity_chapman_enskog_gases():
 
 
 @pytest.mark.parametrize("use_pint", [False, True])
-def test_thermal_conductivity_eucken(use_pint):
+def test_thermal_conductivity_eucken(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     cp, R, mu = 1010, 288, 1.863e-05
 
     if use_pint:
@@ -151,7 +143,8 @@ def test_thermal_conductivity_eucken(use_pint):
 
     assert np.isclose(k, 0.0255231)
 
-def test_thermal_conductivity_eucken_errors():
+def test_thermal_conductivity_eucken_errors(setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
     # mix of units and unitless quantities -> error
 
     cp, R, mu = 1010, 288, 1.863e-05
