@@ -1,4 +1,8 @@
 import numpy as np
+from pygasflow.utils.common import (
+    _is_pint_quantity,
+    _check_mix_of_units_and_dimensionless
+)
 
 
 def Prandtl(*args, **kwargs):
@@ -70,20 +74,33 @@ def Prandtl(*args, **kwargs):
 
     Compute the Prandtl number by providing mu, cp, k:
 
-    >>> from pygasflow.atd.viscosity import viscosity_air_southerland
-    >>> from pygasflow.atd.thermal_conductivity import thermal_conductivity_hansen
+    >>> from pygasflow.atd import viscosity_air_southerland
+    >>> from pygasflow.atd import thermal_conductivity_hansen
     >>> cp = 1004
     >>> mu = viscosity_air_southerland(350)
     >>> k = thermal_conductivity_hansen(350)
     >>> Prandtl(mu, cp, k)
     np.float64(0.7370392202421769)
 
+    Compute the Prandtl number by providing Pe, Re:
+
+    >>> Prandtl(Pe=7000, Re=10000)
+    0.7
+
+    Compute the Prandtl number by providing Le, Sc:
+    
+    >>> Prandtl(Le=)
+
     See Also
     --------
     Peclet, Lewis, Reynolds, Schmidt
     """
     if len(args) == 1:
-        if isinstance(args[0], (int, float, np.ndarray)):
+        print(args[0],_is_pint_quantity(args[0]))
+        if (
+            _is_pint_quantity(args[0])
+            or isinstance(args[0], (int, float, np.ndarray))
+        ):
             # eq (4.19)
             gamma = args[0]
             return 4 * gamma / (9 * gamma - 5)
@@ -97,6 +114,7 @@ def Prandtl(*args, **kwargs):
             "float, or np.ndarray or ct.Solution"
         )
     elif len(args) == 3:
+        _check_mix_of_units_and_dimensionless(args)
         # eq (4.19)
         mu, cp, k = args
         return mu * cp / k
@@ -104,12 +122,14 @@ def Prandtl(*args, **kwargs):
     Pe = kwargs.get("Pe", None)
     Re = kwargs.get("Re", None)
     if (Pe is not None) and (Re is not None):
+        _check_mix_of_units_and_dimensionless([Pe, Re])
         # eq (4.67)
         return Pe / Re
 
     Le = kwargs.get("Le", None)
     Sc = kwargs.get("Sc", None)
     if (Le is not None) and (Sc is not None):
+        _check_mix_of_units_and_dimensionless([Le, Sc])
         # eq (4.93)
         return Le * Sc
 
@@ -161,6 +181,8 @@ def Knudsen(*args):
     --------
     Reynolds
     """
+    args = [a if not isinstance(a, (list, tuple)) else np.asarray(a, dtype=np.float64) for a in args]
+    _check_mix_of_units_and_dimensionless(args)
     if len(args) == 2:
         # eq (2.13)
         _lambda, _L = args
@@ -180,7 +202,7 @@ def Stanton(*args):
     There are 3 modes of operation:
 
     * Stanton(q_gw, q_inf)
-    * Stanton(q_gw, rho_inf, v_inf)
+    * Stanton(q_gw, rho_inf, v_inf): valid for high flight speeds.
     * Stanton(q_gw, rho_inf, v_inf, delta_h)
 
     Parameters
@@ -203,6 +225,7 @@ def Stanton(*args):
     -------
     Sn : float or array_like
     """
+    _check_mix_of_units_and_dimensionless(args)
     if len(args) == 2:
         # eq (3.3)
         q_gw, q_inf = args
@@ -259,6 +282,7 @@ def Strouhal(*args):
     of a control surface may occur. In addition there might be configuration
     details, where highly unsteady vortex shedding is present.
     """
+    _check_mix_of_units_and_dimensionless(args)
     if len(args) == 2:
         # eq (4.8)
         t_res, t_ref = args
@@ -306,19 +330,20 @@ def Reynolds(rho, u, mu, L=1):
       of magnitude as the convective transport, the flow is viscous, i. e.
       it is boundary-layer, or in general, shear-layer flow.
     """
+    _check_mix_of_units_and_dimensionless([rho, u, mu, L])
     # eq (4.40)
     return rho * u * L / mu
 
 
-def Peclet(rho, mu, cp, L, k):
+def Peclet(rho, u, cp, L, k):
     """Compute the Peclét number.
 
     Parameters
     ----------
     rho : float or array_like
         Density.
-    mu : float or array_like
-        Viscosity.
+    u : float or array_like
+        Velocity.
     cp : float or array_like
         Specific heat at constant pressure.
     L : float or array_like
@@ -342,8 +367,9 @@ def Peclet(rho, mu, cp, L, k):
     * Pe = O(1): the molecular transport of heat has the same order of
       magnitude as the convective transport.
     """
+    _check_mix_of_units_and_dimensionless([rho, u, cp, L, k])
     # eq (4.66)
-    return rho * mu * cp * L / k
+    return rho * u * cp * L / k
 
 
 def Lewis(rho, D, cp, k):
@@ -366,6 +392,7 @@ def Lewis(rho, D, cp, k):
     -------
     Lw : float or array_like
     """
+    _check_mix_of_units_and_dimensionless([rho, D, cp, k])
     # eq (4.71)
     return rho * D * cp / k
 
@@ -428,9 +455,15 @@ def Schmidt(*args):
     --------
     Lewis, Prandtl
     """
-    # eq (4.92)
-    rho, mu, D = args
-    return mu / (rho * D)
-    # eq (4.93)
-    Pr, Le = args
-    return Pr / Le
+    _check_mix_of_units_and_dimensionless(args)
+    if len(args) == 3:
+        # eq (4.92)
+        rho, mu, D = args
+        return mu / (rho * D)
+    elif len(args) == 2:
+        # eq (4.93)
+        Pr, Le = args
+        return Pr / Le
+
+    raise ValueError("Combination of parameters not recognized. "
+        "Please, read the documentation.")

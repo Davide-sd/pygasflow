@@ -3,7 +3,11 @@ import numpy as np
 import pandas as pd
 from scipy import interpolate
 from pygasflow.utils.decorators import check_T
-from pygasflow.utils.common import _is_pint_quantity, _parse_pint_units
+from pygasflow.utils.common import (
+    _is_pint_quantity,
+    _parse_pint_units,
+    _check_mix_of_units_and_dimensionless
+)
 
 
 @check_T
@@ -153,13 +157,7 @@ def thermal_conductivity_eucken(cp, R, mu):
 
     "Basic of Aerothermodynamics", by Ernst H. Hirschel
     """
-    check = [_is_pint_quantity(t) for t in [cp, R, mu]]
-    if not (all(check) or (not any(check))):
-        raise ValueError(
-            "Detected a mix of units and dimensionless quantities."
-            " The evaluation can't proceed. Please, check the"
-            " dimensions of the provided quantities."
-        )
+    _check_mix_of_units_and_dimensionless([cp, R, mu])
     is_pint = any(check)
     if _is_pint_quantity(cp):
         cp = cp.to("J / kg / K").magnitude

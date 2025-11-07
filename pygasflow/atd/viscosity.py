@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 from scipy import interpolate
 from pygasflow.utils.decorators import check_T
-from pygasflow.utils.common import _is_pint_quantity, _parse_pint_units
+from pygasflow.utils.common import (
+    _is_pint_quantity,
+    _parse_pint_units,
+    _check_mix_of_units_and_dimensionless
+)
 
 
 @check_T
@@ -196,13 +200,7 @@ def viscosity_chapman_enskog(T, gas="air", M=None, sigma=None, Sigma_mu=None):
         # Quick dimensional check: don't allow mix of units and unitless
         # quantities, as it is dangerous for the user.
         # Don't look at Sigma_mu, it will be checked later
-        a, b, c = [_is_pint_quantity(t) for t in [T, M, sigma]]
-        if not (all([a, b, c]) or (not any([a, b, c]))):
-            raise ValueError(
-                "Detected a mix of units and dimensionless quantities."
-                " The evaluation can't proceed. Please, check the"
-                " dimensions of the provided quantities."
-            )
+        _check_mix_of_units_and_dimensionless([T, M, sigma])
 
     is_pint = _is_pint_quantity(T)
     if is_pint:

@@ -319,3 +319,13 @@ def _is_scalar(val):
 def _parse_pint_units(input_string: str):
     ureg = pygasflow.defaults.pint_ureg
     return ureg.parse_units(input_string)
+
+
+def _check_mix_of_units_and_dimensionless(quantities):
+    check = [_is_pint_quantity(t) for t in quantities]
+    if not (all(check) or (not any(check))):
+        raise ValueError(
+            "Detected a mix of units and dimensionless quantities."
+            " The evaluation can't proceed. Please, check the"
+            " dimensions of the provided quantities."
+        )
