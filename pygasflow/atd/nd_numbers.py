@@ -72,15 +72,24 @@ def Prandtl(*args, **kwargs):
     >>> Prandtl(air)
     0.7139365242266991
 
-    Compute the Prandtl number by providing mu, cp, k:
+    Compute the Prandtl number by providing mu, cp, k. pint quantities
+    are supported:
 
+    >>> import pygasflow
+    >>> import pint
     >>> from pygasflow.atd import viscosity_air_southerland
     >>> from pygasflow.atd import thermal_conductivity_hansen
-    >>> cp = 1004
-    >>> mu = viscosity_air_southerland(350)
-    >>> k = thermal_conductivity_hansen(350)
-    >>> Prandtl(mu, cp, k)
-    np.float64(0.7370392202421769)
+    >>> ureg = pint.UnitRegistry()
+    >>> pygasflow.defaults.pint_ureg = ureg
+    >>> T = 350 * ureg.K
+    >>> cp = 1004 * ureg.J / (ureg.kg * ureg.K)
+    >>> mu = viscosity_air_southerland(T)
+    >>> k = thermal_conductivity_hansen(T)
+    >>> Pr = Prandtl(mu, cp, k)
+    >>> Pr
+    <Quantity(0.73703922, 'joule / second / watt')>
+    >>> Pr.unitless
+    True
 
     Compute the Prandtl number by providing Pe, Re:
 
@@ -89,14 +98,14 @@ def Prandtl(*args, **kwargs):
 
     Compute the Prandtl number by providing Le, Sc:
     
-    >>> Prandtl(Le=)
+    >>> Prandtl(Le=1.5, Sc=1.4)
+    2.0999999999999996
 
     See Also
     --------
     Peclet, Lewis, Reynolds, Schmidt
     """
     if len(args) == 1:
-        print(args[0],_is_pint_quantity(args[0]))
         if (
             _is_pint_quantity(args[0])
             or isinstance(args[0], (int, float, np.ndarray))

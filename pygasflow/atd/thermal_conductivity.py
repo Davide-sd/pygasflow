@@ -158,12 +158,10 @@ def thermal_conductivity_eucken(cp, R, mu):
     "Basic of Aerothermodynamics", by Ernst H. Hirschel
     """
     _check_mix_of_units_and_dimensionless([cp, R, mu])
-    is_pint = any(check)
-    if _is_pint_quantity(cp):
+    is_pint = any(_is_pint_quantity(q) for q in [cp, R, mu])
+    if is_pint:
         cp = cp.to("J / kg / K").magnitude
-    if _is_pint_quantity(mu):
         mu = mu.to("kg / m / s").magnitude
-    if _is_pint_quantity(R):
         R = R.to("J / (kg * K)").magnitude
 
     # eq (4.18)
