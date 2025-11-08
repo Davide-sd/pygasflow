@@ -1,7 +1,12 @@
 
 import cantera as ct
 import numpy as np
-from pygasflow.common import pressure_coefficient, sound_speed
+from pygasflow.common import (
+    pressure_coefficient,
+    sound_speed,
+    specific_heats
+)
+import pytest
 
 
 def test_pressure_coefficient_single_value_stagnation():
@@ -46,3 +51,23 @@ def test_sound_speed_second_mode_operation():
     gas = ct.Solution("gri30.yaml")
     gas.TPX = 300, ct.one_atm, {"N2": 1}
     assert np.isclose(sound_speed(gas), 353.1256637274762)
+
+
+@pytest.mark.parametrize("use_pint", [False, True])
+def test_specific_heats(use_pint, setup_pint_registry):
+    K, m, s, kg, J, W, Q_, kmol, atm = setup_pint_registry
+
+    R = 287.05
+    expected_Cp = 1004.675
+    expected_Cv = 717.625
+    expected_gamma = 1.4
+
+    if use_pint:
+        R *= J / (kg * K)
+        expected_Cp *= J / (kg * K)
+        expected_Cv *= J / (kg * K)
+
+    Cp, Cv, gamma = specific_heats(R)
+    assert np.isclose(Cp, expected_Cp)
+    assert np.isclose(Cv, expected_Cv)
+    assert np.isclose(gamma, expected_gamma)

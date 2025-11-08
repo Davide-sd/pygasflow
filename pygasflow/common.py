@@ -1,6 +1,51 @@
 import numpy as np
 from pygasflow.utils.decorators import check
+from pygasflow.utils.common import (
+    _is_pint_quantity,
+    _check_mix_of_units_and_dimensionless
+)
 from pygasflow.shockwave import rayleigh_pitot_formula
+
+
+def specific_heats(R):
+    """
+    Compute the specific heats at constant pressure (Cp), the specific heat
+    at contant volumes (Cv) and their ratio (gamma) starting from the 
+    specific gas constant.
+
+    Parameter
+    ---------
+    R : float or array_like
+        Specific gas constant.
+    
+    Returns
+    -------
+    Cp : float or array like
+    Cv : float or array like
+    gamma : float or array like
+
+    Examples
+    --------
+    
+    Compute the specific heats of air:
+
+    >>> import pint
+    >>> from pygasflow import specific_heats
+    >>> ureg = pint.UnitRegistry()
+    >>> R_air = 287.05 * ureg.J / (ureg.kg * ureg.K)
+    >>> Cp, Cv, gamma = specific_heats(R_air)
+    >>> Cp
+    <Quantity(1004.675, 'joule / kilogram / kelvin')>
+    >>> Cv
+    <Quantity(717.625, 'joule / kilogram / kelvin')>
+    >>> gamma
+    <Quantity(1.4, 'dimensionless')>
+
+    """
+    Cv = (5 / 2) * R
+    Cp = Cv + R
+    gamma = Cp / Cv
+    return Cp, Cv, gamma
 
 
 def sound_speed(*args, **kwargs):
@@ -57,7 +102,15 @@ def sound_speed(*args, **kwargs):
     """
     if len(args) == 3:
         gamma, R, T = args
-        to_np = lambda x: x if not hasattr(x, "__iter__") else np.array(x)
+        _check_mix_of_units_and_dimensionless([R, T])
+
+        def to_np(x):
+            if _is_pint_quantity(x):
+                return x
+            if not hasattr(x, "__iter__"):
+                return x
+            return np.asarray(x)
+
         gamma = to_np(gamma)
         R = to_np(R)
         T = to_np(T)
@@ -75,6 +128,9 @@ def sound_speed(*args, **kwargs):
             "object, or 3 arguments (gamma, R, T).\n"
             "Received: %s arguments" % len(args))
     return np.sqrt(gamma * R * T)
+
+
+speed_of_sound = sound_speed
 
 
 @check([0])
