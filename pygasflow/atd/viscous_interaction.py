@@ -1,4 +1,5 @@
-"""This module exposes functionalities to estimate the hypersonic viscous
+"""
+This module exposes functionalities to estimate the hypersonic viscous
 interaction over a flat plate, in which for large Mach numbers and small
 Reynolds numbers the attached viscous flow is no more of boundary-layer type.
 Instead, observation shows that past a flat plate, a very large surface
@@ -9,10 +10,12 @@ the free-stream pressure.
 
 import numpy as np
 from pygasflow.atd.viscosity import viscosity_air_power_law
+from pygasflow.utils.common import _check_mix_of_units_and_dimensionless
 
 
 def interaction_parameter(Minf, Re_inf, Cinf=1, laminar=True):
-    """Compute the viscous interaction parameter, Chi, which correlates
+    """
+    Compute the viscous interaction parameter, Chi, which correlates
     pressure changes.
 
     Parameters
@@ -31,7 +34,7 @@ def interaction_parameter(Minf, Re_inf, Cinf=1, laminar=True):
 
     Returns
     -------
-    out : float or array_like
+    Chi : float or array_like
 
     See Also
     --------
@@ -45,7 +48,8 @@ def interaction_parameter(Minf, Re_inf, Cinf=1, laminar=True):
 
 
 def rarefaction_parameter(Minf, Re_inf, Cinf):
-    """Compute the rarefaction parameter, V, which correlates
+    """
+    Compute the rarefaction parameter, V, which correlates
     viscous/inviscid-induced perturbations in the skin friction and heat
     transfer.
 
@@ -62,7 +66,7 @@ def rarefaction_parameter(Minf, Re_inf, Cinf):
 
     Returns
     -------
-    out : float or array_like
+    V : float or array_like
 
     See Also
     --------
@@ -73,7 +77,8 @@ def rarefaction_parameter(Minf, Re_inf, Cinf):
 
 
 def chapman_rubesin(Tw, Tinf, func=None):
-    """Compute the Chapman-Rubesin factor (linear viscosity-law constant).
+    """
+    Compute the Chapman-Rubesin factor, C_inf, (linear viscosity-law constant).
 
     Parameters
     ----------
@@ -87,12 +92,13 @@ def chapman_rubesin(Tw, Tinf, func=None):
 
     Returns
     -------
-    out : float or array_like
+    C_inf : float or array_like
 
     See Also
     --------
     interaction_parameter, rarefaction_parameter
     """
+    _check_mix_of_units_and_dimensionless([Tw, Tinf])
     if func is None:
         func = viscosity_air_power_law
     mu_w = func(Tw)
@@ -102,7 +108,8 @@ def chapman_rubesin(Tw, Tinf, func=None):
 
 
 def critical_distance(Chi_u, weak=True, cold_wall=True, Chi_crit=None):
-    """Compute the critical distance, x_crit.
+    """
+    Compute the critical distance, x_crit.
 
     In a flat plate:
 
@@ -123,7 +130,7 @@ def critical_distance(Chi_u, weak=True, cold_wall=True, Chi_crit=None):
 
     Returns
     -------
-    out : float or array_like
+    x_crit : float or array_like
 
     See Also
     --------
@@ -143,7 +150,8 @@ def critical_distance(Chi_u, weak=True, cold_wall=True, Chi_crit=None):
 
 
 def wall_pressure_ratio(Chi, Tw_Tt, weak=True, laminar=True, gamma=1.4):
-    """Compute the pressure ratio Pw / Pinf between the pressure at the wall
+    """
+    Compute the pressure ratio Pw / Pinf between the pressure at the wall
     and the free stream pressure.
 
     Parameters
@@ -168,7 +176,7 @@ def wall_pressure_ratio(Chi, Tw_Tt, weak=True, laminar=True, gamma=1.4):
 
     Returns
     -------
-    out : float or array_like
+    Pw / Pinf : float or array_like
     """
     if weak and laminar:
         # eq (9.25)
@@ -181,7 +189,8 @@ def wall_pressure_ratio(Chi, Tw_Tt, weak=True, laminar=True, gamma=1.4):
 
 
 def length_shock_formation_region(Vu, coeff=0.1):
-    """Compute the length of the shock formation region.
+    """
+    Compute the length of the shock formation region.
 
     Parameters
     ----------
@@ -194,7 +203,7 @@ def length_shock_formation_region(Vu, coeff=0.1):
 
     Returns
     -------
-    out : float or array_like
+    Lsfr : float or array_like
 
     References
     ----------
