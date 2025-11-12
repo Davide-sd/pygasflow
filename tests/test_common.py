@@ -16,6 +16,13 @@ def test_pressure_coefficient_single_value_stagnation():
     assert np.isclose(pressure_coefficient(5, stagnation=True), 1.80876996)
 
 
+@pytest.mark.parametrize("M_inf", [1e-05, 1e-06, 1e-07, 1e-08, 1e-12])
+def test_pressure_coefficient_stagnation_Mfs_close_to_zero(M_inf):
+    g = 1.4
+
+    assert np.isclose(pressure_coefficient(M_inf, stagnation=True), 1)
+
+
 def test_pressure_coefficient_multiple_values_stagnation():
     g = 1.4
     Minf = [0.01, 0.1, 0.5, 1, 5, 10]

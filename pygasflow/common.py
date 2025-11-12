@@ -9,7 +9,7 @@ from pygasflow.shockwave import rayleigh_pitot_formula
 
 def specific_heats(R):
     """
-    Compute the specific heats at constant pressure (Cp), the specific heat
+    For a calorically perfect gas, compute the specific heats at constant pressure (Cp), the specific heat
     at contant volumes (Cv) and their ratio (gamma) starting from the 
     specific gas constant.
 
@@ -135,7 +135,8 @@ speed_of_sound = sound_speed
 
 @check([0])
 def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnation=False, gamma=1.4):
-    """Compute the pressure coefficient of a compressible flow.
+    """
+    Compute the pressure coefficient of a compressible flow.
     For supersonic flows, the pressure coefficient downstream of the
     shockwave is returned.
 
@@ -233,6 +234,11 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     else:
         # eq (6.35)
         results[idx] = 2 / (gamma * Mfs[idx]**2) * (param_value * (1 + (gamma - 1) / 2 * Mfs[idx]**2)**(gamma / (gamma - 1)) - 1)
+
+    if stagnation and (param_name == "pressure"):
+        idx_close_to_zero = Mfs < 1e-05
+        # take the limit of eq (6.35) for Mfs -> 0
+        results[idx_close_to_zero] = 1
 
     # NOTE: now let's deal with supersonic case
     idx = np.invert(idx)
