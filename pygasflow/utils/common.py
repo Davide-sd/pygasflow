@@ -30,6 +30,19 @@ def convert_to_ndarray(x):
     return x
 
 
+def _get_pint_unit_registry():
+    ureg = pygasflow.defaults.pint_ureg
+    if ureg is None:
+        raise ValueError(
+            "A `pint.Quantity was detected. However,"
+            " the module doesn't know how to construct new quantities"
+            " because no unit registry was set. Please, set the following"
+            " attribute to the appropriate instance of `pint.UnitRegistry`:"
+            " `pygasflow.defaults.pint_ureg`"
+        )
+    return ureg
+
+
 def ret_correct_vals(x, units=None):
     """
     Many functions implemented in this package requires their input
@@ -50,15 +63,7 @@ def ret_correct_vals(x, units=None):
     if units is None:
         units = 1
     else:
-        ureg = pygasflow.defaults.pint_ureg
-        if ureg is None:
-            raise ValueError(
-                "A `pint.Quantity was detected. However,"
-                " the module doesn't know how to construct new quantities"
-                " because no unit registry was set. Please, set the following"
-                " attribute to the appropriate instance of `pint.UnitRegistry`:"
-                " `pygasflow.defaults.pint_ureg`"
-            )
+        ureg = _get_pint_unit_registry()
         if units == "deg":
             units = ureg.deg
 
@@ -329,3 +334,73 @@ def _check_mix_of_units_and_dimensionless(quantities):
             " The evaluation can't proceed. Please, check the"
             " dimensions of the provided quantities."
         )
+
+def canonicalize_pint_dimensions(quantity):
+    """
+    Round exponent on all units to 6 decimal places.
+    Used to override unit power when there's floating point mismatch.
+
+    Parameters
+    ----------
+    quantity : pint.Quantity
+
+    Returns
+    -------
+    new_quantity : pint.Quantity
+    
+    Examples
+    --------
+
+    >>> import pint
+    >>> import pygasflow
+    >>> from pygasflow.atd.avf.heat_flux_sp import heat_flux_fay_riddell
+    >>> from pygasflow.utils.commont import canonicalize_pint_dimensions
+    >>> ureg = pint.UnitRegistry()
+    >>> ureg.formatter.default_format = "~"
+    >>> ureg.define("pound_mass = 0.45359237 kg = lbm")
+    >>> pygasflow.defaults.pint_ureg = ureg
+    >>> lbf, lbm, Btu, ft, s = ureg.lbf, ureg.lbm, ureg.Btu, ureg.ft, ureg.s
+    >>> Pr = 0.7368421052631579
+    >>> u_grad = 12871.540335275073 * 1 / s
+    >>> rho_w = 1.2611943627968788e-05 * lbf * s ** 2 / ft ** 4
+    >>> rho_e = 6.525428485981234e-07 * lbf * s ** 2 / ft ** 4
+    >>> mu_w = 1.0512765233552152e-06 * lbf * s / ft ** 2
+    >>> mu_e = 4.9686546490717815e-06 * lbf * s / ft ** 2
+    >>> h_t2 = 11586.824574050748 * Btu / lbm
+    >>> h_w = 599.5031167908519 * Btu / lbm
+    >>> q = heat_flux_fay_riddell(u_grad, Pr, rho_w, mu_w, rho_e, mu_e, h_t2, h_w, sphere=True)
+    >>> q
+    2.368078016743907 Btu * lbf * s ** 1 / ft ** 3 / lbm
+
+    Note the `s ** 1`. It should be just `s`. We see the exponent `1` because
+    in pint sees it as a floating point number. This in turns can cause
+    conversion errors, for example:
+
+    >>> q.to("Btu / ft**2 / s")
+    DimensionalityError: Cannot convert from 'force_pound * second ** 1 * british_thermal_unit / foot ** 3 / pound_mass' ([mass] / [length] ** 4.44089e-16 / [time] ** 3) to 'british_thermal_unit / foot ** 2 / second' ([mass] / [time] ** 3)
+
+    Hence, we need to correct for this floating-point exponents in the units:
+
+    >>> new_q = canonicalize_pint_dimensions(q)
+    >>> new_q
+    2.368078016743907 Btu * lbf * s / ft ** 3 / lbm
+
+    Note that `s ** 1` disappeared, in favor of `s`. We can now convert
+    this new quantity to another quantity with different units:
+
+    >>> new_q.to("Btu / ft**2 / s")
+    76.19065709613399 Btu / ft ** 2 / s
+
+    """
+    if not _is_pint_quantity(quantity):
+        # Only operate on Quantities
+        return quantity
+
+    ureg = _get_pint_unit_registry()
+    import pint
+
+    new_units = pint.util.UnitsContainer({
+        unit: round(exp, 6) for unit, exp in quantity.unit_items()
+    })
+
+    return ureg.Quantity(quantity.magnitude, new_units)

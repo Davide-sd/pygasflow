@@ -32,7 +32,13 @@ from pygasflow.nozzles import (
 )
 
 import pygasflow.atd
-from pygasflow.common import pressure_coefficient, sound_speed
+from pygasflow.common import (
+    pressure_coefficient,
+    sound_speed,
+    # specific_heats,
+)
+from pygasflow.utils.common import canonicalize_pint_dimensions
+
 
 class _defaults(param.Parameterized):
     """Default options for the module.
@@ -99,4 +105,6 @@ __all__ = [
     "gas_solver",
     "ideal_gas_solver",
     "sonic_condition",
+    "canonicalize_pint_dimensions",
+    # "specific_heats",
 ]
