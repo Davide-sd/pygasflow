@@ -1,4 +1,5 @@
-"""This module contains functions to estimate the **wall shear stress and
+"""
+This module contains functions to estimate the **wall shear stress and
 related coefficients for a incompressible/compressible, laminar/turbulent
 flat plate**.
 
@@ -7,7 +8,12 @@ wrapper functions that allows to estimates all parameters with a single call.
 """
 
 import numpy as np
-from pygasflow.utils.common import _should_solver_return_dict
+from pygasflow.utils.common import (
+    _should_solver_return_dict,
+    FlowResultsDict,
+    FlowResultsList,
+    _print_results_helper
+)
 
 
 def wss_lam_ic(rho, u, Re):
@@ -216,7 +222,7 @@ def friction_drag_tur_ic(Re):
     return 0.074 / Re**0.2
 
 
-def wss_ic(rho, u, Re, laminar=True, to_dict=False):
+def wss_ic(rho, u, Re, laminar=True, to_dict=None):
     """Compute the wall shear stress and friction coefficients for an
     incompressible flat plate.
 
@@ -257,13 +263,19 @@ def wss_ic(rho, u, Re, laminar=True, to_dict=False):
         skin_friction(tau_w, q),
         friction_drag_lam_ic(Re) if laminar else friction_drag_tur_ic(Re)
     ]
-    if to_dict is False:
-        return results
     keys = ["tau_w", "cf", "CDf"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+        printer=_printer_wrapper(keys)
+    )
 
 
-def wss_c(rhoinf, uinf, Reinf, Ts_Tinf, laminar=True, omega=0.65, to_dict=False):
+def wss_c(rhoinf, uinf, Reinf, Ts_Tinf, laminar=True, omega=0.65, to_dict=None):
     """Compute the wall shear stress and friction coefficients for a
     compressible flat plate.
 
@@ -312,7 +324,27 @@ def wss_c(rhoinf, uinf, Reinf, Ts_Tinf, laminar=True, omega=0.65, to_dict=False)
         skin_friction(tau_w, q),
         f2(Reinf, Ts_Tinf, omega=omega)
     ]
-    if to_dict is False:
-        return results
     keys = ["tau_w", "cf", "CDf"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+        printer=_printer_wrapper(keys)
+    )
+
+
+def _printer_wrapper(keys):
+    labels_map = {
+        "tau_w": "τw",
+        "cf": "cf",
+        "CDf": "CDf",
+    }
+    labels = [labels_map[k] for k in keys]
+
+    def _printer(results):
+        _print_results_helper(results, labels)
+
+    return _printer

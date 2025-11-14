@@ -7,7 +7,12 @@ to estimates all thicknesses with a single call.
 """
 
 import numpy as np
-from pygasflow.utils.common import _should_solver_return_dict
+from pygasflow.utils.common import (
+    _should_solver_return_dict,
+    _print_results_helper,
+    FlowResultsDict,
+    FlowResultsList,
+)
 
 
 def delta_lam_ic(x, Re, c=5):
@@ -558,7 +563,7 @@ def shape_factor_tur_c(Tw_Tinf, gammainf, Minf):
     return 1.4 * (0.129 + 0.871 * Tw_Tinf + 0.648 * ((gammainf - 1) / 2) * Minf**2)
 
 
-def deltas_lam_ic(x, Re, to_dict=False):
+def deltas_lam_ic(x, Re, to_dict=None):
     """Compute different boundary-layer thicknesses for the incompressible
     laminar flat plate.
 
@@ -596,13 +601,19 @@ def deltas_lam_ic(x, Re, to_dict=False):
         delta_2_lam_ic(x, Re),
         shape_factor_lam_ic()
     ]
-    if to_dict is False:
-        return results
     keys = ["delta", "delta_1", "delta_2", "H12"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+        printer=_printer_wrapper(keys)
+    )
 
 
-def deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dict=False):
+def deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dict=None):
     """Compute different boundary-layer thicknesses for the compressible
     laminar flat plate.
 
@@ -653,13 +664,19 @@ def deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
         delta_2_lam_c(x, Re, Ts_Tinf, omega),
         shape_factor_lam_c(x, Re, Tw_Tinf, Minf, gammainf)
     ]
-    if to_dict is False:
-        return results
     keys = ["delta", "delta_1", "delta_2", "H12"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+            printer=_printer_wrapper(keys)
+        )
 
 
-def deltas_tur_ic(x, Re, to_dict=False):
+def deltas_tur_ic(x, Re, to_dict=None):
     """Compute different boundary-layer thicknesses for the incompressible
     turbulent flat plate.
 
@@ -703,13 +720,19 @@ def deltas_tur_ic(x, Re, to_dict=False):
         delta_2_tur_ic(x, Re),
         shape_factor_tur_ic()
     ]
-    if to_dict is False:
-        return results
     keys = ["delta", "delta_vs", "delta_sc", "delta_1", "delta_2", "H12"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+            printer=_printer_wrapper(keys)
+        )
 
 
-def deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dict=False):
+def deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dict=None):
     """Compute different boundary-layer thicknesses for the compressible
     turbulent flat plate.
 
@@ -766,7 +789,30 @@ def deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
         delta_2_tur_c(x, Re, Ts_Tinf, omega),
         shape_factor_tur_c(Tw_Tinf, gammainf, Minf)
     ]
-    if to_dict is False:
-        return results
     keys = ["delta", "delta_vs", "delta_sc", "delta_1", "delta_2", "H12"]
-    return {k: v for k, v in zip(keys, results)}
+    if to_dict is False:
+        return FlowResultsList(
+            results,
+            printer=_printer_wrapper(keys)
+        )
+    return FlowResultsDict(
+        **{k: v for k, v in zip(keys, results)},
+        printer=_printer_wrapper(keys)
+    )
+
+
+def _printer_wrapper(keys):
+    labels_map = {
+        "delta": "δ",
+        "delta_1": "δ_1",
+        "delta_2": "δ_2",
+        "delta_vs": "δ_vs",
+        "delta_sc": "δ_sc",
+        "H12": "H12",
+    }
+    labels = [labels_map[k] for k in keys]
+
+    def _printer(results):
+        _print_results_helper(results, labels)
+
+    return _printer

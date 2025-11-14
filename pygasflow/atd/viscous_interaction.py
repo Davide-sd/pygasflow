@@ -119,7 +119,9 @@ def critical_distance(Chi_u, weak=True, cold_wall=True, Chi_crit=None):
     Parameters
     ----------
     Chi_u : float or array_like
-        Unitary viscous interaction parameter.
+        Unitary viscous interaction parameter. Note that `Chi_u=Chi*sqrt(x)`
+        where `x` is a distance, equation (9.40) of "Basics of 
+        Aerothermodynamics", Hirschel.
     weak : bool, optional
         Selector to decide the value of Chi_crit.
     cold_wall : bool, optional

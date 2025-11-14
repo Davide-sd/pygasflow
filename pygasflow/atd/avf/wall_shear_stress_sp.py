@@ -1,4 +1,5 @@
-"""This module contains functions to estimate the **wall shear stress along
+"""
+This module contains functions to estimate the **wall shear stress along
 the attachment line of a swept cylinder for a compressible, laminar/turbulent
 flow**.
 """

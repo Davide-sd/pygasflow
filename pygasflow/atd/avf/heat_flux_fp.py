@@ -1,4 +1,5 @@
-"""This module contains functions to estimate the heat flux of the gas
+"""
+This module contains functions to estimate the convective heat flux of the gas
 over a flat plate.
 """
 
@@ -8,7 +9,8 @@ from scipy.constants import sigma
 
 
 def wall_temperature(L, x, Reinf_L, Ts_Tinf, Tr, Pr, kinf, eps, sigma=sigma, laminar=True, omega=0.65):
-    """Compute the wall temperature (the radiation adiabatic temperature) for
+    """
+    Compute the wall temperature (the radiation adiabatic temperature) for
     a radiation cooled flat plate with a prescribed heat flux for a
     compressible flow.
 
@@ -43,6 +45,10 @@ def wall_temperature(L, x, Reinf_L, Ts_Tinf, Tr, Pr, kinf, eps, sigma=sigma, lam
     Returns
     -------
     out : float or array_like
+
+    See Also
+    --------
+    heat_flux
     """
     def func(Tra, x):
         # eq (7.156)
@@ -58,8 +64,9 @@ def wall_temperature(L, x, Reinf_L, Ts_Tinf, Tr, Pr, kinf, eps, sigma=sigma, lam
 
 
 def heat_flux(L, x, Reinf_L, Ts_Tinf, Tw, Tr, Pr, kinf, laminar=True, omega=0.65):
-    """Compute the heat flux of the gas at the surface of a flat plate from a
-    prescribed wall temperature in a compressible flow.
+    """
+    Compute the convective heat flux of the gas at the surface of a flat plate 
+    from a prescribed wall temperature in a compressible flow.
 
     Parameters
     ----------
@@ -90,6 +97,10 @@ def heat_flux(L, x, Reinf_L, Ts_Tinf, Tw, Tr, Pr, kinf, laminar=True, omega=0.65
     Returns
     -------
     out : float or array_like
+
+    See Also
+    --------
+    wall_temperature
     """
     if laminar:
         C = 0.57
