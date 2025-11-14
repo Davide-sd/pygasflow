@@ -1,12 +1,28 @@
 import numpy as np
 from pygasflow.atd.newton.sharp_cone import sharp_cone_solver
 from pytest import raises
+from contextlib import redirect_stdout
+import io
+import pytest
+
 
 alpha = np.deg2rad([1, 2, 4, 6, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85])
+
 
 def pprint(arr):
     s = ["{:.8f}".format(t) for t in arr]
     print("[%s]" % ", ".join(s))
+
+
+def test_number_elements_returned():
+    # input array -> output array
+    # input float -> output float
+    theta_c = np.deg2rad(2.5)
+    beta = np.deg2rad(0)
+    res1 = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True)
+    res2 = sharp_cone_solver(1, theta_c, alpha[0], beta, to_dict=True)
+    assert all([isinstance(t, np.ndarray) for t in res1.values()])
+    assert all([isinstance(t, (float, int)) for t in res2.values()])
 
 
 def test_phi1_0_phi2_360_beta_0_theta_c_2_5():
@@ -14,7 +30,7 @@ def test_phi1_0_phi2_360_beta_0_theta_c_2_5():
     beta = np.deg2rad(0)
     res1 = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=True)
     res2 = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=False)
-    assert len(res1) == len(res2)
+    assert len(res1) == len(res2) == 10
 
 
 def test_single_alpha_multiple_beta():
@@ -714,3 +730,53 @@ def test_phi1_90_phi2_90_beta_15_theta_c_90():
         0.05626755, 0.01417456]
     ))
     assert np.allclose(res["CY"], np.zeros_like(res["CY"]))
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True, """key     quantity     
+---------------------
+CN      CN                1.08456329
+CA      CA                0.23960151
+CY      CY                0.00000000
+CL      CL                0.81945861
+CD      CD                0.74978264
+CS      CS                0.00000000
+L/D     L/D               1.09292822
+Cl      Cl                0.00000000
+Cm      Cm                1.98654210
+Cn      Cn                0.00000000
+"""
+    ),
+    (
+        False,
+        """idx   quantity     
+-------------------
+0     CN                1.08456329
+1     CA                0.23960151
+2     CY                0.00000000
+3     CL                0.81945861
+4     CD                0.74978264
+5     CS                0.00000000
+6     L/D               1.09292822
+7     Cl                0.00000000
+8     Cm                1.98654210
+9     Cn                0.00000000
+"""
+    )
+])
+def test_show_results(to_dict, expected):
+    theta_c = np.deg2rad(10)
+    alpha = np.deg2rad(30)
+    beta = np.deg2rad(0)
+    res = sharp_cone_solver(1, theta_c, alpha, beta, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

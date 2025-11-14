@@ -1,9 +1,13 @@
 import numpy as np
 from pygasflow.atd.newton.sphere import sphere_solver
 from pytest import raises
+from contextlib import redirect_stdout
+import io
+import pytest
 
 
 alpha = np.deg2rad([1, 2, 4, 6, 8, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85])
+
 
 def pprint(arr):
     s = ["{:.8f}".format(t) for t in arr]
@@ -1151,3 +1155,53 @@ def test_phi1_150_phi2_210_beta_15_sigma_cut_180():
         -0.14242338, -0.15674380, -0.16749655, -0.17534543, -0.18090071,
         -0.18462283, -0.18678561]
     ))
+
+
+@pytest.mark.parametrize("to_dict, expected", [
+    (
+        True, """key     quantity     
+---------------------
+CN      CN                0.10777457
+CA      CA                0.45281062
+CY      CY                0.00000000
+CL      CL               -0.05359539
+CD      CD                0.46236387
+CS      CS                0.00000000
+L/D     L/D              -0.11591604
+Cl      Cl                0.00000000
+Cm      Cm                0.00000000
+Cn      Cn                0.00000000
+"""
+    ),
+    (
+        False,
+        """idx   quantity     
+-------------------
+0     CN                0.10777457
+1     CA                0.45281062
+2     CY                0.00000000
+3     CL               -0.05359539
+4     CD                0.46236387
+5     CS                0.00000000
+6     L/D              -0.11591604
+7     Cl                0.00000000
+8     Cm                0.00000000
+9     Cn                0.00000000
+"""
+    )
+])
+def test_show_results(to_dict, expected):
+    alpha = np.deg2rad(20)
+    sigma_cut = np.deg2rad(30)
+    res = sphere_solver(1, alpha, phi_1=np.pi/2, phi_2=1.5*np.pi,
+        sigma_cut=sigma_cut, to_dict=to_dict)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        res.show()
+    output = f.getvalue()
+
+    # NOTE: for this tests to succeed, VSCode option
+    # "trim trailing whitespaces in regex and strings"
+    # must be disabled!
+    assert output == expected

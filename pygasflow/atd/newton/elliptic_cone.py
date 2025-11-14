@@ -1,9 +1,15 @@
 # import numpy as np
 from numpy import sin, cos, tan, arctan, arcsin, arccos, pi, isnan, isclose, ones, zeros, sqrt, abs, ones_like, zeros_like, degrees, radians, rad2deg, deg2rad, inf, atleast_1d, log
 from pygasflow.atd.newton.utils import cotan, arccotan
+import warnings
 
 
 def elliptic_cone(theta_xy, theta_xz, alpha, beta, l=1, phi_1=0):
+    warnings.warn(
+        "This function is still in experimental stage and"
+        " it likely computes wrong results."
+    )
+
     # substitutions to shorten the expressions
     m = tan(theta_xz) / tan(theta_xy)
     s = sin(theta_xz) / sin(theta_xy)

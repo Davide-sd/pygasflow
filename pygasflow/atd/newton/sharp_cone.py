@@ -1,12 +1,23 @@
 import numpy as np
-from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
+from pygasflow.utils.common import (
+    ret_correct_vals,
+    _should_solver_return_dict,
+    FlowResultsDict,
+    FlowResultsList
+)
 from pygasflow.utils.decorators import as_array
 from pygasflow.atd.newton.pressures import shadow_region
-from pygasflow.atd.newton.utils import body2wind, cotan, lift_drag_crosswind
+from pygasflow.atd.newton.utils import (
+    body2wind,
+    cotan,
+    lift_drag_crosswind,
+    _printer_wrapper,
+    _to_radian,
+)
 
 
 @as_array([2, 3])
-def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2=2*np.pi, to_dict=False):
+def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2=2*np.pi, to_dict=None):
     """Compute axial/normal/lift/drag/moments coefficients over a sharp cone
     or a slice.
 
@@ -111,6 +122,8 @@ def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2
     counter-clockwise.
     """
     to_dict = _should_solver_return_dict(to_dict)
+    theta_c, alpha, beta, phi_1, phi_2 = _to_radian([
+        theta_c, alpha, beta, phi_1, phi_2])
     if not hasattr(beta, "__iter__"):
         beta = np.atleast_1d(beta)
     if (len(alpha) > 1) and (len(beta) > 1) and (len(alpha) != len(beta)):
@@ -194,18 +207,16 @@ def sharp_cone_solver(Rb, theta_c, alpha, beta=0, L=None, Cpt2=2, phi_1=0, phi_2
     # eq (38)
     Cl = np.zeros_like(Cm)
 
-    if to_dict:
-        return ret_correct_vals({
-            "CN": CN,
-            "CA": CA,
-            "CY": CY,
-            "CL": CL,
-            "CD": CD,
-            "CS": CS,
-            "L/D": CL / CD,
-            "Cl": Cl,
-            "Cm": Cm,
-            "Cn": Cn
-        })
+    vals = ret_correct_vals([CN, CA, CY, CL, CD, CS, CL / CD, Cl, Cm, Cn])
+    labels = ["CN", "CA", "CY", "CL", "CD", "CS", "L/D", "Cl", "Cm", "Cn"]
 
-    return ret_correct_vals((CN, CA, CY, CL, CD, CS, CL / CD, Cl, Cm, Cn))
+    if to_dict:
+        return FlowResultsDict(
+            **ret_correct_vals({k: v for k, v in zip(labels, vals)}),
+            printer=_printer_wrapper(labels)
+        )
+
+    return FlowResultsList(
+        ret_correct_vals(vals),
+        printer=_printer_wrapper(labels)
+    )

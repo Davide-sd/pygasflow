@@ -1,10 +1,23 @@
 import numpy as np
+import pygasflow
 from pygasflow.common import pressure_coefficient as cp
 from pygasflow.shockwave import rayleigh_pitot_formula
+from pygasflow.utils.common import (
+    _is_pint_quantity,
+    _check_mix_of_units_and_dimensionless
+)
+
+
+def _to_radians(*angles):
+    return [
+        angle.to("radian").magnitude if _is_pint_quantity(angle) else angle
+        for angle in angles
+    ]
 
 
 def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
-    """Compute the pressure coefficient, Cp, with a Newtonian flow model.
+    """
+    Compute the pressure coefficient, Cp, with a Newtonian flow model.
 
     There are four modes of operation:
 
@@ -81,6 +94,8 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
     * "Hypersonic Aerothermodynamics" by John J. Bertin
 
     """
+    theta_b, alpha, beta = _to_radians(theta_b, alpha, beta)
+
     # newtonian flow: eq (6.143)
     cp_max = 2
     if Mfs is not None:
@@ -92,7 +107,8 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
 
 
 def modified_newtonian_pressure_ratio(Mfs, theta_b, alpha=0, beta=0, gamma=1.4):
-    """Compute the pressure ratio Ps / Pt2, between the static pressure in the
+    """
+    Compute the pressure ratio Ps / Pt2, between the static pressure in the
     shock layer and the pressure at the stagnation point.
 
     Parameters
@@ -137,10 +153,11 @@ def modified_newtonian_pressure_ratio(Mfs, theta_b, alpha=0, beta=0, gamma=1.4):
 
     References
     ----------
-
-    * "Hypersonic Aerothermodynamics" by John J. Bertin
+    "Hypersonic Aerothermodynamics" by John J. Bertin
 
     """
+    theta_b, alpha, beta = _to_radians(theta_b, alpha, beta)
+
     pt2_pinf = rayleigh_pitot_formula(Mfs, gamma)
     # eq (6.7)
     cos_eta = np.cos(alpha) * np.sin(theta_b) + np.sin(alpha) * np.cos(theta_b) * np.cos(beta)
@@ -151,7 +168,8 @@ def modified_newtonian_pressure_ratio(Mfs, theta_b, alpha=0, beta=0, gamma=1.4):
 
 
 def shadow_region(alpha, theta, beta=0):
-    """Compute the boundaries in the circumferential direction (``phi``) in
+    r"""
+    Compute the boundaries in the circumferential direction (``phi``) in
     which the pressure coefficient ``Cp=0`` for an axisymmetric object.
     The shadow region is identified by Cp<0.
 
@@ -235,6 +253,9 @@ def shadow_region(alpha, theta, beta=0):
       experimental data", by William R. Wells and William O. Armstrong, 1962.
 
     """
+    is_pint = any(_is_pint_quantity(a) for a in [alpha, beta, theta])
+    alpha, beta, theta = _to_radians(alpha, beta, theta)
+
     # substitutions to shorten the expressions
     lamb = np.cos(alpha) * np.cos(beta)
     nu = -np.sin(beta)
@@ -250,12 +271,18 @@ def shadow_region(alpha, theta, beta=0):
     phi_i = 2 * np.arctan(t1)
     phi_f = 2 * np.arctan(t2) + 2 * np.pi
 
+    if is_pint:
+        ureg = pygasflow.defaults.pint_ureg
+        phi_i *= ureg.radian
+        phi_f *= ureg.radian
+
     func = lambda a, t, b, p: np.cos(a) * np.cos(b) * np.sin(t) - np.cos(t) * np.sin(p) * np.sin(b) - np.cos(p) * np.cos(t) * np.sin(a) * np.cos(b)
     return phi_i, phi_f, func
 
 
 def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):
-    """Compute the pressure coefficient with the tangent-cone method.
+    """
+    Compute the pressure coefficient with the tangent-cone method.
 
     Parameters
     ----------
@@ -278,10 +305,14 @@ def pressure_coefficient_tangent_cone(theta_c, gamma=1.4):
     np.float64(0.06344098329442194)
 
     """
+    theta_c, = _to_radians(theta_c)
+
     return 2 * (gamma + 1) * (gamma + 7) / (gamma + 3)**2 * theta_c**2
 
+
 def pressure_coefficient_tangent_wedge(theta_w, gamma=1.4):
-    """Compute the pressure coefficient with the tangent-wedge method.
+    """
+    Compute the pressure coefficient with the tangent-wedge method.
 
     Parameters
     ----------
@@ -304,4 +335,6 @@ def pressure_coefficient_tangent_wedge(theta_w, gamma=1.4):
     np.float64(0.07310818074881005)
 
     """
+    theta_w, = _to_radians(theta_w)
+
     return (gamma + 1) * theta_w**2

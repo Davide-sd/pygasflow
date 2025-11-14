@@ -1,6 +1,17 @@
 # import numpy as np
-from pygasflow.utils.common import ret_correct_vals, _should_solver_return_dict
-from pygasflow.atd.newton.utils import cotan, arccotan, lift_drag_crosswind
+from pygasflow.utils.common import (
+    ret_correct_vals,
+    _should_solver_return_dict,
+    FlowResultsDict,
+    FlowResultsList,
+)
+from pygasflow.atd.newton.utils import (
+    cotan,
+    arccotan,
+    lift_drag_crosswind,
+    _printer_wrapper,
+    _to_radian,
+)
 from numpy import sin, cos, tan, arctan, arcsin, arccos, pi, isnan, isclose, ones, zeros, sqrt, abs, ones_like, zeros_like, degrees, radians, rad2deg, deg2rad, inf, atleast_1d
 from scipy.integrate import dblquad
 
@@ -189,7 +200,7 @@ def phi_func(lamb, nu, omega, sigma):
     return phi_1, phi_2
 
 
-def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=False):
+def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=None):
     """Compute axial/normal/lift/drag/moments coefficients over a sphere or a
     generalized spheric body segment.
 
@@ -293,6 +304,8 @@ def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=F
     procedures, hence slow computations.
     """
     to_dict = _should_solver_return_dict(to_dict)
+    alpha, beta, phi_1, phi_2, sigma_cut = _to_radian([
+        alpha, beta, phi_1, phi_2, sigma_cut])
     alpha = atleast_1d(alpha)
     if (sigma_cut < 0) or (sigma_cut > pi):
         raise ValueError("It must be: 0 <= sigma_cut <= pi")
@@ -386,17 +399,16 @@ def sphere_solver(R, alpha, beta=0, phi_1=0, phi_2=2*pi, sigma_cut=pi, to_dict=F
     CL, CD, CS = lift_drag_crosswind(CA, CY, CN, alpha, beta)
     Cl = Cm = Cn = zeros_like(alpha)
 
+    vals = [CN, CA, CY, CL, CD, CS, CL / CD, Cl, Cm, Cn]
+    labels = ["CN", "CA", "CY", "CL", "CD", "CS", "L/D", "Cl", "Cm", "Cn"]
+
     if to_dict:
-        return ret_correct_vals({
-            "CN": CN,
-            "CA": CA,
-            "CY": CY,
-            "CL": CL,
-            "CD": CD,
-            "CS": CS,
-            "L/D": CL / CD,
-            "Cl": Cl,
-            "Cm": Cm,
-            "Cn": Cn
-        })
-    return ret_correct_vals((CN, CA, CY, CL, CD, CS, CL / CD, Cl, Cm, Cn))
+        return FlowResultsDict(
+            **ret_correct_vals({k: v for k, v in zip(labels, vals)}),
+            printer=_printer_wrapper(labels)
+        )
+
+    return FlowResultsList(
+        ret_correct_vals(vals),
+        printer=_printer_wrapper(labels)
+    )

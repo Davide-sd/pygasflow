@@ -1,6 +1,10 @@
 import itertools
 import numpy as np
 from pygasflow.utils.decorators import as_array
+from pygasflow.utils.common import (
+    _print_results_helper,
+    _is_pint_quantity,
+)
 
 
 def cotan(x):
@@ -79,3 +83,20 @@ def lift_drag_crosswind(CA, CY, CN, alpha, beta=0):
         res[i, :] = np.matmul(body2wind(a, b), body_forces[i, :])
     CD, CS, CL = res[:, 0], res[:, 1], res[:, 2]
     return CL, CD, CS
+
+
+def _printer_wrapper(keys):
+    """
+    Print results computed from the sphere, sharp_cone, elliptic_cone.
+    """
+    def _printer(results):
+        _print_results_helper(results, keys)
+
+    return _printer
+
+
+def _to_radian(angles):
+    return [
+        a.to("radian").magnitude if _is_pint_quantity(a) else a
+        for a in angles
+    ]
