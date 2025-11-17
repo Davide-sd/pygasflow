@@ -22,6 +22,7 @@ from pygasflow.shockwave import (
     m1_from_rayleigh_pitot_pressure_ratio,
     mach_cone_angle_from_shock_angle,
     shock_angle_from_mach_cone_angle,
+    rayleigh_pitot_formula,
 )
 from pygasflow.solvers.shockwave import oblique_shockwave_solver as ss
 from tempfile import TemporaryDirectory
@@ -1510,3 +1511,15 @@ class Test_pint_quantities:
         assert np.isclose(mc, expected_mc)
         assert np.isclose(beta, expected_beta)
 
+
+@pytest.mark.parametrize("gamma, expected_ratio", [
+    (1.4, np.array([  1.89292916,   5.64044081,  32.65347431, 129.21696842])),
+    (1.2, np.array([  1.771561  ,   5.09553976,  29.14765679, 115.13930966])),
+    (1.05, np.array([  1.67958185,   4.67529159,  26.43070369, 104.22233883])),
+    (1.005, np.array([ 1.65181209,  4.5469279 , 25.5980959 , 100.87539372])),
+    (1.0005, np.array([  1.6490304 ,   4.53402788,  25.51434482, 100.53868711]))
+])
+def test_rayleigh_pitot_formula(gamma, expected_ratio):
+    M1 = np.array([1, 2, 5, 10])
+    p_ratio = rayleigh_pitot_formula(M1, gamma)
+    assert np.allclose(p_ratio, expected_ratio, equal_nan=True)

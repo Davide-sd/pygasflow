@@ -157,9 +157,19 @@ def rayleigh_pitot_formula(M1, gamma=1.4):
     References
     ----------
 
-    "Equations, Tables and Charts for compressible flow", NACA R-1135, 1953
+    * "Equations, Tables and Charts for compressible flow", NACA R-1135, 1953
+    * "Hypersonic and High-Temperature Gas Dynamics", Third Edition, John D. Anderson
     """
-    return ((gamma + 1) * M1**2 / 2)**(gamma / (gamma - 1)) * ((gamma + 1) / (2 * gamma * M1**2 - (gamma - 1)))**(1 / (gamma - 1))
+    # NOTE: this formula comes from NACA R-1135. It is correct but it breaks
+    # down for gamma -> 1, because the exponent `(gamma / (gamma - 1))` becomes
+    # large, and it would result in overflow error, hence NaN.
+    # So, don't use it.
+    # return ((gamma + 1) * M1**2 / 2)**(gamma / (gamma - 1)) * ((gamma + 1) / (2 * gamma * M1**2 - (gamma - 1)))**(1 / (gamma - 1))
+
+    # eq (3.17) of "Hypersonic and High-Temperature Gas Dynamics"
+    a = (((gamma + 1)**2 * M1**2) / (4*gamma*M1**2 - 2*(gamma - 1)))**(gamma / (gamma - 1))
+    b = (1 - gamma + 2 *gamma * M1**2) / (gamma + 1)
+    return a * b
 
 
 def m1_from_rayleigh_pitot_pressure_ratio(ratio, gamma=1.4):

@@ -195,6 +195,31 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     >>> pressure_coefficient(Minf, "velocity", 0)
     array([1.000025  , 1.0025025 , 1.06407222, 1.27561308, 1.80876996,
            1.83167098])
+    
+    Compute the maximum value of the pressure coefficient, evaluated at
+    a stagnation point behind normal shock wave:
+
+    .. plot::
+       :context: close-figs
+       :include-source: True
+
+       from pygasflow import pressure_coefficient
+       import matplotlib.pyplot as plt
+       import numpy as np
+
+       M_inf = np.linspace(1, 7, 100)
+       gammas = [1 + 1e-05, 1.2, 1.4, 1.66]
+       fig, ax = plt.subplots()
+       for g in gammas:
+           cp = pressure_coefficient(M_inf, stagnation=True, gamma=g)
+           ax.plot(M_inf, cp, label=r"$\gamma = %s$" % (1 if np.isclose(g, 1) else g))
+
+       ax.legend(loc="lower right")
+       ax.set_xlim(M_inf.min(), M_inf.max())
+       ax.set_ylim(1, 2)
+       ax.set_xlabel(r"$M_{\infty}$")
+       ax.set_ylabel("$C_{p, max}$")
+       plt.show()
 
     References
     ----------
