@@ -9,5 +9,6 @@ to attached viscous flow.
 
    thickness_fp.rst
    wall_shear_stress_fp.rst
+   wall_shear_stress_sp.rst
    heat_flux_fp.rst
    heat_flux_sp.rst
