@@ -13,9 +13,10 @@ from pygasflow.utils.common import (
 from pygasflow.utils.decorators import check
 
 
-def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
-    """Compute quantities related to gas, like the ratio of specific heats,
-    the heat capacities and the mass-specific gas constant.
+def gas_solver(p1_name, p1_value, p2_name="gamma", p2_value=1.4, to_dict=None):
+    """
+    For a thermally perfect gas, compute quantities like the ratio of specific 
+    heats, the heat capacities and the mass-specific gas constant.
 
     Parameters
     ----------
@@ -59,8 +60,10 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
     Examples
     --------
 
+    Compute the specific heats for air:
+
     >>> from pygasflow.solvers.gas import gas_solver
-    >>> res1 = gas_solver("gamma", 1.4, "r", 287.05)
+    >>> res1 = gas_solver("r", 287.05, "gamma", 1.4)
     >>> res1
     [1.4, 287.05, 1004.6750000000002, 717.6250000000002]
     >>> res1.show()
@@ -70,16 +73,23 @@ def gas_solver(p1_name, p1_value, p2_name, p2_value, to_dict=None):
     1     R               287.05000000
     2     Cp             1004.67500000
     3     Cv              717.62500000
-    >>> res2 = gas_solver("gamma", 1.4, "r", 287.05, to_dict=True)
+
+    Compute the specific heats for methane, using pint quantities:
+
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> res2 = gas_solver(
+    ...     "r", 518.28 * ureg.J / (ureg.kg * ureg.K), "gamma", 1.32, 
+    ...     to_dict=True)
     >>> res2
-    {'gamma': 1.4, 'R': 287.05, 'Cp': 1004.6750000000002, 'Cv': 717.6250000000002}
+    {'gamma': 1.32, 'R': <Quantity(518.28, 'joule / kilogram / kelvin')>, 'Cp': <Quantity(2137.905, 'joule / kilogram / kelvin')>, 'Cv': <Quantity(1619.625, 'joule / kilogram / kelvin')>}
     >>> res2.show()
-    key     quantity     
-    ---------------------
-    gamma   gamma             1.40000000
-    R       R               287.05000000
-    Cp      Cp             1004.67500000
-    Cv      Cv              717.62500000
+    key     quantity         
+    -------------------------
+    gamma   gamma                 1.32000000
+    R       R [J / K / kg]      518.28000000
+    Cp      Cp [J / K / kg]    2137.90500000
+    Cv      Cv [J / K / kg]    1619.62500000
 
     """
     to_dict = _should_solver_return_dict(to_dict)

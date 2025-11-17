@@ -35,7 +35,6 @@ import pygasflow.atd
 from pygasflow.common import (
     pressure_coefficient,
     sound_speed,
-    # specific_heats,
 )
 from pygasflow.utils.common import canonicalize_pint_dimensions
 
