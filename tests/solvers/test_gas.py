@@ -411,7 +411,7 @@ Cv      Cv [J / K / kg]     717.62500000
             ),
             """key     quantity         
 -------------------------
-gamma   gamma []              1.39926281
+gamma   gamma                 1.39926281
 R       R [J / K / kg]      287.05000000
 Cp      Cp [J / K / kg]    1006.00000000
 Cv      Cv [J / K / kg]     718.95000000

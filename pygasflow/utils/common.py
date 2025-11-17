@@ -252,9 +252,13 @@ def _print_results_helper(
     if label_formatter is None:
         labels_length = []
         for l, d in zip(labels, data):
-            if _is_pint_quantity(d):
+            if _is_pint_quantity(d) and (not d.dimensionless):
                 unit = f"{d.units:~}"  # short notation (e.g., deg, m/s)
-                label_with_unit = f"{l} [{unit}]"
+                if len(unit) > 0:
+                    label_with_unit = f"{l} [{unit}]"
+                else:
+                    label_with_unit = f"{l}"
+
                 labels_length.append(len(label_with_unit))
             else:
                 labels_length.append(len(l))
@@ -273,7 +277,10 @@ def _print_results_helper(
         if _is_pint_quantity(d):
             mag = d.magnitude
             unit = f"{d.units:~}"  # short notation (e.g., deg, m/s)
-            label_with_unit = f"{l} [{unit}]"
+            if len(unit) > 0:
+                label_with_unit = f"{l} [{unit}]"
+            else:
+                label_with_unit = f"{l}"
         else:
             mag = d
             label_with_unit = l
@@ -354,7 +361,7 @@ def canonicalize_pint_dimensions(quantity):
     >>> import pint
     >>> import pygasflow
     >>> from pygasflow.atd.avf.heat_flux_sp import heat_flux_fay_riddell
-    >>> from pygasflow.utils.commont import canonicalize_pint_dimensions
+    >>> from pygasflow.utils.common import canonicalize_pint_dimensions
     >>> ureg = pint.UnitRegistry()
     >>> ureg.formatter.default_format = "~"
     >>> ureg.define("pound_mass = 0.45359237 kg = lbm")
@@ -370,7 +377,7 @@ def canonicalize_pint_dimensions(quantity):
     >>> h_w = 599.5031167908519 * Btu / lbm
     >>> q = heat_flux_fay_riddell(u_grad, Pr, rho_w, mu_w, rho_e, mu_e, h_t2, h_w, sphere=True)
     >>> q
-    2.368078016743907 Btu * lbf * s ** 1 / ft ** 3 / lbm
+    <Quantity(2.36807802, 'force_pound * second ** 1 * british_thermal_unit / foot ** 3 / pound_mass')>
 
     Note the `s ** 1`. It should be just `s`. We see the exponent `1` because
     in pint sees it as a floating point number. This in turns can cause

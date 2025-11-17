@@ -763,20 +763,20 @@ def test_print_with_pint():
         res.show()
     output = f.getvalue()
 
-    expected = """key        quantity       
---------------------------
-mu         Mu                  2.00000000
-mc         Mc                  1.70686796
-theta_c    theta_c [deg]      15.00000000
-beta       beta [deg]         33.91469753
-delta      delta [deg]         4.57913858
-pr         pd/pu               1.28614663
-dr         rhod/rhou           1.19636349
-tr         Td/Tu               1.07504671
-tpr        p0d/p0u             0.99837756
-pc_pu      pc/pu               1.56629305
-rhoc_rhou  rho_c/rhou          1.37718896
-Tc_Tu      Tc/Tu               1.13731165
+    expected = """key        quantity     
+------------------------
+mu         Mu                2.00000000
+mc         Mc                1.70686796
+theta_c    theta_c [deg]    15.00000000
+beta       beta [deg]       33.91469753
+delta      delta [deg]       4.57913858
+pr         pd/pu             1.28614663
+dr         rhod/rhou         1.19636349
+tr         Td/Tu             1.07504671
+tpr        p0d/p0u           0.99837756
+pc_pu      pc/pu             1.56629305
+rhoc_rhou  rho_c/rhou        1.37718896
+Tc_Tu      Tc/Tu             1.13731165
 """
 
     # NOTE: for this tests to succeed, VSCode option
