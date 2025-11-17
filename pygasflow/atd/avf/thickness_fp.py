@@ -588,6 +588,28 @@ def deltas_lam_ic(x, Re, to_dict=None):
         Momentum thickness computed with the ``delta_2_lam_ic``.
     H12 : float or array_like
         Shape factor computed with the ``shape_factor_lam_ic``.
+    
+    Examples
+    --------
+
+    The flow past a flat plate has a unit Reynolds number Re_u=10**6 m**-1.
+    Assume incompressible laminar flow and determine on the plate at x=1.0 m
+    the boundary-layer thicknesses:
+
+    >>> from pygasflow.atd.avf.thickness_fp import deltas_lam_ic
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> Re_u = 1e06 / ureg.m
+    >>> x = 1 * ureg.m
+    >>> Re = Re_u * x
+    >>> res = deltas_lam_ic(x, Re, to_dict=True)
+    >>> res.show()
+    key      quantity     
+    ----------------------
+    delta    δ [m]             0.00500000
+    delta_1  δ_1 [m]           0.00172080
+    delta_2  δ_2 [m]           0.00066410
+    H12      H12               2.59117603
 
     See Also
     --------
@@ -651,6 +673,31 @@ def deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
         Momentum thickness computed with ``delta_2_lam_c``.
     H12 : float or array_like
         Shape factor computed with ``shape_factor_lam_c``.
+    
+    Examples
+    --------
+
+    The flow past a flat plate has a unit Reynolds number Re_u=10**6 m**-1.
+    Assume compressible laminar flow and determine on the plate at x=1.0 m
+    the boundary-layer thicknesses:
+
+    >>> from pygasflow.atd.avf.thickness_fp import deltas_lam_c
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> Re_u = 1e06 / ureg.m
+    >>> x = 1 * ureg.m
+    >>> Re = Re_u * x
+    >>> Tw_Tinf = 2.1
+    >>> Ts_Tinf = 1.2
+    >>> Minf = 6
+    >>> res = deltas_lam_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, to_dict=True)
+    >>> res.show()
+    key      quantity     
+    ----------------------
+    delta    δ [m]             0.00581158
+    delta_1  δ_1 [m]           0.00806313
+    delta_2  δ_2 [m]           0.00064325
+    H12      H12              12.53507315
 
     See Also
     --------
@@ -705,6 +752,30 @@ def deltas_tur_ic(x, Re, to_dict=None):
         Momentum thickness computed with ``delta_2_tur_ic``.
     H12 : float or array_like
         Shape factor computed with ``shape_factor_tur_ic``.
+    
+    Examples
+    --------
+
+    The flow past a flat plate has a unit Reynolds number Re_u=10**6 m**-1.
+    Assume incompressible turbulent flow and determine on the plate at x=1.0 m
+    the boundary-layer thicknesses:
+
+    >>> from pygasflow.atd.avf.thickness_fp import deltas_tur_ic
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> Re_u = 1e06 / ureg.m
+    >>> x = 1 * ureg.m
+    >>> Re = Re_u * x
+    >>> res = deltas_tur_ic(x, Re, to_dict=True)
+    >>> res.show()
+    key       quantity     
+    -----------------------
+    delta     δ [m]             0.02334542
+    delta_vs  δ_vs [m]          0.00011569
+    delta_sc  δ_sc [m]          0.00053538
+    delta_1   δ_1 [m]           0.00292133
+    delta_2   δ_2 [m]           0.00227145
+    H12       H12               1.28611111
 
     See Also
     --------
@@ -774,6 +845,33 @@ def deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, omega=0.65, gammainf=1.4, to_dic
         Momentum thickness computed with ``delta_2_tur_c``.
     H12 : float or array_like
         Shape factor computed with ``shape_factor_tur_c``.
+    
+    Examples
+    --------
+
+    The flow past a flat plate has a unit Reynolds number Re_u=10**6 m**-1.
+    Assume compressible turbulent flow and determine on the plate at x=1.0 m
+    the boundary-layer thicknesses:
+
+    >>> from pygasflow.atd.avf.thickness_fp import deltas_tur_c
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> Re_u = 1e06 / ureg.m
+    >>> x = 1 * ureg.m
+    >>> Re = Re_u * x
+    >>> Tw_Tinf = 2.1
+    >>> Ts_Tinf = 1.2
+    >>> Minf = 6
+    >>> res = deltas_tur_c(x, Re, Tw_Tinf, Ts_Tinf, Minf, to_dict=True)
+    >>> res.show()
+    key       quantity     
+    -----------------------
+    delta     δ [m]             0.02479314
+    delta_vs  δ_vs [m]          0.00015166
+    delta_sc  δ_sc [m]          0.00068105
+    delta_1   δ_1 [m]           0.01864145
+    delta_2   δ_2 [m]           0.00201025
+    H12       H12               9.27318000
 
     See Also
     --------

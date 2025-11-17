@@ -177,7 +177,10 @@ def heat_flux(
     return np.cbrt(Pr) * k_inf * gsp / R * (Tr - Tw)
 
 
-def heat_flux_fay_riddell(u_grad, Pr_w, rho_w, mu_w, rho_e, mu_e, he, hw, Le=None, hD=None, sphere=True, m=0.52):
+def heat_flux_fay_riddell(
+    u_grad, Pr_w, rho_w, mu_w, rho_e, mu_e, he, hw,
+    Le=None, hD=None, sphere=True, m=0.52
+):
     """
     Compute the convective heat flux of the gas at the wall at a stagnation 
     point or at a stagnation line for a sphere/cylinder in a laminar flow, 
@@ -217,6 +220,34 @@ def heat_flux_fay_riddell(u_grad, Pr_w, rho_w, mu_w, rho_e, mu_e, he, hw, Le=Non
     Returns
     -------
     q_dot : float or array_like
+
+    Examples
+    --------
+
+    Compute the convective heat flux using these parameters (coming from
+    Exercise 5.2, "Hypersonic Aerothermodynamics", John J. Bertin):
+
+    >>> import pint
+    >>> import pygasflow
+    >>> from pygasflow.atd.avf.heat_flux_sp import heat_flux_fay_riddell
+    >>> from pygasflow.utils.common import canonicalize_pint_dimensions
+    >>> ureg = pint.UnitRegistry()
+    >>> ureg.formatter.default_format = "~"
+    >>> ureg.define("pound_mass = 0.45359237 kg = lbm")
+    >>> pygasflow.defaults.pint_ureg = ureg
+    >>> lbf, lbm, Btu, ft, s = ureg.lbf, ureg.lbm, ureg.Btu, ureg.ft, ureg.s
+    >>> Pr = 0.7368421052631579
+    >>> u_grad = 12871.540335275073 * 1 / s
+    >>> rho_w = 1.2611943627968788e-05 * lbf * s ** 2 / ft ** 4
+    >>> rho_e = 6.525428485981234e-07 * lbf * s ** 2 / ft ** 4
+    >>> mu_w = 1.0512765233552152e-06 * lbf * s / ft ** 2
+    >>> mu_e = 4.9686546490717815e-06 * lbf * s / ft ** 2
+    >>> h_t2 = 11586.824574050748 * Btu / lbm
+    >>> h_w = 599.5031167908519 * Btu / lbm
+    >>> q = heat_flux_fay_riddell(u_grad, Pr, rho_w, mu_w, rho_e, mu_e, h_t2, h_w, sphere=True)
+    >>> q = canonicalize_pint_dimensions(q)
+    >>> q
+    <Quantity(2.36807802, 'force_pound * second * british_thermal_unit / foot ** 3 / pound_mass')>
 
     References
     ----------
@@ -262,6 +293,23 @@ def heat_flux_scott(R, u_inf, rho_inf):
     Returns
     -------
     q_dot : float or array_like
+
+    Examples
+    --------
+
+    >>> import pint
+    >>> import pygasflow
+    >>> from pygasflow.atd.avf.heat_flux_sp import heat_flux_scott
+    >>> ureg = pint.UnitRegistry()
+    >>> ureg.formatter.default_format = "~"
+    >>> pygasflow.defaults.pint_ureg = ureg
+    >>> m, s, kg = ureg.m, ureg.s, ureg.kg
+    >>> R = 0.3 * m
+    >>> u_inf = 4000 * m / s
+    >>> rho_inf = 0.0019662686791414754 * kg / m**3
+    >>> q_dot = heat_flux_scott(R, u_inf, rho_inf)
+    >>> q_dot
+    <Quantity(90.5721895, 'watt / centimeter ** 2')>
 
     References
     ----------
@@ -313,6 +361,25 @@ def heat_flux_detra(R, u_inf, rho_inf, u_co, rho_sl, metric=True):
     Returns
     -------
     q_dot : float or array_like
+
+    Examples
+    --------
+
+    >>> import pint
+    >>> import pygasflow
+    >>> from pygasflow.atd.avf.heat_flux_sp import heat_flux_detra
+    >>> ureg = pint.UnitRegistry()
+    >>> ureg.formatter.default_format = "~"
+    >>> pygasflow.defaults.pint_ureg = ureg
+    >>> m, s, kg = ureg.m, ureg.s, ureg.kg
+    >>> R = 0.3 * m
+    >>> u_inf = 4000 * m / s
+    >>> u_co = 7950 * m / s
+    >>> rho_inf = 0.0019662686791414754 * kg / m**3
+    >>> rho_sl = 1.225000018124288 * kg / m**3
+    >>> q_dot = heat_flux_detra(R, u_inf, rho_inf, u_co, rho_sl)
+    >>> q_dot
+    <Quantity(92.7451074, 'watt / centimeter ** 2')>
 
     References
     ----------

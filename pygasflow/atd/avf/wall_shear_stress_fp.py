@@ -245,11 +245,31 @@ def wss_ic(rho, u, Re, laminar=True, to_dict=None):
     Returns
     -------
     tau_w : float or array_like
-        Wall shear stress, tau_w.
+        Wall shear stress.
     cf : float or array_like
         Skin friction coefficient.
     CDf : float or array_like
         Friction drag coefficient.
+    
+    Examples
+    --------
+
+    Compute the wall shear stree, the skin friction coefficient and the
+    friction drag coefficient for the following incompressible laminar flow:
+
+    >>> from pygasflow.atd.avf.wall_shear_stress_fp import wss_ic
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> rho_inf = 0.0184101009 * ureg.kg / ureg.m**3
+    >>> u_inf = 1810.2429106370967 * ureg.m / ureg.s
+    >>> Re_inf = 169116173.74147075
+    >>> res = wss_ic(rho_inf, u_inf, Re_inf, laminar=True, to_dict=True)
+    >>> res.show()
+    key     quantity              
+    ------------------------------
+    tau_w   τw [kg / m / s ** 2]       1.54019387
+    cf      cf                         0.00005106
+    CDf     CDf                        0.00010212
 
     See Also
     --------
@@ -304,11 +324,34 @@ def wss_c(rhoinf, uinf, Reinf, Ts_Tinf, laminar=True, omega=0.65, to_dict=None):
     Returns
     -------
     tau_w : float or array_like
-        Wall shear stress, tau_w.
+        Wall shear stress.
     cf : float or array_like
         Skin friction coefficient.
     CDf : float or array_like
         Friction drag coefficient.
+    
+    Examples
+    --------
+
+    Compute the wall shear stree, the skin friction coefficient and the
+    friction drag coefficient for the following compressible laminar flow:
+
+    >>> from pygasflow.atd.avf.wall_shear_stress_fp import wss_c
+    >>> import pint
+    >>> ureg = pint.UnitRegistry()
+    >>> T_inf = 226.509084 * ureg.K
+    >>> rho_inf = 0.0184101009 * ureg.kg / ureg.m**3
+    >>> u_inf = 1810.2429106370967 * ureg.m / ureg.s
+    >>> Re_inf = 169116173.74147075
+    >>> T_star = 921.8977042109084 * ureg.K
+    >>> res = wss_c(rho_inf, u_inf, Re_inf, T_star / T_inf, 
+    ...     laminar=True, to_dict=True)
+    >>> res.show()
+    key     quantity              
+    ------------------------------
+    tau_w   τw [kg / m / s ** 2]       1.20474712
+    cf      cf                         0.00003994
+    CDf     CDf                        0.00007988
 
     See Also
     --------
