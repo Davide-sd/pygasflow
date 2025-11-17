@@ -4,23 +4,33 @@ Changelog
 v1.4.0
 ======
 
-* Improved usability of the functions exposed by `pygasflow.solvers`.
+* Improved usability of the functions that returns list/dict of results.
   In particular, the ``show()`` method was implemented on the returned
-  list/dict of results in order to visualize a nice table of numerical data.
+  list/dict in order to visualize a nice table of numerical data.
 
-* Added `pint <https://github.com/hgrecco/pint>`_ support to the solvers
-  exposed  by `pygasflow.solvers`. *pint* is a module that allows to define,
-  operate and manipulate physical quantities.
+* Added `pint <https://github.com/hgrecco/pint>`_ support. *pint* is a module
+  that allows to define, operate and manipulate physical quantities.
+
+* Fixed bug within functions that computed wrong results:
+  * `thermal_conductivity_chapman_enskog`
+  * `viscosity_chapman_enskog`
+  * `Schmidt`
+  * `Peclet`
+
+* Improved robustness of ``rayleigh_pitot_formula`` against overflow errors.
 
 * Added functions:
 
   * :func:`~pygasflow.solvers.isentropic.isentropic_compression`
   * :func:`~pygasflow.solvers.shockwave.shock_compression`
   * :func:`~pygasflow.solvers.rayleigh.specific_heat_solver`
+  * :func:`~pygasflow.common.specific_heats`
 
 * Documentation:
 
   * Added a few solutions to *'Modern Compressible Flow with Historical Perspective'*
+    as a showcase of the capabilities of this module.
+  * Added a few solutions to *'Basics of Aerothermodynamics'*
     as a showcase of the capabilities of this module.
 
 
