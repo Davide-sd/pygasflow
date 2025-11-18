@@ -7,16 +7,17 @@ from pygasflow.utils.common import (
 from pygasflow.shockwave import rayleigh_pitot_formula
 
 
-def sound_speed(*args, **kwargs):
+def sound_speed(*args):
     """Compute the sound speed.
 
     There are two modes of operations:
 
-    * provide ``gamma``, ``R``, ``T``:
-      ``sound_speed(gamma, R, T)``
-    * provide a Cantera's ``Solution`` object, from which the parameters will
-      be retrieved:
-      ``sound_speed(gas)``
+    * ``sound_speed(gamma, R, T)``: compute the sound speed for a perfect gas.
+      It also hold for thermally perfect as well as calorically perfect gases.
+    * ``sound_speed(gas)``: provide a Cantera's ``Solution`` object, from which
+      the parameters will be retrieved.
+    
+    Alias of this function: ``speed_of_sound``.
 
     Parameters
     ----------
@@ -94,7 +95,7 @@ speed_of_sound = sound_speed
 
 @check([0])
 def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnation=False, gamma=1.4):
-    """
+    r"""
     Compute the pressure coefficient of a compressible flow.
     For supersonic flows, the pressure coefficient downstream of the
     shockwave is returned.

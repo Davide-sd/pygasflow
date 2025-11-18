@@ -1,10 +1,12 @@
 import numpy as np
 from pygasflow.utils.decorators import (
     as_array,
-    check
+    check,
+    deprecated
 )
 
 
+@deprecated("Use ``pygasflow.sound_speed`` instead.")
 @check
 def sound_speed(T, R=287.058, gamma=1.4):
     """

@@ -6,6 +6,13 @@ Deprecations
 This page explains the motivations behind deprecations introduced by a
 particular version of the module.
 
+v1.4.0
+======
+
+* Deprecated ``pygasflow.generic.sound_speed`` in favor of
+  :func:`~pygasflow.common.sound_speed` in order to remove duplicates.
+
+
 v1.3.0
 =======
 

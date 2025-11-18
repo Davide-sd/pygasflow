@@ -35,6 +35,7 @@ import pygasflow.atd
 from pygasflow.common import (
     pressure_coefficient,
     sound_speed,
+    speed_of_sound,
 )
 from pygasflow.utils.common import canonicalize_pint_dimensions
 
@@ -101,9 +102,9 @@ __all__ = [
     "Rao_Parabola_Angles",
     "pressure_coefficient",
     "sound_speed",
+    "speed_of_sound",
     "gas_solver",
     "ideal_gas_solver",
     "sonic_condition",
     "canonicalize_pint_dimensions",
-    # "specific_heats",
 ]

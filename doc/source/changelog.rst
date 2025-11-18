@@ -12,19 +12,20 @@ v1.4.0
   that allows to define, operate and manipulate physical quantities.
 
 * Fixed bug within functions that computed wrong results:
-  * `thermal_conductivity_chapman_enskog`
-  * `viscosity_chapman_enskog`
-  * `Schmidt`
-  * `Peclet`
 
-* Improved robustness of ``rayleigh_pitot_formula`` against overflow errors.
+  * :func:`~pygasflow.atd.thermal_conductivity.thermal_conductivity_chapman_enskog`
+  * :func:`~pygasflow.atd.viscosity.viscosity_chapman_enskog`
+  * :func:`~pygasflow.atd.nd_numbers.Schmidt`
+  * :func:`~pygasflow.atd.nd_numbers.Peclet`
+
+* Improved robustness of :func:`~pygasflow.shockwave.rayleigh_pitot_formula`
+  against overflow errors.
 
 * Added functions:
 
   * :func:`~pygasflow.solvers.isentropic.isentropic_compression`
   * :func:`~pygasflow.solvers.shockwave.shock_compression`
   * :func:`~pygasflow.solvers.rayleigh.specific_heat_solver`
-  * :func:`~pygasflow.common.specific_heats`
 
 * Documentation:
 
@@ -32,6 +33,9 @@ v1.4.0
     as a showcase of the capabilities of this module.
   * Added a few solutions to *'Basics of Aerothermodynamics'*
     as a showcase of the capabilities of this module.
+
+ * Deprecated ``pygasflow.generic.sound_speed`` in favor of
+  :func:`~pygasflow.common.sound_speed` in order to remove duplicates.
 
 
 v1.3.1

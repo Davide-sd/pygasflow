@@ -13,7 +13,7 @@ from pygasflow.isentropic import (
     m_from_critical_area_ratio_and_pressure_ratio,
     critical_area_ratio,
 )
-from pygasflow.generic import sound_speed
+from pygasflow.common import sound_speed
 from pygasflow.nozzles.nozzle_geometry import Nozzle_Geometry
 from pygasflow.nozzles import CD_Conical_Nozzle
 
@@ -303,7 +303,7 @@ class De_Laval_Solver(param.Parameterized):
         ct = temperature_ratio(1, gamma) * T0
         cp = pressure_ratio(1, gamma) * P0
         cr = density_ratio(1, gamma) * rho0
-        cv = sound_speed(ct, R, gamma)
+        cv = sound_speed(gamma, R, ct)
 
         Ae_As_ratio = Ae / At
         M2_sub = m_from_critical_area_ratio(Ae_As_ratio, "sub", gamma)
