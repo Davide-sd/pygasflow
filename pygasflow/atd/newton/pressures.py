@@ -87,6 +87,57 @@ def pressure_coefficient(theta_b, alpha=0, beta=0, Mfs=None, gamma=1.4):
     >>> pressure_coefficient(deg2rad(15), alpha=deg2rad(10), beta=deg2rad(45), Mfs=14.9, gamma=5.0/3.0)
     np.float64(0.2454586025665183)
 
+    Compute the ratio ps / p_t2 using the Newtonian theory and the modified
+    Newtonian theory, between the surface pressure, ps, and the total pressure
+    behind a normal shockwave, p_t2, for the paraboloid 
+    ``x = 0.769 * y**2 - 1``. Use `M_inf = 8` and `gamma = 1.4`.
+    Note: this is a preproduction of Figure 3.9 of *"Hypersonic and 
+    High-Temperature Gas Dynamics"*, Third Edition, John D. Anderson
+
+    .. plot::
+       :context: close-figs
+       :include-source: True
+
+       from pygasflow import *
+       from pygasflow.atd.newton import pressure_coefficient
+       import numpy as np
+       import matplotlib.pyplot as plt
+       M_inf = 8
+       gamma = 1.4
+       a = 0.769
+       y = np.linspace(0, 2)
+       # To get theta: rewrite the paraboloid in terms of y=f(x). 
+       # Find its tangent by differentiating it by x. Substitute x with the 
+       # paraboloid equation. Apply the arctan.
+       theta = np.arctan(1 / (2 * a * np.sqrt(y**2)))
+       Cp_newtonian = pressure_coefficient(theta)
+       Cp_mod_newtonian = pressure_coefficient(theta, Mfs=M_inf, gamma=gamma)
+       # from the definition of Cp
+       ps_p_inf_newt = Cp_newtonian * M_inf**2 * gamma / 2 + 1
+       ps_p_inf_mod_newt = Cp_mod_newtonian * M_inf**2 * gamma / 2 + 1
+       # compute ratios across the shockwave
+       shock = normal_shockwave_solver(
+           "mu", M_inf, gamma=gamma, to_dict=True)
+       # compute the flow quantities downstream of the normal shockwave
+       flow2 = isentropic_solver("m", shock["md"], gamma=gamma, to_dict=True)
+       p2_pt2 = 1 / flow2["pr"]
+       # NOTE: alternatively, rayleigh_pitot_formula can be used
+       pt2_p_inf = p2_pt2 * shock["pr"]
+       # final results
+       ps_pt2_newtonian = ps_p_inf_newt / pt2_p_inf
+       ps_pt2_mod_newtonian = ps_p_inf_mod_newt / pt2_p_inf
+       # plot
+       plt.figure()
+       plt.plot(y, ps_pt2_newtonian, label="Newtonian")
+       plt.plot(y, ps_pt2_mod_newtonian, label="Modified Newtonian")
+       plt.xlabel("Y")
+       plt.ylabel(r"$p_{s} \, / \, p_{t2}$")
+       plt.legend()
+       plt.grid(which="major", visible=True, linestyle="--")
+       plt.xlim(0, 2)
+       plt.ylim(0, 1.2)
+       plt.show()
+
     References
     ----------
 

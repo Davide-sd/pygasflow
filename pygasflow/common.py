@@ -155,8 +155,8 @@ def pressure_coefficient(Mfs, param_name="pressure", param_value=None, stagnatio
     array([1.000025  , 1.0025025 , 1.06407222, 1.27561308, 1.80876996,
            1.83167098])
     
-    Compute the maximum value of the pressure coefficient, evaluated at
-    a stagnation point behind normal shock wave:
+    Variation of the stagnation-pressure coefficient with the free stream
+    Mach number and the ratio of specific heats:
 
     .. plot::
        :context: close-figs
