@@ -34,7 +34,7 @@ v1.4.0
   * Added a few solutions to *'Basics of Aerothermodynamics'*
     as a showcase of the capabilities of this module.
 
- * Deprecated ``pygasflow.generic.sound_speed`` in favor of
+* Deprecated ``pygasflow.generic.sound_speed`` in favor of
   :func:`~pygasflow.common.sound_speed` in order to remove duplicates.
 
 

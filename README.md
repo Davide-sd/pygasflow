@@ -75,8 +75,18 @@ Let's say you need to solve an isentropic flow:
 
 ```python
 from pygasflow import isentropic_solver
-T1 = 290   # K
-p1 = 1     # atm
+
+# optional steps needed to use units with pint
+import pint
+import pygasflow
+ureg = pint.UnitRegistry()
+# use short units notation
+ureg.formatter.default_format = "~"
+# let pygasflow knows which UnitRegistry to use
+pygasflow.defaults.pint_ureg = ureg
+
+T1 = 290 * ureg.K
+p1 = 1 * ureg.atm
 
 # compute ratios and quantities for an isentropic flow at Mach 2
 res = isentropic_solver("m", 2, to_dict=True)
@@ -99,8 +109,8 @@ res.show()
 T0 = (1 / res["tr"]) * T1
 P0 = (1 / res["pr"]) * p1
 print("---------")
-print(f"P0 = {P0} atm")
-print(f"T0 = {T0} K")
+print(f"P0 = {P0}")
+print(f"T0 = {T0}")
 # ---------
 # P0 = 7.824449066867263 atm
 # T0 = 522.0 K
