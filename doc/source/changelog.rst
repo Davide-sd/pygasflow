@@ -1,6 +1,12 @@
 Changelog
 ---------
 
+v1.4.1
+======
+
+* added missing data files.
+
+
 v1.4.0
 ======
 
