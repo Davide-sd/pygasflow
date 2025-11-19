@@ -57,6 +57,7 @@ setup(
         "bokeh",
         "panel",
         "colorcet",
+        "pint",
         # "cantera"
     ]
 )
