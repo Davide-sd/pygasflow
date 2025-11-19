@@ -1,3 +1,5 @@
 include README.md
 include pygasflow/data/*.zip
+include pygasflow/atd/data/*.csv
+include pygasflow/atd/data/*.txt
 include pygasflow/nozzles/plot-4-16-data/*.csv
